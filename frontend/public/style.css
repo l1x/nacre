@@ -33,6 +33,10 @@ h1 {
     color: var(--accent-color);
 }
 
+.home-link {
+    text-decoration: none;
+}
+
 nav {
     margin-left: 40px;
 }
