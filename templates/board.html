@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nacre - Board</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <header>
+        <h1>Nacre</h1>
+        <nav>
+            <a href="/">Issues</a>
+            <a href="/epics">Epics</a>
+            <a href="/board" class="active">Board</a>
+        </nav>
+    </header>
+    <main id="content">
+        <div class="board">
+            {% for col in columns %}
+            <div class="board-column">
+                <div class="column-header">
+                    <h2>{{ col.name }} <span class="count">{{ col.issues.len() }}</span></h2>
+                </div>
+                <div class="column-content">
+                    {% for issue in col.issues %}
+                    <div class="issue-card" data-id="{{ issue.id }}">
+                        <div class="issue-title">{{ issue.title }}</div>
+                        <div class="issue-meta">{{ issue.id }} • P{{ issue.priority.unwrap_or(0) }}</div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </main>
+    <script src="/app.js"></script>
+</body>
+</html>

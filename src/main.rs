@@ -20,7 +20,7 @@ struct Args {
     host: String,
 
     /// port to listen on
-    #[argh(option, short = 'p', default = "4000")]
+    #[argh(option, short = 'p', default = "3000")]
     port: u16,
 
     /// open the browser automatically
@@ -44,11 +44,22 @@ struct EpicsTemplate {
     epics: Vec<EpicWithProgress>,
 }
 
+#[derive(Template)]
+#[template(path = "board.html")]
+struct BoardTemplate {
+    columns: Vec<BoardColumn>,
+}
+
 struct EpicWithProgress {
     issue: beads::Issue,
     total: usize,
     closed: usize,
     percent: f64,
+}
+
+struct BoardColumn {
+    name: String,
+    issues: Vec<beads::Issue>,
 }
 
 #[tokio::main]
@@ -67,6 +78,7 @@ async fn main() {
     let app = Router::new()
         .route("/", get(index))
         .route("/epics", get(epics))
+        .route("/board", get(board))
         .route("/api/issues", get(list_issues))
         .route("/api/issues/:id", post(update_issue_handler))
         .route("/health", get(health_check))
@@ -79,7 +91,7 @@ async fn main() {
     tracing::info!("listening on {}", addr);
 
     if args.open {
-        let url = format!("http://{}", addr);
+        let url = format!("{}", addr);
         if let Err(e) = open::that(&url) {
             tracing::error!("Failed to open browser: {}", e);
         }
@@ -139,6 +151,51 @@ async fn epics() -> EpicsTemplate {
     }
 
     EpicsTemplate { epics }
+}
+
+async fn board() -> BoardTemplate {
+    let client = beads::Client::new();
+    let all_issues = client.list_issues().unwrap_or_default();
+
+    let mut columns = Vec::new();
+
+    columns.push(BoardColumn {
+        name: "Blocked".to_string(),
+        issues: all_issues
+            .iter()
+            .filter(|i| i.status == beads::Status::Blocked)
+            .cloned()
+            .collect(),
+    });
+
+    columns.push(BoardColumn {
+        name: "Ready".to_string(),
+        issues: all_issues
+            .iter()
+            .filter(|i| i.status == beads::Status::Open)
+            .cloned()
+            .collect(),
+    });
+
+    columns.push(BoardColumn {
+        name: "In Progress".to_string(),
+        issues: all_issues
+            .iter()
+            .filter(|i| i.status == beads::Status::InProgress)
+            .cloned()
+            .collect(),
+    });
+
+    columns.push(BoardColumn {
+        name: "Closed".to_string(),
+        issues: all_issues
+            .iter()
+            .filter(|i| i.status == beads::Status::Closed)
+            .cloned()
+            .collect(),
+    });
+
+    BoardTemplate { columns }
 }
 
 async fn list_issues() -> Json<Vec<beads::Issue>> {
@@ -215,13 +272,13 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_list_issues() {
-        let app = Router::new().route("/api/issues", get(list_issues));
+    async fn test_epics() {
+        let app = Router::new().route("/epics", get(epics));
 
         let response = app
             .oneshot(
                 Request::builder()
-                    .uri("/api/issues")
+                    .uri("/epics")
                     .body(Body::empty())
                     .unwrap(),
             )
@@ -232,13 +289,30 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_epics() {
-        let app = Router::new().route("/epics", get(epics));
+    async fn test_board() {
+        let app = Router::new().route("/board", get(board));
 
         let response = app
             .oneshot(
                 Request::builder()
-                    .uri("/epics")
+                    .uri("/board")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::OK);
+    }
+
+    #[tokio::test]
+    async fn test_list_issues() {
+        let app = Router::new().route("/api/issues", get(list_issues));
+
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .uri("/api/issues")
                     .body(Body::empty())
                     .unwrap(),
             )
