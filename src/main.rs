@@ -1,10 +1,7 @@
 mod beads;
 
-use axum::{
-    routing::get,
-    Json, Router,
-};
 use argh::FromArgs;
+use axum::{Json, Router, routing::get};
 use std::net::SocketAddr;
 use tower_http::{services::ServeDir, trace::TraceLayer};
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
@@ -25,7 +22,7 @@ struct Args {
     open: bool,
 
     /// directory to serve static files from
-    #[argh(option, short = 's', default = "String::from(\"frontend/dist\")")]
+    #[argh(option, short = 's', default = "String::from(\"frontend/public\")")]
     static_dir: String,
 }
 
@@ -112,7 +109,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_static_files() {
-        let app = Router::new().nest_service("/", ServeDir::new("frontend/dist"));
+        let app = Router::new().nest_service("/", ServeDir::new("frontend/public"));
 
         let response = app
             .oneshot(Request::builder().uri("/").body(Body::empty()).unwrap())
@@ -124,7 +121,7 @@ mod tests {
         let body = axum::body::to_bytes(response.into_body(), usize::MAX)
             .await
             .unwrap();
-        assert!(body.starts_with(b"<h1>Nacre</h1>"));
+        assert!(body.starts_with(b"<!DOCTYPE html>"));
     }
 
     #[tokio::test]

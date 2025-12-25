@@ -1,0 +1,90 @@
+:root {
+    --bg-color: #1e1e1e;
+    --text-color: #e0e0e0;
+    --accent-color: #4daafc;
+    --border-color: #333;
+    --card-bg: #2d2d2d;
+    --header-height: 60px;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+header {
+    height: var(--header-height);
+    background-color: var(--card-bg);
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+}
+
+h1 {
+    margin: 0;
+    font-size: 1.2rem;
+    color: var(--accent-color);
+}
+
+nav {
+    margin-left: 40px;
+}
+
+nav a {
+    color: var(--text-color);
+    text-decoration: none;
+    margin-right: 20px;
+    font-size: 0.9rem;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+}
+
+nav a:hover, nav a.active {
+    opacity: 1;
+}
+
+main {
+    flex: 1;
+    overflow: auto;
+    padding: 20px;
+}
+
+/* Issues List */
+.issue-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.issue-item {
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    padding: 15px;
+    border-radius: 4px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.issue-title {
+    font-weight: 500;
+}
+
+.issue-meta {
+    font-size: 0.85rem;
+    color: #888;
+}
+
+.status-badge {
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 0.75rem;
+    background-color: #444;
+}
