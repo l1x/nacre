@@ -22,6 +22,9 @@ mod filters {
     pub fn format_decimal(val: &f64) -> askama::Result<String> {
         Ok(format!("{:.2}", val))
     }
+    pub fn format_date(date: &chrono::DateTime<chrono::FixedOffset>) -> askama::Result<String> {
+        Ok(date.format("%Y-%m-%d %H:%M").to_string())
+    }
 }
 
 // Embed static assets at compile time
@@ -143,11 +146,15 @@ struct GraphNode {
     status: String,
     issue_type: String,
     priority: u8,
+    parent_id: Option<String>,
+    is_epic: bool,
     x: i32,
     y: i32,
 }
 
 struct GraphEdge {
+    source_id: String,
+    target_id: String,
     x1: i32,
     y1: i32,
     x2: i32,
@@ -670,6 +677,10 @@ async fn graph() -> GraphTemplate {
                 status: issue.status.as_str().to_string(),
                 issue_type: issue.issue_type.as_css_class().to_string(),
                 priority: issue.priority.unwrap_or(2),
+                parent_id: issue.dependencies.iter()
+                    .find(|d| d.dep_type == "parent-child")
+                    .map(|d| d.depends_on_id.clone()),
+                is_epic: issue.issue_type == beads::IssueType::Epic,
                 x,
                 y,
             });
@@ -684,6 +695,8 @@ async fn graph() -> GraphTemplate {
                 if let Some(&(x1, y1)) = node_positions.get(&dep.depends_on_id) {
                     // Edge from dependency to dependent (top to bottom)
                     graph_edges.push(GraphEdge {
+                        source_id: dep.depends_on_id.clone(),
+                        target_id: issue.id.clone(),
                         x1,
                         y1: y1 + 30, // Bottom of source node
                         x2,

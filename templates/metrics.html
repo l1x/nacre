@@ -12,72 +12,50 @@
         <a href="/" class="home-link"><h1>Nacre</h1></a>
         <nav>
             <a href="/">Dashboard</a>
-            <a href="/issues">Issues</a>
             <a href="/epics">Epics</a>
             <a href="/board">Board</a>
-            <a href="/graph">Graph</a>
             <a href="/prds">PRDs</a>
             <a href="/metrics" class="active">Metrics</a>
-            <a href="/issues/new" class="create-btn">+ Create</a>
         </nav>
-        <div class="search-container">
-            <input type="text" id="filter-input" placeholder="Filter metrics..." aria-label="Filter metrics">
-        </div>
-        <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">☀️</button>
+        <div class="search-container"></div>
+        <a href="/issues/new" class="create-btn">+ Create</a>
+        <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme"></button>
     </header>
     <main id="content">
         <div class="metrics-container">
             <div class="metrics-grid">
                 <div class="metric-card">
-                    <h3>Average Lead Time</h3>
+                    <h3>Avg Lead Time</h3>
                     <div class="metric-value">{{ avg_lead_time_hours|format_hours }}</div>
-                    <div class="metric-label">Hours from creation to closure</div>
+                    <div class="metric-label">Time from creation to close</div>
                 </div>
                 <div class="metric-card">
-                    <h3>Average Cycle Time</h3>
+                    <h3>Avg Cycle Time</h3>
                     <div class="metric-value">{{ avg_cycle_time_hours|format_hours }}</div>
-                    <div class="metric-label">Hours from start to closure</div>
+                    <div class="metric-label">Time spent in progress</div>
                 </div>
                 <div class="metric-card">
                     <h3>Throughput</h3>
                     <div class="metric-value">{{ throughput_per_day|format_decimal }}</div>
-                    <div class="metric-label">Issues closed per day (7-day avg)</div>
+                    <div class="metric-label">Issues closed per day (last 7d)</div>
                 </div>
+            </div>
+
+            <div class="metrics-grid">
                 <div class="metric-card">
                     <h3>Velocity</h3>
                     <div class="metric-value">{{ closed_last_7_days }}</div>
                     <div class="metric-label">Issues closed in last 7 days</div>
                 </div>
-            </div>
-
-            <div class="metrics-section">
-                <h2>Current Workload</h2>
-                <div class="metrics-grid">
-                    <div class="metric-card">
-                        <h3>WIP</h3>
-                        <div class="metric-value">{{ wip_count }}</div>
-                        <div class="metric-label">Issues currently in progress</div>
-                    </div>
-                    <div class="metric-card">
-                        <h3>Blocked</h3>
-                        <div class="metric-value">{{ blocked_count }}</div>
-                        <div class="metric-label">Issues currently blocked</div>
-                    </div>
+                <div class="metric-card">
+                    <h3>WIP</h3>
+                    <div class="metric-value">{{ wip_count }}</div>
+                    <div class="metric-label">Issues currently in progress</div>
                 </div>
-            </div>
-
-            <div class="metrics-section">
-                <h2>Open Issues by Type</h2>
-                <div class="type-distribution">
-                    {% for type in type_distribution %}
-                        <div class="type-row">
-                            <span class="type-name">{{ type.0 }}</span>
-                            <div class="type-bar-container">
-                                <div class="type-bar" style="width: {{ type.1 }}0%;"></div>
-                            </div>
-                            <span class="type-count">{{ type.1 }}</span>
-                        </div>
-                    {% endfor %}
+                <div class="metric-card">
+                    <h3>Blocked</h3>
+                    <div class="metric-value">{{ blocked_count }}</div>
+                    <div class="metric-label">Issues currently blocked</div>
                 </div>
             </div>
         </div>

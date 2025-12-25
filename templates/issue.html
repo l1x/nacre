@@ -12,16 +12,14 @@
         <a href="/" class="home-link"><h1>Nacre</h1></a>
         <nav>
             <a href="/">Dashboard</a>
-            <a href="/issues">Issues</a>
             <a href="/epics">Epics</a>
             <a href="/board">Board</a>
-            <a href="/graph">Graph</a>
             <a href="/prds">PRDs</a>
             <a href="/metrics">Metrics</a>
-            <a href="/issues/new" class="create-btn">+ Create</a>
         </nav>
         <div class="search-container"></div>
-        <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">☀️</button>
+        <a href="/issues/new" class="create-btn">+ Create</a>
+        <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme"></button>
     </header>
     <main id="content">
         <div class="issue-detail">
@@ -37,7 +35,7 @@
                     <div class="meta-value">{{ issue.issue_type }}</div>
 
                     <div class="meta-label">Priority</div>
-                    <div class="meta-value">P{{ issue.priority.unwrap_or(0) }}</div>
+                    <div class="meta-value">P{{ issue.priority.unwrap_or(2) }}</div>
 
                     {% if issue.assignee.is_some() %}
                     <div class="meta-label">Assignee</div>
@@ -50,14 +48,14 @@
                     {% endif %}
 
                     <div class="meta-label">Created</div>
-                    <div class="meta-value">{{ issue.created_at }}</div>
+                    <div class="meta-value">{{ issue.created_at|format_date }}</div>
 
                     <div class="meta-label">Updated</div>
-                    <div class="meta-value">{{ issue.updated_at }}</div>
+                    <div class="meta-value">{{ issue.updated_at|format_date }}</div>
 
                     {% if issue.closed_at.is_some() %}
                     <div class="meta-label">Closed</div>
-                    <div class="meta-value">{{ issue.closed_at.as_ref().unwrap() }}</div>
+                    <div class="meta-value">{{ issue.closed_at.as_ref().unwrap()|format_date }}</div>
                     {% endif %}
 
                     {% if issue.close_reason.is_some() %}

@@ -12,14 +12,13 @@
         <a href="/" class="home-link"><h1>Nacre</h1></a>
         <nav>
             <a href="/" class="active">Dashboard</a>
-            <a href="/issues">Issues</a>
             <a href="/epics">Epics</a>
             <a href="/board">Board</a>
-            <a href="/graph">Graph</a>
             <a href="/prds">PRDs</a>
             <a href="/metrics">Metrics</a>
-            <a href="/issues/new" class="create-btn">+ Create</a>
         </nav>
+        <div class="search-container"></div>
+        <a href="/issues/new" class="create-btn">+ Create</a>
         <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme"></button>
     </header>
     <main id="content">
@@ -112,37 +111,6 @@
                     {% endif %}
                 </section>
             </div>
-
-            <section class="quick-nav">
-                <h2>Quick Navigation</h2>
-                <div class="nav-cards">
-                    <a href="/issues" class="nav-card">
-                        <div class="nav-card-icon">📋</div>
-                        <div class="nav-card-title">All Issues</div>
-                        <div class="nav-card-desc">Browse all issues grouped by epic</div>
-                    </a>
-                    <a href="/epics" class="nav-card">
-                        <div class="nav-card-icon">🎯</div>
-                        <div class="nav-card-title">Epics</div>
-                        <div class="nav-card-desc">View epics with progress tracking</div>
-                    </a>
-                    <a href="/board" class="nav-card">
-                        <div class="nav-card-icon">📊</div>
-                        <div class="nav-card-title">Board</div>
-                        <div class="nav-card-desc">Kanban board view by status</div>
-                    </a>
-                    <a href="/prds" class="nav-card">
-                        <div class="nav-card-icon">📄</div>
-                        <div class="nav-card-title">PRDs</div>
-                        <div class="nav-card-desc">Product requirements documents</div>
-                    </a>
-                    <a href="/metrics" class="nav-card">
-                        <div class="nav-card-icon">📈</div>
-                        <div class="nav-card-title">Metrics</div>
-                        <div class="nav-card-desc">Project productivity analytics</div>
-                    </a>
-                </div>
-            </section>
         </div>
     </main>
 </body>

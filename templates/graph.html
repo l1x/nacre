@@ -12,20 +12,31 @@
         <a href="/" class="home-link"><h1>Nacre</h1></a>
         <nav>
             <a href="/">Dashboard</a>
-            <a href="/issues">Issues</a>
             <a href="/epics">Epics</a>
             <a href="/board">Board</a>
-            <a href="/graph" class="active">Graph</a>
             <a href="/prds">PRDs</a>
             <a href="/metrics">Metrics</a>
-            <a href="/issues/new" class="create-btn">+ Create</a>
         </nav>
-        <div class="search-container">
-            <input type="text" id="filter-input" placeholder="Filter nodes..." aria-label="Filter nodes">
-        </div>
+        <div class="search-container"></div>
+        <a href="/issues/new" class="create-btn">+ Create</a>
         <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme"></button>
     </header>
     <main id="content" class="graph-container">
+        <div class="graph-controls">
+            <div class="filter-group">
+                <label>Show Types:</label>
+                <div class="checkbox-group">
+                    <label><input type="checkbox" class="type-filter" value="epic" checked> Epics</label>
+                    <label><input type="checkbox" class="type-filter" value="feature"> Features</label>
+                    <label><input type="checkbox" class="type-filter" value="bug"> Bugs</label>
+                    <label><input type="checkbox" class="type-filter" value="task"> Tasks</label>
+                    <label><input type="checkbox" class="type-filter" value="chore"> Chores</label>
+                </div>
+            </div>
+            <button id="expand-all" class="btn btn-secondary"></button>
+            <button id="collapse-all" class="btn btn-secondary"></button>
+        </div>
+
         <div class="graph-wrapper">
             <svg id="graph-svg" width="{{ width }}" height="{{ height }}" viewBox="0 0 {{ width }} {{ height }}">
                 <defs>
@@ -43,6 +54,8 @@
                         x2="{{ edge.x2 }}"
                         y2="{{ edge.y2 }}"
                         class="edge"
+                        data-source="{{ edge.source_id }}"
+                        data-target="{{ edge.target_id }}"
                         marker-end="url(#arrowhead)"
                     />
                     {% endfor %}
@@ -51,21 +64,31 @@
                 <!-- Nodes -->
                 <g class="nodes">
                     {% for node in nodes %}
-                    <a href="/issues/{{ node.id }}" class="graph-node-link" data-filter-text="{{ node.title|lower }} {{ node.id|lower }}">
-                        <g class="graph-node node-{{ node.status }} type-{{ node.issue_type }}" transform="translate({{ node.x }}, {{ node.y }})">
-                            <rect
-                                x="-80"
-                                y="-30"
-                                width="160"
-                                height="60"
-                                rx="6"
-                                class="node-bg"
-                            />
-                            <text x="0" y="-8" class="node-title" text-anchor="middle">{{ node.title_short }}</text>
-                            <text x="0" y="10" class="node-id" text-anchor="middle">{{ node.id }}</text>
-                            <text x="0" y="22" class="node-meta" text-anchor="middle">{{ node.issue_type }} | P{{ node.priority }}</text>
-                        </g>
-                    </a>
+                    <g class="graph-node-container" 
+                       data-id="{{ node.id }}" 
+                       data-parent="{% if let Some(p) = node.parent_id %}{{ p }}{% endif %}"
+                       data-type="{{ node.issue_type }}"
+                       data-is-epic="{{ node.is_epic }}">
+                        <a href="/issues/{{ node.id }}" class="graph-node-link" data-filter-text="{{ node.title|lower }} {{ node.id|lower }}">
+                            <g class="graph-node node-{{ node.status }} type-{{ node.issue_type }}" transform="translate({{ node.x }}, {{ node.y }})">
+                                <rect
+                                    x="-80"
+                                    y="-30"
+                                    width="160"
+                                    height="60"
+                                    rx="6"
+                                    class="node-bg"
+                                />
+                                <text x="0" y="-8" class="node-title" text-anchor="middle">{{ node.title_short }}</text>
+                                <text x="0" y="10" class="node-id" text-anchor="middle">{{ node.id }}</text>
+                                <text x="0" y="22" class="node-meta" text-anchor="middle">{{ node.issue_type }} | P{{ node.priority }}</text>
+                            </g>
+                        </a>
+                        {% if node.is_epic %}
+                        <circle cx="{{ node.x + 70 }}" cy="{{ node.y + 20 }}" r="8" class="expand-btn" data-id="{{ node.id }}" />
+                        <text x="{{ node.x + 70 }}" y="{{ node.y + 23 }}" class="expand-icon" text-anchor="middle">+</text>
+                        {% endif %}
+                    </g>
                     {% endfor %}
                 </g>
             </svg>
@@ -81,15 +104,112 @@
         </div>
     </main>
     <script>
-        // Graph node filtering
-        document.getElementById('filter-input').addEventListener('input', (e) => {
-            const query = e.target.value.toLowerCase();
-            document.querySelectorAll('.graph-node-link').forEach(link => {
-                const text = link.getAttribute('data-filter-text');
-                const matches = text && text.includes(query);
-                link.style.opacity = matches || !query ? '1' : '0.2';
+        const nodes = document.querySelectorAll('.graph-node-container');
+        const edges = document.querySelectorAll('.edge');
+        const typeFilters = document.querySelectorAll('.type-filter');
+        const expandBtns = document.querySelectorAll('.expand-btn');
+        
+        // Initial state: Only show top-level nodes (no parent) or epics
+        // But the user said: "parent nodes visible on entering"
+        // And "when selected an epic a tree should open with the task"
+        // Let's assume on enter we only show nodes without parents.
+        
+        let expandedNodes = new Set();
+
+        function updateVisibility() {
+            const activeTypes = new Set(Array.from(typeFilters).filter(f => f.checked).map(f => f.value));
+            
+            nodes.forEach(node => {
+                const id = node.getAttribute('data-id');
+                const parentId = node.getAttribute('data-parent');
+                const type = node.getAttribute('data-type');
+                
+                let visible = false;
+                
+                // Visible if it's a top-level node (no parent)
+                if (!parentId) {
+                    visible = true;
+                } else if (expandedNodes.has(parentId)) {
+                    // Visible if its parent is expanded
+                    visible = true;
+                }
+
+                // Also must match type filter
+                if (visible && !activeTypes.has(type)) {
+                    visible = false;
+                }
+
+                if (visible) {
+                    node.classList.remove('hidden');
+                } else {
+                    node.classList.add('hidden');
+                }
+            });
+
+            edges.forEach(edge => {
+                const sourceId = edge.getAttribute('data-source');
+                const targetId = edge.getAttribute('data-target');
+                
+                const sourceVisible = !document.querySelector(`.graph-node-container[data-id="${sourceId}"]`).classList.contains('hidden');
+                const targetVisible = !document.querySelector(`.graph-node-container[data-id="${targetId}"]`).classList.contains('hidden');
+                
+                if (sourceVisible && targetVisible) {
+                    edge.classList.remove('hidden');
+                } else {
+                    edge.classList.add('hidden');
+                }
+            });
+        }
+
+        expandBtns.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                const id = btn.getAttribute('data-id');
+                if (expandedNodes.has(id)) {
+                    expandedNodes.delete(id);
+                    btn.nextElementSibling.textContent = '+';
+                } else {
+                    expandedNodes.add(id);
+                    btn.nextElementSibling.textContent = '-';
+                }
+                updateVisibility();
             });
         });
+
+        typeFilters.forEach(f => f.addEventListener('change', updateVisibility));
+
+        document.getElementById('expand-all').addEventListener('click', () => {
+            nodes.forEach(n => {
+                if (n.getAttribute('data-is-epic') === 'true') {
+                    expandedNodes.add(n.getAttribute('data-id'));
+                }
+            });
+            document.querySelectorAll('.expand-icon').forEach(i => i.textContent = '-');
+            updateVisibility();
+        });
+
+        document.getElementById('collapse-all').addEventListener('click', () => {
+            expandedNodes.clear();
+            document.querySelectorAll('.expand-icon').forEach(i => i.textContent = '+');
+            updateVisibility();
+        });
+
+        // Initialize
+        updateVisibility();
+
+        // Graph node title/id filtering (existing search box)
+        const filterInput = document.getElementById('filter-input');
+        if (filterInput) {
+            filterInput.addEventListener('input', (e) => {
+                const query = e.target.value.toLowerCase();
+                document.querySelectorAll('.graph-node-link').forEach(link => {
+                    const text = link.getAttribute('data-filter-text');
+                    const matches = text && text.includes(query);
+                    link.style.opacity = matches || !query ? '1' : '0.2';
+                });
+            });
+        }
     </script>
 </body>
 </html>
