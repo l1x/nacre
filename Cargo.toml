@@ -17,3 +17,4 @@ open = "5.0"
 askama = "0.12"
 askama_axum = "0.4"
 pulldown-cmark = "0.10"
+chrono = { version = "0.4.42", features = ["serde"] }

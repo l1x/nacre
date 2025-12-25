@@ -1,3 +1,4 @@
+use chrono::{DateTime, FixedOffset};
 use serde::{Deserialize, Serialize};
 use std::fmt;
 use std::io;
@@ -11,9 +12,9 @@ pub struct Issue {
     pub status: Status,
     pub priority: Option<u8>,
     pub issue_type: IssueType,
-    pub created_at: String,
-    pub updated_at: String,
-    pub closed_at: Option<String>,
+    pub created_at: DateTime<FixedOffset>,
+    pub updated_at: DateTime<FixedOffset>,
+    pub closed_at: Option<DateTime<FixedOffset>>,
     pub assignee: Option<String>,
     pub labels: Option<Vec<String>>,
     pub description: Option<String>,
@@ -22,6 +23,16 @@ pub struct Issue {
     pub estimate: Option<u32>,
     #[serde(default)]
     pub dependencies: Vec<Dependency>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct Activity {
+    pub timestamp: DateTime<FixedOffset>,
+    pub r#type: String,
+    pub issue_id: String,
+    pub message: String,
+    pub old_status: Option<Status>,
+    pub new_status: Option<Status>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -226,5 +237,39 @@ impl Client {
         // bd create --silent outputs just the issue ID
         let id = String::from_utf8_lossy(&output.stdout).trim().to_string();
         Ok(id)
+    }
+
+    pub fn get_activity(&self) -> io::Result<Vec<Activity>> {
+        let output = Command::new(&self.bin_path)
+            .arg("activity")
+            .arg("--json")
+            .output()?;
+
+        if !output.status.success() {
+            let error_msg = String::from_utf8_lossy(&output.stderr);
+            return Err(io::Error::other(error_msg.to_string()));
+        }
+
+        let activities: Vec<Activity> = serde_json::from_slice(&output.stdout)
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+
+        Ok(activities)
+    }
+
+    pub fn get_status_summary(&self) -> io::Result<serde_json::Value> {
+        let output = Command::new(&self.bin_path)
+            .arg("status")
+            .arg("--json")
+            .output()?;
+
+        if !output.status.success() {
+            let error_msg = String::from_utf8_lossy(&output.stderr);
+            return Err(io::Error::other(error_msg.to_string()));
+        }
+
+        let summary: serde_json::Value = serde_json::from_slice(&output.stdout)
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+
+        Ok(summary)
     }
 }

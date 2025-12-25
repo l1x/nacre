@@ -15,6 +15,15 @@ use std::net::SocketAddr;
 use tower_http::trace::TraceLayer;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
+mod filters {
+    pub fn format_hours(hours: &f64) -> askama::Result<String> {
+        Ok(format!("{:.1}h", hours))
+    }
+    pub fn format_decimal(val: &f64) -> askama::Result<String> {
+        Ok(format!("{:.2}", val))
+    }
+}
+
 // Embed static assets at compile time
 const STYLE_CSS: &str = include_str!("../frontend/public/style.css");
 const APP_JS: &str = include_str!("../frontend/public/app.js");
@@ -50,6 +59,8 @@ struct ProjectStats {
     in_progress: usize,
     blocked: usize,
     closed: usize,
+    avg_lead_time_hours: f64,
+    avg_cycle_time_hours: f64,
 }
 
 #[derive(Template)]
@@ -113,6 +124,18 @@ struct GraphTemplate {
     height: i32,
 }
 
+#[derive(Template)]
+#[template(path = "metrics.html")]
+struct MetricsTemplate {
+    avg_lead_time_hours: f64,
+    avg_cycle_time_hours: f64,
+    throughput_per_day: f64,
+    closed_last_7_days: usize,
+    wip_count: usize,
+    blocked_count: usize,
+    type_distribution: Vec<(String, usize)>,
+}
+
 struct GraphNode {
     id: String,
     title: String,
@@ -164,6 +187,7 @@ async fn main() {
         .route("/epics/:id", get(epic_detail))
         .route("/board", get(board))
         .route("/graph", get(graph))
+        .route("/metrics", get(metrics_handler))
         .route("/issues/new", get(new_issue_form))
         .route("/issues/:id", get(issue_detail))
         .route("/prds", get(prds_list))
@@ -207,6 +231,36 @@ async fn serve_js() -> impl IntoResponse {
 async fn landing() -> LandingTemplate {
     let client = beads::Client::new();
     let all_issues = client.list_issues().unwrap_or_default();
+    let activities = client.get_activity().unwrap_or_default();
+    let summary = client.get_status_summary().unwrap_or_default();
+
+    let avg_lead_time_hours = summary["summary"]["average_lead_time_hours"]
+        .as_f64()
+        .unwrap_or(0.0);
+
+    // Calculate Cycle Time
+    let mut started_times: HashMap<String, chrono::DateTime<chrono::FixedOffset>> = HashMap::new();
+    for act in &activities {
+        if act.new_status == Some(beads::Status::InProgress) {
+            started_times.entry(act.issue_id.clone()).or_insert(act.timestamp);
+        }
+    }
+
+    let mut cycle_times = Vec::new();
+    for issue in &all_issues {
+        if let Some(closed_at) = issue.closed_at {
+            if let Some(started_at) = started_times.get(&issue.id) {
+                let duration = closed_at - *started_at;
+                cycle_times.push(duration.num_minutes() as f64 / 60.0);
+            }
+        }
+    }
+
+    let avg_cycle_time_hours = if !cycle_times.is_empty() {
+        cycle_times.iter().sum::<f64>() / cycle_times.len() as f64
+    } else {
+        0.0
+    };
 
     // Calculate stats
     let stats = ProjectStats {
@@ -227,6 +281,8 @@ async fn landing() -> LandingTemplate {
             .iter()
             .filter(|i| i.status == beads::Status::Closed)
             .count(),
+        avg_lead_time_hours,
+        avg_cycle_time_hours,
     };
 
     // Get epics with progress
@@ -710,6 +766,80 @@ async fn list_issues() -> Json<Vec<beads::Issue>> {
             tracing::error!("Failed to list issues: {}", e);
             Json(vec![])
         }
+    }
+}
+
+async fn metrics_handler() -> MetricsTemplate {
+    let client = beads::Client::new();
+    let all_issues = client.list_issues().unwrap_or_default();
+    let activities = client.get_activity().unwrap_or_default();
+    let summary = client.get_status_summary().unwrap_or_default();
+
+    let avg_lead_time_hours = summary["summary"]["average_lead_time_hours"]
+        .as_f64()
+        .unwrap_or(0.0);
+
+    // Calculate Cycle Time
+    // Map issue_id to first in_progress timestamp
+    let mut started_times: HashMap<String, chrono::DateTime<chrono::FixedOffset>> = HashMap::new();
+    for act in &activities {
+        if act.new_status == Some(beads::Status::InProgress) {
+            started_times.entry(act.issue_id.clone()).or_insert(act.timestamp);
+        }
+    }
+
+    let mut cycle_times = Vec::new();
+    let now = chrono::Utc::now();
+    let seven_days_ago = now - chrono::Duration::days(7);
+    let mut closed_last_7_days = 0;
+
+    for issue in &all_issues {
+        if let Some(closed_at) = issue.closed_at {
+            if closed_at.with_timezone(&chrono::Utc) >= seven_days_ago {
+                closed_last_7_days += 1;
+            }
+
+            if let Some(started_at) = started_times.get(&issue.id) {
+                let duration = closed_at - *started_at;
+                cycle_times.push(duration.num_minutes() as f64 / 60.0);
+            }
+        }
+    }
+
+    let avg_cycle_time_hours = if !cycle_times.is_empty() {
+        cycle_times.iter().sum::<f64>() / cycle_times.len() as f64
+    } else {
+        0.0
+    };
+
+    let throughput_per_day = closed_last_7_days as f64 / 7.0;
+
+    let wip_count = all_issues
+        .iter()
+        .filter(|i| i.status == beads::Status::InProgress)
+        .count();
+    let blocked_count = all_issues
+        .iter()
+        .filter(|i| i.status == beads::Status::Blocked)
+        .count();
+
+    let mut types_map: HashMap<String, usize> = HashMap::new();
+    for issue in &all_issues {
+        if issue.status != beads::Status::Closed {
+            *types_map.entry(format!("{}", issue.issue_type)).or_insert(0) += 1;
+        }
+    }
+    let mut type_distribution: Vec<(String, usize)> = types_map.into_iter().collect();
+    type_distribution.sort_by(|a, b| b.1.cmp(&a.1));
+
+    MetricsTemplate {
+        avg_lead_time_hours,
+        avg_cycle_time_hours,
+        throughput_per_day,
+        closed_last_7_days,
+        wip_count,
+        blocked_count,
+        type_distribution,
     }
 }
 

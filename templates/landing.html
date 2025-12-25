@@ -17,6 +17,7 @@
             <a href="/board">Board</a>
             <a href="/graph">Graph</a>
             <a href="/prds">PRDs</a>
+            <a href="/metrics">Metrics</a>
             <a href="/issues/new" class="create-btn">+ Create</a>
         </nav>
         <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme"></button>
@@ -43,6 +44,14 @@
                 <div class="stat-card stat-closed">
                     <div class="stat-value">{{ stats.closed }}</div>
                     <div class="stat-label">Closed</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">{{ stats.avg_lead_time_hours|format_hours }}</div>
+                    <div class="stat-label">Avg Lead Time</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">{{ stats.avg_cycle_time_hours|format_hours }}</div>
+                    <div class="stat-label">Avg Cycle Time</div>
                 </div>
             </section>
 
@@ -126,6 +135,11 @@
                         <div class="nav-card-icon">📄</div>
                         <div class="nav-card-title">PRDs</div>
                         <div class="nav-card-desc">Product requirements documents</div>
+                    </a>
+                    <a href="/metrics" class="nav-card">
+                        <div class="nav-card-icon">📈</div>
+                        <div class="nav-card-title">Metrics</div>
+                        <div class="nav-card-desc">Project productivity analytics</div>
                     </a>
                 </div>
             </section>
