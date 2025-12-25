@@ -256,11 +256,11 @@ async fn landing() -> LandingTemplate {
 
     let mut cycle_times = Vec::new();
     for issue in &all_issues {
-        if let Some(closed_at) = issue.closed_at {
-            if let Some(started_at) = started_times.get(&issue.id) {
-                let duration = closed_at - *started_at;
-                cycle_times.push(duration.num_minutes() as f64 / 60.0);
-            }
+        if let Some(closed_at) = issue.closed_at
+            && let Some(started_at) = started_times.get(&issue.id)
+        {
+            let duration = closed_at - *started_at;
+            cycle_times.push(duration.num_minutes() as f64 / 60.0);
         }
     }
 
@@ -901,20 +901,20 @@ async fn metrics_handler() -> MetricsTemplate {
         resolved_data.sort_by_key(|(d, _)| *d);
 
         chart.draw_series(
-            LineSeries::new(created_data, &BLUE),
+            LineSeries::new(created_data, BLUE),
         ).unwrap()
         .label("Created")
-        .legend(|(x, y)| PathElement::new(vec![(x, y), (x + 20, y)], &BLUE));
+        .legend(|(x, y)| PathElement::new(vec![(x, y), (x + 20, y)], BLUE));
 
         chart.draw_series(
-            LineSeries::new(resolved_data, &GREEN),
+            LineSeries::new(resolved_data, GREEN),
         ).unwrap()
         .label("Resolved")
-        .legend(|(x, y)| PathElement::new(vec![(x, y), (x + 20, y)], &GREEN));
+        .legend(|(x, y)| PathElement::new(vec![(x, y), (x + 20, y)], GREEN));
 
         chart.configure_series_labels()
-            .background_style(&WHITE.mix(0.8))
-            .border_style(&BLACK)
+            .background_style(WHITE.mix(0.8))
+            .border_style(BLACK)
             .draw().unwrap();
     }
 
@@ -925,7 +925,6 @@ async fn metrics_handler() -> MetricsTemplate {
         closed_last_7_days,
         wip_count,
         blocked_count,
-        type_distribution,
         tickets_chart_svg,
     }
 }
