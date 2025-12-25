@@ -477,21 +477,25 @@ main > h2 {
 }
 
 .epic-progress-section {
-    margin: 24px 0 32px;
-    padding: 20px;
+    margin: 16px 0 24px;
+    padding: 12px 16px;
     background-color: var(--bg-secondary);
     border-radius: var(--radius);
+    display: flex;
+    align-items: center;
+    gap: 16px;
 }
 
 .progress-container.large {
-    height: 12px;
-    margin-bottom: 12px;
+    height: 6px;
+    flex: 1;
+    margin-bottom: 0;
 }
 
 .progress-stats.large {
-    font-size: 1rem;
-    text-align: center;
-    color: var(--text-primary);
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    white-space: nowrap;
 }
 
 .epic-children-list {
