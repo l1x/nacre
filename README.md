@@ -27,6 +27,20 @@ cargo build --release
 
 The binary will be at `target/release/nacre`.
 
+### Binary Info
+
+- **Size**: 3.8 MB (release build)
+- **Platform**: macOS (Darwin)
+
+**Linked Libraries** (macOS):
+```
+CoreText.framework
+CoreGraphics.framework
+libiconv.2.dylib
+CoreFoundation.framework
+libSystem.B.dylib
+```
+
 ## Usage
 
 ```bash
