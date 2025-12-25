@@ -138,11 +138,14 @@ async fn index() -> IndexTemplate {
     let client = beads::Client::new();
     let all_issues = client.list_issues().unwrap_or_default();
 
-    let epics: Vec<beads::Issue> = all_issues
+    let mut epics: Vec<beads::Issue> = all_issues
         .iter()
         .filter(|i| i.issue_type == beads::IssueType::Epic)
         .cloned()
         .collect();
+
+    // Sort epics by most recently updated first
+    epics.sort_by(|a, b| b.updated_at.cmp(&a.updated_at));
 
     let mut groups: Vec<IssueGroup> = Vec::new();
 
@@ -234,6 +237,9 @@ async fn epics() -> EpicsTemplate {
         });
     }
 
+    // Sort epics by most recently updated first
+    epics.sort_by(|a, b| b.issue.updated_at.cmp(&a.issue.updated_at));
+
     EpicsTemplate { epics }
 }
 
@@ -291,17 +297,23 @@ async fn issue_detail(Path(id): Path<String>) -> Result<IssueDetailTemplate, Sta
 }
 
 async fn prds_list() -> PrdsListTemplate {
-    let mut files = Vec::new();
+    let mut files_with_time: Vec<(String, std::time::SystemTime)> = Vec::new();
     if let Ok(entries) = std::fs::read_dir("docs/prds") {
         for entry in entries.flatten() {
             if let Ok(name) = entry.file_name().into_string()
                 && name.ends_with(".md")
             {
-                files.push(name);
+                let modified = entry
+                    .metadata()
+                    .and_then(|m| m.modified())
+                    .unwrap_or(std::time::SystemTime::UNIX_EPOCH);
+                files_with_time.push((name, modified));
             }
         }
     }
-    files.sort();
+    // Sort by most recently modified first
+    files_with_time.sort_by(|a, b| b.1.cmp(&a.1));
+    let files: Vec<String> = files_with_time.into_iter().map(|(name, _)| name).collect();
     PrdsListTemplate { files }
 }
 
