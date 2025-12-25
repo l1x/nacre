@@ -156,6 +156,71 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // Column Visibility Toggle
+    const columnsToggle = document.getElementById('columns-toggle');
+    const columnsDropdown = document.getElementById('columns-dropdown');
+    
+    if (columnsToggle && columnsDropdown) {
+        // Load saved visibility state
+        const savedVisibility = localStorage.getItem('board-column-visibility');
+        let visibilityState = savedVisibility ? JSON.parse(savedVisibility) : {};
+        
+        // Initialize checkboxes and apply visibility
+        const columnCheckboxes = columnsDropdown.querySelectorAll('input[type="checkbox"]');
+        columnCheckboxes.forEach(checkbox => {
+            const status = checkbox.getAttribute('data-status');
+            
+            // Set checkbox state from saved state, default to checked
+            checkbox.checked = visibilityState[status] !== false;
+            
+            // Apply initial visibility
+            updateColumnVisibility(status, checkbox.checked);
+            
+            // Listen for changes
+            checkbox.addEventListener('change', (e) => {
+                const status = e.target.getAttribute('data-status');
+                const isVisible = e.target.checked;
+                
+                updateColumnVisibility(status, isVisible);
+                saveVisibilityState();
+            });
+        });
+        
+        function updateColumnVisibility(status, isVisible) {
+            const column = document.querySelector(`.board-column[data-status="${status}"]`);
+            if (column) {
+                column.style.display = isVisible ? '' : 'none';
+            }
+        }
+        
+        function saveVisibilityState() {
+            const newState = {};
+            columnCheckboxes.forEach(checkbox => {
+                const status = checkbox.getAttribute('data-status');
+                newState[status] = checkbox.checked;
+            });
+            localStorage.setItem('board-column-visibility', JSON.stringify(newState));
+        }
+        
+        // Toggle dropdown
+        columnsToggle.addEventListener('click', (e) => {
+            e.stopPropagation();
+            columnsDropdown.classList.toggle('show');
+        });
+        
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!columnsDropdown.contains(e.target) && e.target !== columnsToggle) {
+                columnsDropdown.classList.remove('show');
+            }
+        });
+        
+        // Prevent dropdown close when clicking inside
+        columnsDropdown.addEventListener('click', (e) => {
+            e.stopPropagation();
+        });
+    }
+
     // Board Drag and Drop
     const draggables = document.querySelectorAll('.issue-card[draggable="true"]');
     const droppables = document.querySelectorAll('.column-content');
@@ -224,5 +289,141 @@ document.addEventListener('DOMContentLoaded', () => {
                 return closest;
             }
         }, { offset: Number.NEGATIVE_INFINITY }).element;
+    }
+
+    // Keyboard Navigation
+    initKeyboardNavigation();
+
+    function initKeyboardNavigation() {
+        let selectedIndex = -1;
+        let selectedColumnIndex = 0;
+        let selectedCardIndex = 0;
+        
+        // Detect View Type
+        const isBoard = document.querySelector('.board') !== null;
+        const isList = document.querySelector('.issue-list') !== null;
+        
+        if (!isBoard && !isList) return;
+
+        // Initial selection if in board mode
+        if (isBoard) {
+            updateBoardSelection();
+        }
+
+        document.addEventListener('keydown', (e) => {
+            // Ignore if input is focused
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
+            if (isList) {
+                handleListNavigation(e);
+            } else if (isBoard) {
+                handleBoardNavigation(e);
+            }
+        });
+
+        function handleListNavigation(e) {
+            const items = Array.from(document.querySelectorAll('.issue-item:not([style*="display: none"])'));
+            if (items.length === 0) return;
+
+            // Find currently selected
+            const current = document.querySelector('.issue-item.selected');
+            if (current) {
+                selectedIndex = items.indexOf(current);
+            }
+
+            if (e.key === 'j' || e.key === 'ArrowDown') {
+                selectedIndex = Math.min(selectedIndex + 1, items.length - 1);
+                selectItem(items[selectedIndex]);
+                e.preventDefault();
+            } else if (e.key === 'k' || e.key === 'ArrowUp') {
+                selectedIndex = Math.max(selectedIndex - 1, 0);
+                selectItem(items[selectedIndex]);
+                e.preventDefault();
+            } else if (e.key === 'Enter' || e.key === 'o') {
+                if (current) {
+                    const link = current.querySelector('.issue-meta a');
+                    if (link) link.click();
+                }
+            }
+        }
+
+        function handleBoardNavigation(e) {
+            const columns = Array.from(document.querySelectorAll('.board-column:not([style*="display: none"])'));
+            if (columns.length === 0) return;
+
+            if (e.key === 'j' || e.key === 'ArrowDown') {
+                const col = columns[selectedColumnIndex];
+                const cards = getVisibleCards(col);
+                if (cards.length > 0) {
+                    selectedCardIndex = Math.min(selectedCardIndex + 1, cards.length - 1);
+                    updateBoardSelection();
+                    e.preventDefault();
+                }
+            } else if (e.key === 'k' || e.key === 'ArrowUp') {
+                selectedCardIndex = Math.max(selectedCardIndex - 1, 0);
+                updateBoardSelection();
+                e.preventDefault();
+            } else if (e.key === 'h' || e.key === 'ArrowLeft') {
+                selectedColumnIndex = Math.max(selectedColumnIndex - 1, 0);
+                // Try to maintain relative vertical position or reset? Resetting is safer.
+                // Or try to clamp to new column height
+                const col = columns[selectedColumnIndex];
+                const cards = getVisibleCards(col);
+                selectedCardIndex = Math.min(selectedCardIndex, Math.max(0, cards.length - 1));
+                updateBoardSelection();
+                e.preventDefault();
+            } else if (e.key === 'l' || e.key === 'ArrowRight') {
+                selectedColumnIndex = Math.min(selectedColumnIndex + 1, columns.length - 1);
+                const col = columns[selectedColumnIndex];
+                const cards = getVisibleCards(col);
+                selectedCardIndex = Math.min(selectedCardIndex, Math.max(0, cards.length - 1));
+                updateBoardSelection();
+                e.preventDefault();
+            } else if (e.key === 'Enter' || e.key === 'o') {
+                const selected = document.querySelector('.issue-card.selected');
+                if (selected) {
+                    const link = selected.querySelector('a');
+                    if (link) link.click();
+                }
+            }
+        }
+
+        function getVisibleCards(column) {
+             if (!column) return [];
+             return Array.from(column.querySelectorAll('.issue-card:not([style*="display: none"])'));
+        }
+
+        function selectItem(item) {
+            document.querySelectorAll('.issue-item.selected').forEach(el => el.classList.remove('selected'));
+            if (item) {
+                item.classList.add('selected');
+                item.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+        }
+
+        function updateBoardSelection() {
+            const columns = Array.from(document.querySelectorAll('.board-column:not([style*="display: none"])'));
+            if (columns.length === 0) return;
+
+            // Clamp column index
+            selectedColumnIndex = Math.max(0, Math.min(selectedColumnIndex, columns.length - 1));
+            const col = columns[selectedColumnIndex];
+            
+            const cards = getVisibleCards(col);
+            
+            document.querySelectorAll('.issue-card.selected').forEach(el => el.classList.remove('selected'));
+            
+            if (cards.length > 0) {
+                // Clamp card index
+                selectedCardIndex = Math.max(0, Math.min(selectedCardIndex, cards.length - 1));
+                const card = cards[selectedCardIndex];
+                card.classList.add('selected');
+                card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            } else {
+                // No cards in this column, visual feedback on column header? 
+                // For now, let's just ensure we don't crash.
+                // Ideally, we might want to highlight the column itself.
+            }
+        }
     }
 });

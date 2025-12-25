@@ -20,13 +20,25 @@
             <a href="/metrics">Metrics</a>
         </nav>
         <div class="search-container"><input type="text" id="filter-input" placeholder="Search issues..."></div>
+        <div class="column-controls">
+            <button class="columns-toggle" id="columns-toggle" aria-label="Toggle column visibility">👁️ Columns</button>
+            <div class="columns-dropdown" id="columns-dropdown">
+                {% for col in columns %}
+                <label class="column-checkbox">
+                    <input type="checkbox" data-status="{{ col.status }}" checked>
+                    <span>{{ col.name }}</span>
+                    <span class="count">{{ col.issues.len() }}</span>
+                </label>
+                {% endfor %}
+            </div>
+        </div>
         <a href="/issues/new" class="create-btn">+ Create</a>
         <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme"></button>
     </header>
     <main id="content">
         <div class="board">
             {% for col in columns %}
-            <div class="board-column">
+            <div class="board-column" data-status="{{ col.status }}">
                 <div class="column-header">
                     <h2>{{ col.name }} <span class="count">{{ col.issues.len() }}</span></h2>
                 </div>

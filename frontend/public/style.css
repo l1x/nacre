@@ -1192,6 +1192,82 @@ main:has(.board) {
     white-space: nowrap;
 }
 
+/* Column Controls */
+.column-controls {
+    position: relative;
+    margin-left: 12px;
+}
+
+.columns-toggle {
+    background: none;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    padding: 6px 10px;
+    cursor: pointer;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    line-height: 1;
+    transition: color 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
+}
+
+.columns-toggle:hover {
+    color: var(--accent);
+    border-color: var(--accent-muted);
+    background-color: var(--accent-glow);
+}
+
+.columns-dropdown {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    margin-top: 8px;
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-md);
+    z-index: 1000;
+    min-width: 200px;
+    display: none;
+    flex-direction: column;
+    gap: 4px;
+    padding: 8px;
+}
+
+.columns-dropdown.show {
+    display: flex;
+}
+
+.column-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    font-size: 0.9rem;
+    color: var(--text-primary);
+}
+
+.column-checkbox:hover {
+    background-color: var(--bg-secondary);
+}
+
+.column-checkbox input[type="checkbox"] {
+    margin: 0;
+    accent-color: var(--accent);
+}
+
+.column-checkbox .count {
+    margin-left: auto;
+    background-color: var(--bg-secondary);
+    padding: 2px 6px;
+    border-radius: 10px;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
 .create-btn:hover {
     background-color: var(--accent-muted);
     color: white;
@@ -1833,4 +1909,12 @@ main:has(.board) {
     font-size: 0.9rem;
     font-weight: 600;
     color: var(--text-primary);
+}
+
+/* Keyboard Navigation Selection */
+.issue-item.selected, .issue-card.selected {
+    border-color: var(--accent) !important;
+    box-shadow: 0 0 0 2px var(--accent-glow) !important;
+    z-index: 10;
+    position: relative;
 }
