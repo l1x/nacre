@@ -58,10 +58,12 @@
     - Functional on Windows (with known limitations regarding process signals).
 3.  **Dependency**:
     - Must require the `bd` binary to be present or accessible.
-    - Built using Node.js.
 4.  **Tech Stack**:
-    - Frontend: Lit (Web Components) for lightweight, standard-compliant UI.
-    - Backend: Node.js (Express or similar) for serving assets and API.
+    - Language: Rust for performance and reliability.
+    - Web Framework: Axum for async HTTP server and routing.
+    - Templating: Askama for compile-time checked HTML templates.
+    - CLI: argh for argument parsing.
+    - Frontend: Vanilla JavaScript with minimal dependencies.
 
 ## 6. Non-Goals
 1.  **Remote Hosting**: This is a local-first tool; hosting as a multi-user SaaS is not a goal.
@@ -69,8 +71,8 @@
 3.  **Complex Graph Visualization**: While Beads is a graph, this UI focuses on Lists and Kanban; complex node-graph rendering is secondary to workflow management.
 
 ## 7. Success Metrics
-1.  **Adoption**: Number of downloads/installs via npm.
-2.  **Engagement**: Frequency of use (daily active users if tracking were enabled, otherwise anecdotal feedback).
+1.  **Adoption**: GitHub stars, forks, and community contributions.
+2.  **Engagement**: Frequency of use (anecdotal feedback from developers using it with their AI agents).
 3.  **Efficiency**: Reduction in time to triage issues compared to using `bd` CLI list commands (measured via user feedback).
 
 ## 8. Design Considerations
