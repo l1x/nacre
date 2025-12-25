@@ -26,7 +26,7 @@
                     {% for issue in col.issues %}
                     <div class="issue-card" data-id="{{ issue.id }}">
                         <div class="issue-title">{{ issue.title }}</div>
-                        <div class="issue-meta">{{ issue.id }} • P{{ issue.priority.unwrap_or(0) }}</div>
+                        <div class="issue-meta"><a href="/issues/{{ issue.id }}">{{ issue.id }}</a> • P{{ issue.priority.unwrap_or(0) }}</div>
                     </div>
                     {% endfor %}
                 </div>

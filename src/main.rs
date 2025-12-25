@@ -56,6 +56,12 @@ struct BoardTemplate {
     columns: Vec<BoardColumn>,
 }
 
+#[derive(Template)]
+#[template(path = "issue.html")]
+struct IssueDetailTemplate {
+    issue: beads::Issue,
+}
+
 struct EpicWithProgress {
     issue: beads::Issue,
     total: usize,
@@ -85,6 +91,7 @@ async fn main() {
         .route("/", get(index))
         .route("/epics", get(epics))
         .route("/board", get(board))
+        .route("/issues/:id", get(issue_detail))
         .route("/api/issues", get(list_issues))
         .route("/api/issues/:id", post(update_issue_handler))
         .route("/health", get(health_check))
@@ -123,11 +130,14 @@ async fn index() -> IndexTemplate {
 
     let mut groups: Vec<IssueGroup> = Vec::new();
 
-    for epic in epics {
+    for epic in &epics {
         let prefix = format!("{}.", epic.id);
         let children: Vec<beads::Issue> = all_issues
             .iter()
-            .filter(|i| i.id.starts_with(&prefix))
+            .filter(|i| {
+                i.dependencies.iter().any(|d| d.depends_on_id == epic.id)
+                    || i.id.starts_with(&prefix)
+            })
             .cloned()
             .collect();
 
@@ -174,11 +184,13 @@ async fn epics() -> EpicsTemplate {
         .collect();
 
     for epic in epic_issues {
-        // Find children: starts with epic.id + "."
         let prefix = format!("{}.", epic.id);
         let children: Vec<&beads::Issue> = all_issues
             .iter()
-            .filter(|i| i.id.starts_with(&prefix))
+            .filter(|i| {
+                i.dependencies.iter().any(|d| d.depends_on_id == epic.id)
+                    || i.id.starts_with(&prefix)
+            })
             .collect();
 
         let total = children.len();
@@ -243,6 +255,17 @@ async fn board() -> BoardTemplate {
     ];
 
     BoardTemplate { columns }
+}
+
+async fn issue_detail(Path(id): Path<String>) -> Result<IssueDetailTemplate, StatusCode> {
+    let client = beads::Client::new();
+    match client.get_issue(&id) {
+        Ok(issue) => Ok(IssueDetailTemplate { issue }),
+        Err(e) => {
+            tracing::error!("Failed to get issue {}: {}", id, e);
+            Err(StatusCode::NOT_FOUND)
+        }
+    }
 }
 
 async fn list_issues() -> Json<Vec<beads::Issue>> {
@@ -343,6 +366,23 @@ mod tests {
             .oneshot(
                 Request::builder()
                     .uri("/board")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::OK);
+    }
+
+    #[tokio::test]
+    async fn test_issue_detail() {
+        let app = Router::new().route("/issues/:id", get(issue_detail));
+
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .uri("/issues/nacre-p1b")
                     .body(Body::empty())
                     .unwrap(),
             )

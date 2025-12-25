@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nacre - {{ issue.id }}</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <header>
+        <a href="/" class="home-link"><h1>Nacre</h1></a>
+        <nav>
+            <a href="/">Issues</a>
+            <a href="/epics">Epics</a>
+            <a href="/board">Board</a>
+        </nav>
+    </header>
+    <main id="content">
+        <div class="issue-detail">
+            <div class="detail-header">
+                <h2>{{ issue.id }}: {{ issue.title }}</h2>
+                <span class="status-badge">{{ issue.status }}</span>
+            </div>
+            
+            <div class="detail-section">
+                <h3>Details</h3>
+                <div class="meta-grid">
+                    <div class="meta-label">Type</div>
+                    <div class="meta-value">{{ issue.issue_type }}</div>
+                    
+                    <div class="meta-label">Priority</div>
+                    <div class="meta-value">P{{ issue.priority.unwrap_or(0) }}</div>
+                    
+                    <div class="meta-label">Created</div>
+                    <div class="meta-value">{{ issue.created_at }}</div>
+                    
+                    <div class="meta-label">Updated</div>
+                    <div class="meta-value">{{ issue.updated_at }}</div>
+                </div>
+            </div>
+
+            {% if issue.assignee.is_some() %}
+            <div class="detail-section">
+                <h3>Assignee</h3>
+                <div>{{ issue.assignee.as_ref().unwrap() }}</div>
+            </div>
+            {% endif %}
+
+            {% if issue.labels.is_some() %}
+            <div class="detail-section">
+                <h3>Labels</h3>
+                <div class="label-list">
+                    {% for label in issue.labels.as_ref().unwrap() %}
+                    <span class="label-badge">{{ label }}</span>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </main>
+    <script src="/app.js"></script>
+</body>
+</html>

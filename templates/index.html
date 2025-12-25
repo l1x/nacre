@@ -30,7 +30,7 @@
                         <div class="issue-item" data-id="{{ issue.id }}" data-filter-text="{{ issue.title|lower }} {{ issue.id|lower }} {{ issue.status|lower }}">
                             <div class="issue-main">
                                 <div class="issue-title">{{ issue.title }}</div>
-                                <div class="issue-meta">{{ issue.id }} • {{ issue.issue_type }} • P{{ issue.priority.unwrap_or(0) }}</div>
+                                <div class="issue-meta"><a href="/issues/{{ issue.id }}">{{ issue.id }}</a> • {{ issue.issue_type }} • P{{ issue.priority.unwrap_or(0) }}</div>
                             </div>
                             <div class="issue-status">
                                 <span class="status-badge">{{ issue.status }}</span>

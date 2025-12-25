@@ -1,6 +1,7 @@
 use serde::{Deserialize, Serialize};
 use std::fmt;
 use std::io;
+use std::io::BufRead;
 use std::process::Command;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -15,6 +16,16 @@ pub struct Issue {
     pub closed_at: Option<String>,
     pub assignee: Option<String>,
     pub labels: Option<Vec<String>>,
+    #[serde(default)]
+    pub dependencies: Vec<Dependency>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct Dependency {
+    pub issue_id: String,
+    pub depends_on_id: String,
+    #[serde(rename = "type")]
+    pub dep_type: String,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
@@ -94,21 +105,39 @@ impl Client {
     }
 
     pub fn list_issues(&self) -> io::Result<Vec<Issue>> {
-        let output = Command::new(&self.bin_path)
-            .arg("list")
-            .arg("--json")
-            .arg("--all")
-            .output()?;
+        let output = Command::new(&self.bin_path).arg("export").output()?;
 
         if !output.status.success() {
             let error_msg = String::from_utf8_lossy(&output.stderr);
             return Err(io::Error::other(error_msg.to_string()));
         }
 
-        let issues: Vec<Issue> = serde_json::from_slice(&output.stdout)
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+        let mut issues = Vec::new();
+        for line in output.stdout.lines() {
+            let line = line?;
+            if line.trim().is_empty() {
+                continue;
+            }
+            let issue: Issue = serde_json::from_str(&line)
+                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+            issues.push(issue);
+        }
 
         Ok(issues)
+    }
+
+    pub fn get_issue(&self, id: &str) -> io::Result<Issue> {
+        // We can't use `bd list` effectively for dependencies if it doesn't return them.
+        // We could scan `list_issues` (export), but that's O(N).
+        // Or we use `bd list --json --id` and accept missing dependencies for detail view?
+        // But Detail view might want to show them.
+        // For now, let's use `list_issues` and find it.
+        // This is slower but correct for dependencies.
+        let issues = self.list_issues()?;
+        issues
+            .into_iter()
+            .find(|i| i.id == id)
+            .ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "Issue not found"))
     }
 
     pub fn update_issue(&self, id: &str, update: IssueUpdate) -> io::Result<()> {
