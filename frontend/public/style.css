@@ -694,81 +694,177 @@ main:has(.board) {
     background: linear-gradient(90deg, rgba(243, 156, 18, 0.08) 0%, var(--bg-card) 100%);
 }
 
-/* Issue Detail View */
+/* Issue Detail View - Scandinavian/Minimal Style */
 .issue-detail {
     background-color: var(--bg-card);
     border: 1px solid var(--border-color);
-    padding: 40px 48px;
+    padding: 48px 64px;
     border-radius: var(--radius);
-    max-width: 800px;
+    max-width: 960px;
     margin: 0 auto;
+    position: relative; /* For absolute positioning of edit btn */
 }
 
-.detail-header {
+.edit-action-btn {
+    position: absolute;
+    top: 32px;
+    right: 32px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: white;
+    background-color: var(--accent);
+    text-decoration: none;
+    padding: 6px 12px;
+    border-radius: var(--radius);
+    transition: background-color 0.2s ease;
+    border: none;
+}
+
+.edit-action-btn:hover {
+    background-color: var(--accent-muted);
+    color: white;
+}
+
+.scandi-header {
+    margin-bottom: 48px;
+    border-bottom: 1px solid var(--border-subtle);
+    padding-bottom: 32px;
+}
+
+.issue-eyebrow {
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    margin-bottom: 12px;
     display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 36px;
-    border-bottom: 1px solid var(--border-color);
-    padding-bottom: 28px;
+    align-items: center;
+    gap: 12px;
 }
 
-.detail-header h2 {
-    margin: 0;
-    font-size: 1.6rem;
-    font-style: italic;
+.issue-title-large {
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif; /* Pure Sans-Serif */
+    font-size: 2.0rem;
+    font-weight: 600;
+    font-style: normal;
+    letter-spacing: -0.5px;
+    line-height: 1.1;
+    color: var(--text-primary);
+    margin: 0 0 24px 0;
+}
+
+.issue-meta-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.meta-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 5px 12px;
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    transition: all 0.2s ease;
+}
+
+.meta-chip:hover {
+    border-color: var(--text-muted);
     color: var(--text-primary);
 }
 
+.meta-chip.status-open { color: var(--accent); background-color: rgba(224, 122, 74, 0.05); border-color: rgba(224, 122, 74, 0.2); }
+.meta-chip.status-in-progress { color: #5dade2; background-color: rgba(93, 173, 226, 0.05); border-color: rgba(93, 173, 226, 0.2); }
+.meta-chip.status-blocked { color: #ec7063; background-color: rgba(236, 112, 99, 0.05); border-color: rgba(236, 112, 99, 0.2); }
+.meta-chip.status-closed { color: var(--text-muted); }
+
 .detail-section {
-    margin-bottom: 36px;
+    margin-bottom: 40px;
 }
 
 .detail-section h3 {
     font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-    font-size: 0.8rem;
-    font-weight: 600;
-    color: var(--accent);
-    margin-bottom: 16px;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-}
-
-.meta-grid {
-    display: grid;
-    grid-template-columns: 120px 1fr;
-    gap: 12px 24px;
-    font-size: 0.95rem;
-}
-
-.meta-label {
-    color: var(--text-muted);
-}
-
-.meta-value {
-    color: var(--text-primary);
-}
-
-.label-list {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-}
-
-.label-badge {
-    background-color: var(--bg-secondary);
-    border: 1px solid var(--border-color);
-    padding: 4px 12px;
-    border-radius: var(--radius-sm);
     font-size: 0.85rem;
-    color: var(--text-secondary);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    margin-bottom: 16px;
+    text-align: left;
+    border: none;
+}
+
+.detail-section h3::before,
+.detail-section h3::after {
+    display: none;
 }
 
 .description-content {
-    color: var(--text-secondary);
-    line-height: 1.7;
-    white-space: pre-wrap;
+    font-size: 1rem;
+    line-height: 1.6;
+    color: var(--text-primary);
+    max-width: none; /* Use full width */
+    margin: 0;
 }
+
+.description-content h1, 
+.description-content h2, 
+.description-content h3 {
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    font-style: normal;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-top: 1.5em;
+    margin-bottom: 0.75em;
+}
+
+.timestamps-grid {
+    display: flex;
+    justify-content: center; /* Center align */
+    align-items: center;
+    gap: 32px;
+    margin-top: 60px;
+    padding-top: 32px;
+    border-top: 1px solid var(--border-color);
+    color: var(--text-muted);
+}
+
+.timestamp-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Center align text */
+    gap: 4px;
+}
+
+.timestamp-value {
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.timestamp-label {
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    opacity: 0.8;
+}
+
+.separator {
+    width: 1px;
+    height: 24px;
+    background-color: var(--border-color);
+}
+
+/* Original styles to remove or override if conflicting */
+.detail-header { display: none; } 
+.vectorian-header { display: none; }
 
 /* PRDs View */
 .prd-list {
@@ -950,7 +1046,7 @@ main:has(.board) {
     border: 1px solid var(--border-color);
     padding: 40px 48px;
     border-radius: var(--radius);
-    max-width: 600px;
+    max-width: 960px;
     margin: 0 auto;
 }
 

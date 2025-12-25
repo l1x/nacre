@@ -25,44 +25,25 @@
     </header>
     <main id="content">
         <div class="issue-detail">
-            <div class="detail-header">
-                <h2>{{ issue.id }}: {{ issue.title }}</h2>
-                <span class="status-badge">{{ issue.status }}</span>
-            </div>
-            
-            <div class="detail-section">
-                <h3>Details</h3>
-                <div class="meta-grid">
-                    <div class="meta-label">Type</div>
-                    <div class="meta-value">{{ issue.issue_type }}</div>
-
-                    <div class="meta-label">Priority</div>
-                    <div class="meta-value">P{{ issue.priority.unwrap_or(2) }}</div>
-
+            <a href="/issues/{{ issue.id }}/edit" class="edit-action-btn">Edit</a>
+            <div class="scandi-header">
+                <div class="issue-eyebrow">
+                    <span>{{ issue.id }}</span>
+                    <span>&middot;</span>
+                    <span>{{ issue.issue_type }}</span>
+                </div>
+                <h1 class="issue-title-large">{{ issue.title }}</h1>
+                
+                <div class="issue-meta-row">
+                    <span class="meta-chip status-{{ issue.status.as_str() }}">{{ issue.status }}</span>
+                    <span class="meta-chip">P{{ issue.priority.unwrap_or(2) }}</span>
+                    
                     {% if issue.assignee.is_some() %}
-                    <div class="meta-label">Assignee</div>
-                    <div class="meta-value">{{ issue.assignee.as_ref().unwrap() }}</div>
+                    <span class="meta-chip assignee">{{ issue.assignee.as_ref().unwrap() }}</span>
                     {% endif %}
 
                     {% if issue.estimate.is_some() %}
-                    <div class="meta-label">Estimate</div>
-                    <div class="meta-value">{{ issue.estimate.unwrap() }} min</div>
-                    {% endif %}
-
-                    <div class="meta-label">Created</div>
-                    <div class="meta-value">{{ issue.created_at|format_date }}</div>
-
-                    <div class="meta-label">Updated</div>
-                    <div class="meta-value">{{ issue.updated_at|format_date }}</div>
-
-                    {% if issue.closed_at.is_some() %}
-                    <div class="meta-label">Closed</div>
-                    <div class="meta-value">{{ issue.closed_at.as_ref().unwrap()|format_date }}</div>
-                    {% endif %}
-
-                    {% if issue.close_reason.is_some() %}
-                    <div class="meta-label">Close Reason</div>
-                    <div class="meta-value">{{ issue.close_reason.as_ref().unwrap() }}</div>
+                    <span class="meta-chip">{{ issue.estimate.unwrap() }} min</span>
                     {% endif %}
                 </div>
             </div>
@@ -70,14 +51,14 @@
             {% if issue.description.is_some() %}
             <div class="detail-section">
                 <h3>Description</h3>
-                <div class="description-content">{{ issue.description.as_ref().unwrap() }}</div>
+                <div class="description-content">{{ issue.description.as_ref().unwrap()|markdown|safe }}</div>
             </div>
             {% endif %}
 
             {% if issue.acceptance_criteria.is_some() %}
             <div class="detail-section">
                 <h3>Acceptance Criteria</h3>
-                <div class="description-content">{{ issue.acceptance_criteria.as_ref().unwrap() }}</div>
+                <div class="description-content">{{ issue.acceptance_criteria.as_ref().unwrap()|markdown|safe }}</div>
             </div>
             {% endif %}
 
@@ -89,6 +70,31 @@
                     <span class="label-badge">{{ label }}</span>
                     {% endfor %}
                 </div>
+            </div>
+            {% endif %}
+
+            <div class="timestamps-grid">
+                <div class="timestamp-item">
+                    <span class="timestamp-value">{{ issue.created_at|format_date }}</span>
+                    <span class="timestamp-label">Created</span>
+                </div>
+                <div class="separator"></div>
+                <div class="timestamp-item">
+                    <span class="timestamp-value">{{ issue.updated_at|format_date }}</span>
+                    <span class="timestamp-label">Updated</span>
+                </div>
+                {% if issue.closed_at.is_some() %}
+                <div class="separator"></div>
+                <div class="timestamp-item">
+                    <span class="timestamp-value">{{ issue.closed_at.as_ref().unwrap()|format_date }}</span>
+                    <span class="timestamp-label">Closed</span>
+                </div>
+                {% endif %}
+            </div>
+
+            {% if issue.close_reason.is_some() %}
+            <div style="text-align: center; margin-top: 24px; color: var(--text-muted); font-size: 0.9rem; font-style: italic;">
+                "{{ issue.close_reason.as_ref().unwrap() }}"
             </div>
             {% endif %}
         </div>

@@ -25,9 +25,23 @@
     </header>
     <main id="content">
         <div class="epic-detail">
-            <div class="detail-header">
-                <h2>{{ epic.issue.title }}</h2>
-                <span class="status-badge">{{ epic.issue.status }}</span>
+            <a href="/issues/{{ epic.issue.id }}/edit" class="edit-action-btn">Edit</a>
+            <div class="scandi-header">
+                <div class="issue-eyebrow">
+                    <span>{{ epic.issue.id }}</span>
+                    <span>&middot;</span>
+                    <span>{{ epic.issue.issue_type }}</span>
+                </div>
+                <h1 class="issue-title-large">{{ epic.issue.title }}</h1>
+                
+                <div class="issue-meta-row">
+                    <span class="meta-chip status-{{ epic.issue.status.as_str() }}">{{ epic.issue.status }}</span>
+                    <span class="meta-chip">P{{ epic.issue.priority.unwrap_or(2) }}</span>
+                    
+                    {% if epic.issue.assignee.is_some() %}
+                    <span class="meta-chip assignee">{{ epic.issue.assignee.as_ref().unwrap() }}</span>
+                    {% endif %}
+                </div>
             </div>
 
             <div class="epic-progress-section">
@@ -64,7 +78,7 @@
             {% if epic.issue.description.is_some() %}
             <div class="detail-section">
                 <h3>Description</h3>
-                <div class="description-content">{{ epic.issue.description.as_ref().unwrap() }}</div>
+                <div class="description-content">{{ epic.issue.description.as_ref().unwrap()|markdown|safe }}</div>
             </div>
             {% endif %}
 

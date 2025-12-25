@@ -35,7 +35,11 @@ pub struct EpicWithProgress {
 impl EpicWithProgress {
     /// Create an EpicWithProgress from an epic issue and all issues.
     /// If `include_children` is true, the children vector is populated (sorted by status).
-    pub fn from_epic(epic: &beads::Issue, all_issues: &[beads::Issue], include_children: bool) -> Self {
+    pub fn from_epic(
+        epic: &beads::Issue,
+        all_issues: &[beads::Issue],
+        include_children: bool,
+    ) -> Self {
         let prefix = format!("{}.", epic.id);
         let mut children: Vec<beads::Issue> = all_issues
             .iter()
@@ -65,7 +69,11 @@ impl EpicWithProgress {
             total,
             closed,
             percent,
-            children: if include_children { children } else { Vec::new() },
+            children: if include_children {
+                children
+            } else {
+                Vec::new()
+            },
         }
     }
 }
@@ -167,6 +175,13 @@ pub struct PrdViewTemplate {
 pub struct EpicDetailTemplate {
     pub project_name: String,
     pub epic: EpicWithProgress,
+}
+
+#[derive(Template)]
+#[template(path = "edit_issue.html")]
+pub struct EditIssueTemplate {
+    pub project_name: String,
+    pub issue: beads::Issue,
 }
 
 #[derive(Template)]

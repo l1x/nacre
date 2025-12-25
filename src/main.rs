@@ -9,10 +9,10 @@ use argh::FromArgs;
 use axum::Router;
 use axum::routing::{get, post};
 use std::net::SocketAddr;
+use std::sync::atomic::{AtomicU64, Ordering};
 use tower_http::trace::TraceLayer;
 use tracing::Span;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
-use std::sync::atomic::{AtomicU64, Ordering};
 
 #[derive(Clone)]
 pub struct AppState {
@@ -74,6 +74,7 @@ async fn main() {
         .route("/metrics", get(handlers::metrics_handler))
         .route("/issues/new", get(handlers::new_issue_form))
         .route("/issues/:id", get(handlers::issue_detail))
+        .route("/issues/:id/edit", get(handlers::edit_issue))
         .route("/prds", get(handlers::prds_list))
         .route("/prds/:filename", get(handlers::prd_view))
         .route("/api/issues", get(handlers::list_issues))
@@ -104,7 +105,11 @@ async fn main() {
                     |response: &axum::http::Response<_>,
                      latency: std::time::Duration,
                      _span: &Span| {
-                        tracing::info!("<- {} latency={}ms", response.status().as_u16(), latency.as_millis());
+                        tracing::info!(
+                            "<- {} latency={}µs",
+                            response.status().as_u16(),
+                            latency.as_micros()
+                        );
                     },
                 ),
         );
@@ -118,7 +123,9 @@ async fn main() {
 
     tracing::info!("{}", url);
 
-    if args.open && let Err(e) = open::that(&url) {
+    if args.open
+        && let Err(e) = open::that(&url)
+    {
         tracing::error!("Failed to open browser: {}", e);
     }
 
@@ -270,6 +277,25 @@ mod tests {
             .oneshot(
                 Request::builder()
                     .uri("/issues/nacre-p1b")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::OK);
+    }
+
+    #[tokio::test]
+    async fn test_edit_issue() {
+        let app = Router::new()
+            .route("/issues/:id/edit", get(handlers::edit_issue))
+            .with_state(test_state());
+
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .uri("/issues/nacre-p1b/edit")
                     .body(Body::empty())
                     .unwrap(),
             )

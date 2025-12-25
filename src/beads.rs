@@ -54,26 +54,26 @@ pub struct Activity {
 }
 
 /// Defines relationships between issues.
-/// 
+///
 /// This enum mirrors the Go Beads DependencyType type from `internal/types/types.go`.
 /// Each variant represents a specific type of relationship with clear semantics.
-/// 
+///
 /// Workflow types affect ready work calculation:
 /// - `Blocks`: Standard blocking relationship
 /// - `ParentChild`: Hierarchical parent-child relationship  
 /// - `ConditionalBlocks`: B runs only if A fails (bd-kzda)
 /// - `WaitsFor`: Fanout gate: wait for dynamic children (bd-xo1o.2)
-/// 
+///
 /// Association types don't affect workflow:
 /// - `Related`: General association
 /// - `DiscoveredFrom`: Discovery relationship
-/// 
+///
 /// Graph link types (bd-kwro):
 /// - `RepliesTo`: Conversation threading
 /// - `RelatesTo`: Loose knowledge graph edges
 /// - `Duplicates`: Deduplication link
 /// - `Supersedes`: Version chain link
-/// 
+///
 /// Entity types (HOP foundation - Decision 004):
 /// - `AuthoredBy`: Creator relationship
 /// - `AssignedTo`: Assignment relationship
@@ -91,13 +91,13 @@ pub enum DependencyType {
     ConditionalBlocks,
     /// Fanout gate: wait for dynamic children (bd-xo1o.2)
     WaitsFor,
-    
+
     // Association types
     /// General association
     Related,
     /// Discovery relationship
     DiscoveredFrom,
-    
+
     // Graph link types (bd-kwro)
     /// Conversation threading
     RepliesTo,
@@ -107,7 +107,7 @@ pub enum DependencyType {
     Duplicates,
     /// Version chain link
     Supersedes,
-    
+
     // Entity types (HOP foundation - Decision 004)
     /// Creator relationship
     AuthoredBy,
@@ -154,30 +154,29 @@ impl DependencyType {
     }
 }
 
-
 /// Categorizes audit trail events.
-/// 
+///
 /// This enum mirrors the Go Beads EventType type from `internal/types/types.go`.
 /// Each variant represents a specific type of event that can occur in the system.
-/// 
+///
 /// Core workflow events:
 /// - `Created`: Issue was created
 /// - `Updated`: General issue update
 /// - `StatusChanged`: Issue status changed
 /// - `Closed`: Issue was closed
 /// - `Reopened`: Previously closed issue was reopened
-/// 
+///
 /// Content events:
 /// - `Commented`: Comment was added
-/// 
+///
 /// Relationship events:
 /// - `DependencyAdded`: Dependency relationship was added
 /// - `DependencyRemoved`: Dependency relationship was removed
-/// 
+///
 /// Organization events:
 /// - `LabelAdded`: Label was added to issue
 /// - `LabelRemoved`: Label was removed from issue
-/// 
+///
 /// System events:
 /// - `Compacted`: Database compaction event
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Default)]
@@ -237,7 +236,6 @@ impl EventType {
     }
 }
 
-
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Dependency {
     pub issue_id: String,
@@ -247,10 +245,10 @@ pub struct Dependency {
 }
 
 /// Represents the current state of an issue in the workflow.
-/// 
+///
 /// This enum mirrors the Go Beads Status type from `internal/types/types.go`.
 /// Each variant represents a specific workflow state with clear semantics:
-/// 
+///
 /// - `Open`: New issue ready for work consideration
 /// - `InProgress`: Actively being worked on
 /// - `Blocked`: Waiting on external dependencies or blockers  
@@ -319,7 +317,7 @@ impl Status {
         match self {
             Status::InProgress => 0,
             Status::Blocked => 1,
-            Status::Pinned => 2,  // Persistent items should stay visible
+            Status::Pinned => 2, // Persistent items should stay visible
             Status::Open => 3,
             Status::Deferred => 4,
             Status::Closed => 5,
@@ -328,12 +326,11 @@ impl Status {
     }
 }
 
-
 /// Categorizes the kind of work an issue represents.
-/// 
+///
 /// This enum mirrors the Go Beads IssueType type from `internal/types/types.go`.
 /// Each variant represents a specific category of work with distinct semantics:
-/// 
+///
 /// - `Bug`: Defect or error that needs fixing
 /// - `Feature`: New functionality to be added
 /// - `Task`: General work item that doesn't fit other categories
@@ -422,7 +419,6 @@ impl IssueType {
     }
 }
 
-
 #[derive(Clone)]
 pub struct Client {
     bin_path: String,
@@ -438,6 +434,8 @@ impl Default for Client {
 pub struct IssueUpdate {
     pub title: Option<String>,
     pub status: Option<Status>,
+    pub priority: Option<u8>,
+    pub description: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -492,6 +490,12 @@ impl Client {
         }
         if let Some(status) = &update.status {
             cmd.arg("--status").arg(status.as_str());
+        }
+        if let Some(priority) = update.priority {
+            cmd.arg("--priority").arg(priority.to_string());
+        }
+        if let Some(description) = &update.description {
+            cmd.arg("--description").arg(description);
         }
 
         let output = cmd.output()?;
@@ -726,7 +730,7 @@ mod tests {
         assert!(DependencyType::ParentChild.affects_workflow());
         assert!(DependencyType::ConditionalBlocks.affects_workflow());
         assert!(DependencyType::WaitsFor.affects_workflow());
-        
+
         assert!(!DependencyType::Related.affects_workflow());
         assert!(!DependencyType::DiscoveredFrom.affects_workflow());
         assert!(!DependencyType::RepliesTo.affects_workflow());

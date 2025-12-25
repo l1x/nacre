@@ -45,7 +45,9 @@ pub async fn landing(State(state): State<crate::AppState>) -> LandingTemplate {
     let mut started_times: HashMap<String, chrono::DateTime<chrono::FixedOffset>> = HashMap::new();
     for act in &activities {
         if act.new_status == Some(beads::Status::InProgress) {
-            started_times.entry(act.issue_id.clone()).or_insert(act.timestamp);
+            started_times
+                .entry(act.issue_id.clone())
+                .or_insert(act.timestamp);
         }
     }
 
@@ -96,7 +98,11 @@ pub async fn landing(State(state): State<crate::AppState>) -> LandingTemplate {
         .collect();
 
     // Sort epics by percent complete (least complete first to highlight work needed)
-    epics.sort_by(|a, b| a.percent.partial_cmp(&b.percent).unwrap_or(std::cmp::Ordering::Equal));
+    epics.sort_by(|a, b| {
+        a.percent
+            .partial_cmp(&b.percent)
+            .unwrap_or(std::cmp::Ordering::Equal)
+    });
 
     // Get blocked issues (limit to 5)
     let blocked: Vec<beads::Issue> = all_issues
@@ -205,7 +211,10 @@ pub async fn epics(State(state): State<crate::AppState>) -> EpicsTemplate {
     }
 }
 
-pub async fn epic_detail(State(state): State<crate::AppState>, Path(id): Path<String>) -> crate::AppResult<EpicDetailTemplate> {
+pub async fn epic_detail(
+    State(state): State<crate::AppState>,
+    Path(id): Path<String>,
+) -> crate::AppResult<EpicDetailTemplate> {
     let all_issues = state.client.list_issues()?;
 
     // Find the epic
@@ -382,7 +391,9 @@ pub async fn graph(State(state): State<crate::AppState>) -> GraphTemplate {
 
             // Determine parent_id by checking if this issue has a parent-child dependency
             // OR if the issue ID has a prefix pattern matching another issue
-            let parent_id = issue.dependencies.iter()
+            let parent_id = issue
+                .dependencies
+                .iter()
                 .find(|d| d.dep_type == beads::DependencyType::ParentChild)
                 .map(|d| d.depends_on_id.clone())
                 .or_else(|| {
@@ -452,6 +463,14 @@ pub async fn issue_detail(State(state): State<crate::AppState>, Path(id): Path<S
     })
 }
 
+pub async fn edit_issue(State(state): State<crate::AppState>, Path(id): Path<String>) -> crate::AppResult<EditIssueTemplate> {
+    let issue = state.client.get_issue(&id)?;
+    Ok(EditIssueTemplate {
+        project_name: state.project_name.clone(),
+        issue,
+    })
+}
+
 pub async fn new_issue_form(State(state): State<crate::AppState>) -> NewIssueTemplate {
     NewIssueTemplate {
         project_name: state.project_name.clone(),
@@ -482,14 +501,17 @@ pub async fn prds_list(State(state): State<crate::AppState>) -> PrdsListTemplate
     }
 }
 
-pub async fn prd_view(State(state): State<crate::AppState>, Path(filename): Path<String>) -> crate::AppResult<PrdViewTemplate> {
+pub async fn prd_view(
+    State(state): State<crate::AppState>,
+    Path(filename): Path<String>,
+) -> crate::AppResult<PrdViewTemplate> {
     if filename.contains("..") || filename.contains('/') || filename.contains('\\') {
         return Err(crate::AppError::BadRequest("Invalid filename".to_string()));
     }
 
     let path = format!("docs/prds/{}", filename);
-    let markdown_input = std::fs::read_to_string(&path)
-        .map_err(|_| crate::AppError::NotFound(filename.clone()))?;
+    let markdown_input =
+        std::fs::read_to_string(&path).map_err(|_| crate::AppError::NotFound(filename.clone()))?;
 
     let parser = Parser::new(&markdown_input);
     let mut html_output = String::new();
@@ -502,7 +524,9 @@ pub async fn prd_view(State(state): State<crate::AppState>, Path(filename): Path
     })
 }
 
-pub async fn list_issues(State(state): State<crate::AppState>) -> crate::AppResult<Json<Vec<beads::Issue>>> {
+pub async fn list_issues(
+    State(state): State<crate::AppState>,
+) -> crate::AppResult<Json<Vec<beads::Issue>>> {
     let issues = state.client.list_issues()?;
     Ok(Json(issues))
 }
@@ -521,7 +545,9 @@ pub async fn metrics_handler(State(state): State<crate::AppState>) -> MetricsTem
     let mut started_times: HashMap<String, chrono::DateTime<chrono::FixedOffset>> = HashMap::new();
     for act in &activities {
         if act.new_status == Some(beads::Status::InProgress) {
-            started_times.entry(act.issue_id.clone()).or_insert(act.timestamp);
+            started_times
+                .entry(act.issue_id.clone())
+                .or_insert(act.timestamp);
         }
     }
 
@@ -586,59 +612,78 @@ pub async fn metrics_handler(State(state): State<crate::AppState>) -> MetricsTem
         }
 
         let mut chart = ChartBuilder::on(&root)
-            .caption("Tickets Activity (Last 30 Days)", ("sans-serif", 20).into_font())
+            .caption(
+                "Tickets Activity (Last 30 Days)",
+                ("sans-serif", 20).into_font(),
+            )
             .margin(10)
             .x_label_area_size(40)
             .y_label_area_size(40)
             .build_cartesian_2d(
                 start_dt.date_naive()..now_dt.date_naive(),
                 0..10usize, // Initial Y scale, will be updated if needed
-            ).unwrap();
+            )
+            .unwrap();
 
         // Adjust Y scale based on data
-        let max_v = created_by_day.values().chain(resolved_by_day.values()).max().copied().unwrap_or(5).max(5);
-        chart.configure_mesh()
+        let max_v = created_by_day
+            .values()
+            .chain(resolved_by_day.values())
+            .max()
+            .copied()
+            .unwrap_or(5)
+            .max(5);
+        chart
+            .configure_mesh()
             .x_labels(10)
             .y_labels(5)
-            .draw().unwrap();
+            .draw()
+            .unwrap();
 
         // Re-build with correct Y scale
         let mut chart = ChartBuilder::on(&root)
-            .caption("Tickets Activity (Last 30 Days)", ("sans-serif", 20).into_font())
+            .caption(
+                "Tickets Activity (Last 30 Days)",
+                ("sans-serif", 20).into_font(),
+            )
             .margin(10)
             .x_label_area_size(40)
             .y_label_area_size(40)
-            .build_cartesian_2d(
-                start_dt.date_naive()..now_dt.date_naive(),
-                0..max_v + 1,
-            ).unwrap();
+            .build_cartesian_2d(start_dt.date_naive()..now_dt.date_naive(), 0..max_v + 1)
+            .unwrap();
 
-        chart.configure_mesh()
+        chart
+            .configure_mesh()
             .x_label_formatter(&|d| d.format("%m-%d").to_string())
-            .draw().unwrap();
+            .draw()
+            .unwrap();
 
-        let mut created_data: Vec<(chrono::NaiveDate, usize)> = created_by_day.into_iter().collect();
+        let mut created_data: Vec<(chrono::NaiveDate, usize)> =
+            created_by_day.into_iter().collect();
         created_data.sort_by_key(|(d, _)| *d);
 
-        let mut resolved_data: Vec<(chrono::NaiveDate, usize)> = resolved_by_day.into_iter().collect();
+        let mut resolved_data: Vec<(chrono::NaiveDate, usize)> =
+            resolved_by_day.into_iter().collect();
         resolved_data.sort_by_key(|(d, _)| *d);
 
-        chart.draw_series(
-            LineSeries::new(created_data, BLUE),
-        ).unwrap()
-        .label("Created")
-        .legend(|(x, y)| PathElement::new(vec![(x, y), (x + 20, y)], BLUE));
+        chart
+            .draw_series(LineSeries::new(created_data, BLUE))
+            .unwrap()
+            .label("Created")
+            .legend(|(x, y)| PathElement::new(vec![(x, y), (x + 20, y)], BLUE));
 
-        chart.draw_series(
-            LineSeries::new(resolved_data, GREEN),
-        ).unwrap()
-        .label("Resolved")
-        .legend(|(x, y)| PathElement::new(vec![(x, y), (x + 20, y)], GREEN));
+        chart
+            .draw_series(LineSeries::new(resolved_data, GREEN))
+            .unwrap()
+            .label("Resolved")
+            .legend(|(x, y)| PathElement::new(vec![(x, y), (x + 20, y)], GREEN));
 
-        chart.configure_series_labels()
+        chart
+            .configure_series_labels()
             .background_style(WHITE.mix(0.8))
             .border_style(BLACK)
-            .draw().unwrap();
+            .draw()
+            .unwrap();
     }
 
     MetricsTemplate {

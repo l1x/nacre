@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ project_name }} - New Issue</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="stylesheet" href="/style.css">
+    <script src="/app.js"></script>
+</head>
+<body>
+    <header>
+        <a href="/" class="home-link"><h1>Nacre</h1></a>
+        <nav>
+            <a href="/">Dashboard</a>
+            <a href="/epics">Epics</a>
+            <a href="/board">Board</a>
+            <a href="/graph">Graph</a>
+            <a href="/prds">PRDs</a>
+            <a href="/metrics">Metrics</a>
+        </nav>
+        <div class="search-container"><input type="text" id="filter-input" placeholder="Search issues..."></div>
+        <a href="/issues/new" class="create-btn active">+ Create</a>
+        <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme"></button>
+    </header>
+    <main id="content">
+        <div class="issue-form-container">
+            <h2>Edit Issue: {{ issue.id }}</h2>
+            <form id="edit-issue-form" class="issue-form">
+                <div class="form-group">
+                    <label for="title">Title</label>
+                    <input type="text" id="title" name="title" required value="{{ issue.title }}">
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="status">Status</label>
+                        <select id="status" name="status">
+                            <option value="open" {% if issue.status.as_str() == "open" %}selected{% endif %}>Open</option>
+                            <option value="in-progress" {% if issue.status.as_str() == "in-progress" %}selected{% endif %}>In Progress</option>
+                            <option value="blocked" {% if issue.status.as_str() == "blocked" %}selected{% endif %}>Blocked</option>
+                            <option value="deferred" {% if issue.status.as_str() == "deferred" %}selected{% endif %}>Deferred</option>
+                            <option value="closed" {% if issue.status.as_str() == "closed" %}selected{% endif %}>Closed</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="priority">Priority</label>
+                        <select id="priority" name="priority">
+                            <option value="0" {% if issue.priority == Some(0) %}selected{% endif %}>P0 - Critical</option>
+                            <option value="1" {% if issue.priority == Some(1) %}selected{% endif %}>P1 - High</option>
+                            <option value="2" {% if issue.priority == Some(2) || issue.priority.is_none() %}selected{% endif %}>P2 - Medium</option>
+                            <option value="3" {% if issue.priority == Some(3) %}selected{% endif %}>P3 - Low</option>
+                            <option value="4" {% if issue.priority == Some(4) %}selected{% endif %}>P4 - Backlog</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="description">Description</label>
+                    <textarea id="description" name="description" rows="10">{% if issue.description.is_some() %}{{ issue.description.as_ref().unwrap() }}{% endif %}</textarea>
+                </div>
+
+                <div class="form-actions">
+                    <a href="/issues/{{ issue.id }}" class="btn btn-secondary">Cancel</a>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </main>
+    <script>
+        document.getElementById('edit-issue-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const form = e.target;
+            const submitBtn = form.querySelector('button[type="submit"]');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Saving...';
+
+            const data = {
+                title: form.title.value,
+                status: form.status.value,
+                priority: parseInt(form.priority.value),
+                description: form.description.value || null
+            };
+
+            // Checking beads.rs for IssueUpdate struct
+            // pub struct IssueUpdate {
+            //    pub title: Option<String>,
+            //    pub status: Option<Status>,
+            // }
+            // Wait, I might need to expand IssueUpdate to support more fields if needed.
+            // For now let's implement what's there.
+
+            try {
+                const response = await fetch('/api/issues/{{ issue.id }}', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                if (response.ok) {
+                    window.location.href = '/issues/{{ issue.id }}';
+                } else {
+                    alert('Failed to update issue');
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Save Changes';
+                }
+            } catch (err) {
+                alert('Error updating issue: ' + err.message);
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Save Changes';
+            }
+        });
+    </script>
+</body>
+</html>
