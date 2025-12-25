@@ -319,3 +319,92 @@ main {
     border-radius: 4px;
     font-size: 0.85rem;
 }
+
+/* PRDs View */
+.prd-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.prd-list li {
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+}
+
+.prd-list a {
+    display: block;
+    padding: 15px 20px;
+    color: var(--text-color);
+    text-decoration: none;
+    transition: background-color 0.2s;
+}
+
+.prd-list a:hover {
+    background-color: rgba(77, 170, 252, 0.1);
+}
+
+/* PRD Content */
+.prd-content {
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    padding: 30px 40px;
+    border-radius: 4px;
+    max-width: 900px;
+    margin: 0 auto;
+    line-height: 1.7;
+}
+
+.prd-content h1, .prd-content h2, .prd-content h3 {
+    color: var(--accent-color);
+    margin-top: 1.5em;
+    margin-bottom: 0.5em;
+}
+
+.prd-content h1:first-child {
+    margin-top: 0;
+}
+
+.prd-content p {
+    margin-bottom: 1em;
+}
+
+.prd-content ul, .prd-content ol {
+    padding-left: 1.5em;
+    margin-bottom: 1em;
+}
+
+.prd-content li {
+    margin-bottom: 0.5em;
+}
+
+.prd-content code {
+    background-color: #333;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-family: inherit;
+}
+
+.prd-content pre {
+    background-color: #252525;
+    padding: 15px;
+    border-radius: 4px;
+    overflow-x: auto;
+    margin-bottom: 1em;
+}
+
+.prd-content pre code {
+    background: none;
+    padding: 0;
+}
+
+.prd-content blockquote {
+    border-left: 3px solid var(--accent-color);
+    margin-left: 0;
+    padding-left: 20px;
+    color: #aaa;
+}

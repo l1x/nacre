@@ -8,6 +8,7 @@ use axum::{
     http::StatusCode,
     routing::{get, post},
 };
+use pulldown_cmark::{Parser, html};
 use std::collections::HashSet;
 use std::net::SocketAddr;
 use tower_http::{services::ServeDir, trace::TraceLayer};
@@ -62,6 +63,19 @@ struct IssueDetailTemplate {
     issue: beads::Issue,
 }
 
+#[derive(Template)]
+#[template(path = "prds.html")]
+struct PrdsListTemplate {
+    files: Vec<String>,
+}
+
+#[derive(Template)]
+#[template(path = "prd.html")]
+struct PrdViewTemplate {
+    filename: String,
+    content: String,
+}
+
 struct EpicWithProgress {
     issue: beads::Issue,
     total: usize,
@@ -92,6 +106,8 @@ async fn main() {
         .route("/epics", get(epics))
         .route("/board", get(board))
         .route("/issues/:id", get(issue_detail))
+        .route("/prds", get(prds_list))
+        .route("/prds/:filename", get(prd_view))
         .route("/api/issues", get(list_issues))
         .route("/api/issues/:id", post(update_issue_handler))
         .route("/health", get(health_check))
@@ -265,6 +281,41 @@ async fn issue_detail(Path(id): Path<String>) -> Result<IssueDetailTemplate, Sta
             tracing::error!("Failed to get issue {}: {}", id, e);
             Err(StatusCode::NOT_FOUND)
         }
+    }
+}
+
+async fn prds_list() -> PrdsListTemplate {
+    let mut files = Vec::new();
+    if let Ok(entries) = std::fs::read_dir("docs/prds") {
+        for entry in entries.flatten() {
+            if let Ok(name) = entry.file_name().into_string()
+                && name.ends_with(".md")
+            {
+                files.push(name);
+            }
+        }
+    }
+    files.sort();
+    PrdsListTemplate { files }
+}
+
+async fn prd_view(Path(filename): Path<String>) -> Result<PrdViewTemplate, StatusCode> {
+    if filename.contains("..") || filename.contains('/') || filename.contains('\\') {
+        return Err(StatusCode::BAD_REQUEST);
+    }
+
+    let path = format!("docs/prds/{}", filename);
+    match std::fs::read_to_string(&path) {
+        Ok(markdown_input) => {
+            let parser = Parser::new(&markdown_input);
+            let mut html_output = String::new();
+            html::push_html(&mut html_output, parser);
+            Ok(PrdViewTemplate {
+                filename,
+                content: html_output,
+            })
+        }
+        Err(_) => Err(StatusCode::NOT_FOUND),
     }
 }
 

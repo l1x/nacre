@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nacre - {{ filename }}</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <header>
+        <a href="/" class="home-link"><h1>Nacre</h1></a>
+        <nav>
+            <a href="/">Issues</a>
+            <a href="/epics">Epics</a>
+            <a href="/board">Board</a>
+            <a href="/prds" class="active">PRDs</a>
+        </nav>
+    </header>
+    <main id="content">
+        <div class="prd-content">
+            {{ content|safe }}
+        </div>
+    </main>
+</body>
+</html>
