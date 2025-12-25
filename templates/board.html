@@ -17,7 +17,9 @@
             <a href="/prds">PRDs</a>
             <a href="/issues/new" class="create-btn">+ Create</a>
         </nav>
-        <div class="search-container"></div>
+        <div class="search-container">
+            <input type="text" id="filter-input" placeholder="Filter cards..." aria-label="Filter cards">
+        </div>
         <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">☀️</button>
     </header>
     <main id="content">
@@ -29,7 +31,7 @@
                 </div>
                 <div class="column-content" data-status="{{ col.name }}">
                     {% for issue in col.issues %}
-                    <div class="issue-card issue-type-{{ issue.issue_type.as_css_class() }}" data-id="{{ issue.id }}" draggable="true">
+                    <div class="issue-card issue-type-{{ issue.issue_type.as_css_class() }}" data-id="{{ issue.id }}" data-filter-text="{{ issue.title|lower }} {{ issue.id|lower }} {{ issue.issue_type|lower }}" draggable="true">
                         <div class="issue-title">{{ issue.title }}</div>
                         <div class="issue-meta">
                             <span><a href="/issues/{{ issue.id }}">{{ issue.id }}</a> • P{{ issue.priority.unwrap_or(0) }}</span>

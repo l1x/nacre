@@ -17,14 +17,16 @@
             <a href="/prds" class="active">PRDs</a>
             <a href="/issues/new" class="create-btn">+ Create</a>
         </nav>
-        <div class="search-container"></div>
+        <div class="search-container">
+            <input type="text" id="filter-input" placeholder="Filter PRDs..." aria-label="Filter PRDs">
+        </div>
         <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">☀️</button>
     </header>
     <main id="content">
         <h2>Product Requirements Documents</h2>
         <ul class="prd-list">
         {% for file in files %}
-            <li><a href="/prds/{{ file }}">{{ file }}</a></li>
+            <li data-filter-text="{{ file|lower }}"><a href="/prds/{{ file }}">{{ file }}</a></li>
         {% endfor %}
         </ul>
     </main>

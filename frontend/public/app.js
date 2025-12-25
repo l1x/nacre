@@ -26,18 +26,22 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Filtering logic
+    // Filtering logic - works on any element with data-filter-text
     const filterInput = document.getElementById('filter-input');
-    const issueItems = document.querySelectorAll('.issue-item');
 
     if (filterInput) {
         filterInput.addEventListener('input', (e) => {
             const query = e.target.value.toLowerCase();
-            
-            issueItems.forEach(item => {
+            const filterableItems = document.querySelectorAll('[data-filter-text]');
+
+            filterableItems.forEach(item => {
                 const text = item.getAttribute('data-filter-text');
-                if (text && text.includes(query)) {
-                    item.style.display = 'flex';
+                const matches = text && text.includes(query);
+
+                // Determine appropriate display value based on element type
+                if (matches) {
+                    // Reset to default display
+                    item.style.display = '';
                 } else {
                     item.style.display = 'none';
                 }

@@ -17,13 +17,15 @@
             <a href="/prds">PRDs</a>
             <a href="/issues/new" class="create-btn">+ Create</a>
         </nav>
-        <div class="search-container"></div>
+        <div class="search-container">
+            <input type="text" id="filter-input" placeholder="Filter epics..." aria-label="Filter epics">
+        </div>
         <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">☀️</button>
     </header>
     <main id="content">
         <div class="epic-list">
             {% for item in epics %}
-            <div class="epic-item">
+            <div class="epic-item" data-filter-text="{{ item.issue.title|lower }} {{ item.issue.id|lower }}">
                 <div class="epic-header">
                     <div class="epic-title">{{ item.issue.title }}</div>
                     <div class="epic-meta">{{ item.issue.id }} • {{ item.issue.status }}</div>
