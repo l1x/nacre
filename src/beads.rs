@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use std::fmt;
 use std::io;
 use std::process::Command;
 
@@ -15,8 +16,6 @@ pub struct Issue {
     pub assignee: Option<String>,
     pub labels: Option<Vec<String>>,
 }
-
-use std::fmt;
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
@@ -36,6 +35,18 @@ impl fmt::Display for Status {
             Status::Blocked => write!(f, "Blocked"),
             Status::Deferred => write!(f, "Deferred"),
             Status::Closed => write!(f, "Closed"),
+        }
+    }
+}
+
+impl Status {
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            Status::Open => "open",
+            Status::InProgress => "in_progress",
+            Status::Blocked => "blocked",
+            Status::Deferred => "deferred",
+            Status::Closed => "closed",
         }
     }
 }
@@ -70,6 +81,12 @@ pub struct Client {
     bin_path: String,
 }
 
+#[derive(Debug, Deserialize)]
+pub struct IssueUpdate {
+    pub title: Option<String>,
+    pub status: Option<Status>,
+}
+
 impl Client {
     pub fn new() -> Self {
         let bin_path = std::env::var("BD_BIN").unwrap_or_else(|_| "bd".to_string());
@@ -92,5 +109,26 @@ impl Client {
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
         Ok(issues)
+    }
+
+    pub fn update_issue(&self, id: &str, update: IssueUpdate) -> io::Result<()> {
+        let mut cmd = Command::new(&self.bin_path);
+        cmd.arg("update").arg(id);
+
+        if let Some(title) = &update.title {
+            cmd.arg("--title").arg(title);
+        }
+        if let Some(status) = &update.status {
+            cmd.arg("--status").arg(status.as_str());
+        }
+
+        let output = cmd.output()?;
+
+        if !output.status.success() {
+            let error_msg = String::from_utf8_lossy(&output.stderr);
+            return Err(io::Error::new(io::ErrorKind::Other, error_msg.to_string()));
+        }
+
+        Ok(())
     }
 }

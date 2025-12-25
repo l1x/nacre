@@ -106,3 +106,14 @@ main {
     font-size: 0.75rem;
     background-color: #444;
 }
+
+.edit-input {
+    background: #333;
+    border: 1px solid var(--accent-color);
+    color: var(--text-color);
+    font-size: 1rem;
+    font-weight: 500;
+    padding: 2px 4px;
+    border-radius: 2px;
+    width: 100%;
+}

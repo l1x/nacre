@@ -2,7 +2,12 @@ mod beads;
 
 use argh::FromArgs;
 use askama::Template;
-use axum::{Json, Router, routing::get};
+use axum::{
+    Json, Router,
+    extract::Path,
+    http::StatusCode,
+    routing::{get, post},
+};
 use std::net::SocketAddr;
 use tower_http::{services::ServeDir, trace::TraceLayer};
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
@@ -49,6 +54,7 @@ async fn main() {
     let app = Router::new()
         .route("/", get(index))
         .route("/api/issues", get(list_issues))
+        .route("/api/issues/:id", post(update_issue_handler))
         .route("/health", get(health_check))
         .fallback_service(ServeDir::new(&args.static_dir))
         .layer(TraceLayer::new_for_http());
@@ -86,6 +92,20 @@ async fn list_issues() -> Json<Vec<beads::Issue>> {
         Err(e) => {
             tracing::error!("Failed to list issues: {}", e);
             Json(vec![])
+        }
+    }
+}
+
+async fn update_issue_handler(
+    Path(id): Path<String>,
+    Json(update): Json<beads::IssueUpdate>,
+) -> StatusCode {
+    let client = beads::Client::new();
+    match client.update_issue(&id, update) {
+        Ok(_) => StatusCode::OK,
+        Err(e) => {
+            tracing::error!("Failed to update issue: {}", e);
+            StatusCode::INTERNAL_SERVER_ERROR
         }
     }
 }
