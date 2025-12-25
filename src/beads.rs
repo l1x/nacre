@@ -103,6 +103,21 @@ impl fmt::Display for IssueType {
     }
 }
 
+impl IssueType {
+    /// Returns a CSS-friendly class name (lowercase, no spaces)
+    pub fn as_css_class(&self) -> &'static str {
+        match self {
+            IssueType::Task => "task",
+            IssueType::Bug => "bug",
+            IssueType::Feature => "feature",
+            IssueType::Epic => "epic",
+            IssueType::Chore => "chore",
+            IssueType::MergeRequest => "merge-request",
+            IssueType::Molecule => "molecule",
+        }
+    }
+}
+
 pub struct Client {
     bin_path: String,
 }

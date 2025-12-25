@@ -29,9 +29,12 @@
                 </div>
                 <div class="column-content" data-status="{{ col.name }}">
                     {% for issue in col.issues %}
-                    <div class="issue-card" data-id="{{ issue.id }}" draggable="true">
+                    <div class="issue-card issue-type-{{ issue.issue_type.as_css_class() }}" data-id="{{ issue.id }}" draggable="true">
                         <div class="issue-title">{{ issue.title }}</div>
-                        <div class="issue-meta"><a href="/issues/{{ issue.id }}">{{ issue.id }}</a> • P{{ issue.priority.unwrap_or(0) }}</div>
+                        <div class="issue-meta">
+                            <span><a href="/issues/{{ issue.id }}">{{ issue.id }}</a> • P{{ issue.priority.unwrap_or(0) }}</span>
+                            <span class="issue-type-badge">{{ issue.issue_type }}</span>
+                        </div>
                     </div>
                     {% endfor %}
                 </div>
