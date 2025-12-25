@@ -36,6 +36,23 @@ struct Args {
 }
 
 #[derive(Template)]
+#[template(path = "landing.html")]
+struct LandingTemplate {
+    stats: ProjectStats,
+    epics: Vec<EpicWithProgress>,
+    blocked: Vec<beads::Issue>,
+    in_progress: Vec<beads::Issue>,
+}
+
+struct ProjectStats {
+    total: usize,
+    open: usize,
+    in_progress: usize,
+    blocked: usize,
+    closed: usize,
+}
+
+#[derive(Template)]
 #[template(path = "index.html")]
 struct IndexTemplate {
     groups: Vec<IssueGroup>,
@@ -114,7 +131,8 @@ async fn main() {
     let args: Args = argh::from_env();
 
     let app = Router::new()
-        .route("/", get(index))
+        .route("/", get(landing))
+        .route("/issues", get(index))
         .route("/epics", get(epics))
         .route("/epics/:id", get(epic_detail))
         .route("/board", get(board))
@@ -156,6 +174,96 @@ async fn serve_css() -> impl IntoResponse {
 
 async fn serve_js() -> impl IntoResponse {
     ([(header::CONTENT_TYPE, "application/javascript")], APP_JS)
+}
+
+async fn landing() -> LandingTemplate {
+    let client = beads::Client::new();
+    let all_issues = client.list_issues().unwrap_or_default();
+
+    // Calculate stats
+    let stats = ProjectStats {
+        total: all_issues.len(),
+        open: all_issues
+            .iter()
+            .filter(|i| i.status == beads::Status::Open)
+            .count(),
+        in_progress: all_issues
+            .iter()
+            .filter(|i| i.status == beads::Status::InProgress)
+            .count(),
+        blocked: all_issues
+            .iter()
+            .filter(|i| i.status == beads::Status::Blocked)
+            .count(),
+        closed: all_issues
+            .iter()
+            .filter(|i| i.status == beads::Status::Closed)
+            .count(),
+    };
+
+    // Get epics with progress
+    let epic_issues: Vec<&beads::Issue> = all_issues
+        .iter()
+        .filter(|i| i.issue_type == beads::IssueType::Epic && i.status != beads::Status::Closed)
+        .collect();
+
+    let mut epics: Vec<EpicWithProgress> = Vec::new();
+    for epic in epic_issues {
+        let prefix = format!("{}.", epic.id);
+        let children: Vec<beads::Issue> = all_issues
+            .iter()
+            .filter(|i| {
+                i.dependencies.iter().any(|d| d.depends_on_id == epic.id)
+                    || i.id.starts_with(&prefix)
+            })
+            .cloned()
+            .collect();
+
+        let total = children.len();
+        let closed = children
+            .iter()
+            .filter(|i| i.status == beads::Status::Closed)
+            .count();
+        let percent = if total > 0 {
+            (closed as f64 / total as f64) * 100.0
+        } else {
+            0.0
+        };
+
+        epics.push(EpicWithProgress {
+            issue: epic.clone(),
+            total,
+            closed,
+            percent,
+            children: Vec::new(), // Not needed for landing
+        });
+    }
+
+    // Sort epics by percent complete (least complete first to highlight work needed)
+    epics.sort_by(|a, b| a.percent.partial_cmp(&b.percent).unwrap_or(std::cmp::Ordering::Equal));
+
+    // Get blocked issues (limit to 5)
+    let blocked: Vec<beads::Issue> = all_issues
+        .iter()
+        .filter(|i| i.status == beads::Status::Blocked)
+        .take(5)
+        .cloned()
+        .collect();
+
+    // Get in progress issues (limit to 5)
+    let in_progress: Vec<beads::Issue> = all_issues
+        .iter()
+        .filter(|i| i.status == beads::Status::InProgress)
+        .take(5)
+        .cloned()
+        .collect();
+
+    LandingTemplate {
+        stats,
+        epics,
+        blocked,
+        in_progress,
+    }
 }
 
 async fn index() -> IndexTemplate {
@@ -493,11 +601,33 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_index() {
-        let app = Router::new().route("/", get(index));
+    async fn test_landing() {
+        let app = Router::new().route("/", get(landing));
 
         let response = app
             .oneshot(Request::builder().uri("/").body(Body::empty()).unwrap())
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::OK);
+
+        let body = axum::body::to_bytes(response.into_body(), usize::MAX)
+            .await
+            .unwrap();
+        assert!(body.starts_with(b"<!DOCTYPE html>"));
+    }
+
+    #[tokio::test]
+    async fn test_index() {
+        let app = Router::new().route("/issues", get(index));
+
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .uri("/issues")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
             .await
             .unwrap();
 

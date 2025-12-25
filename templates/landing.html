@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nacre - Dashboard</title>
+    <link rel="stylesheet" href="/style.css">
+    <script src="/app.js"></script>
+</head>
+<body>
+    <header>
+        <a href="/" class="home-link"><h1>Nacre</h1></a>
+        <nav>
+            <a href="/" class="active">Dashboard</a>
+            <a href="/issues">Issues</a>
+            <a href="/epics">Epics</a>
+            <a href="/board">Board</a>
+            <a href="/prds">PRDs</a>
+            <a href="/issues/new" class="create-btn">+ Create</a>
+        </nav>
+        <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme"></button>
+    </header>
+    <main id="content">
+        <div class="dashboard">
+            <section class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value">{{ stats.total }}</div>
+                    <div class="stat-label">Total Issues</div>
+                </div>
+                <div class="stat-card stat-open">
+                    <div class="stat-value">{{ stats.open }}</div>
+                    <div class="stat-label">Ready</div>
+                </div>
+                <div class="stat-card stat-in-progress">
+                    <div class="stat-value">{{ stats.in_progress }}</div>
+                    <div class="stat-label">In Progress</div>
+                </div>
+                <div class="stat-card stat-blocked">
+                    <div class="stat-value">{{ stats.blocked }}</div>
+                    <div class="stat-label">Blocked</div>
+                </div>
+                <div class="stat-card stat-closed">
+                    <div class="stat-value">{{ stats.closed }}</div>
+                    <div class="stat-label">Closed</div>
+                </div>
+            </section>
+
+            <div class="dashboard-columns">
+                <section class="dashboard-section">
+                    <h2>Epic Progress</h2>
+                    {% if epics.is_empty() %}
+                    <p class="empty-message">No epics found</p>
+                    {% else %}
+                    <div class="epic-progress-list">
+                        {% for epic in epics %}
+                        <a href="/epics/{{ epic.issue.id }}" class="epic-progress-item">
+                            <div class="epic-progress-header">
+                                <span class="epic-progress-title">{{ epic.issue.title }}</span>
+                                <span class="epic-progress-percent">{{ "{:.0}"|format(epic.percent) }}%</span>
+                            </div>
+                            <div class="progress-container small">
+                                <div class="progress-bar" style="width: {{ epic.percent }}%"></div>
+                            </div>
+                            <div class="epic-progress-meta">{{ epic.closed }}/{{ epic.total }} tasks</div>
+                        </a>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </section>
+
+                <section class="dashboard-section">
+                    <h2>Blocked Issues</h2>
+                    {% if blocked.is_empty() %}
+                    <p class="empty-message">No blocked issues</p>
+                    {% else %}
+                    <div class="blocked-list">
+                        {% for issue in blocked %}
+                        <a href="/issues/{{ issue.id }}" class="blocked-item">
+                            <span class="blocked-type type-{{ issue.issue_type.as_css_class() }}">{{ issue.issue_type }}</span>
+                            <span class="blocked-title">{{ issue.title }}</span>
+                            <span class="blocked-id">{{ issue.id }}</span>
+                        </a>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </section>
+
+                <section class="dashboard-section">
+                    <h2>In Progress</h2>
+                    {% if in_progress.is_empty() %}
+                    <p class="empty-message">Nothing in progress</p>
+                    {% else %}
+                    <div class="in-progress-list">
+                        {% for issue in in_progress %}
+                        <a href="/issues/{{ issue.id }}" class="in-progress-item">
+                            <span class="in-progress-type type-{{ issue.issue_type.as_css_class() }}">{{ issue.issue_type }}</span>
+                            <span class="in-progress-title">{{ issue.title }}</span>
+                            <span class="in-progress-id">{{ issue.id }}</span>
+                        </a>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </section>
+            </div>
+
+            <section class="quick-nav">
+                <h2>Quick Navigation</h2>
+                <div class="nav-cards">
+                    <a href="/issues" class="nav-card">
+                        <div class="nav-card-icon">📋</div>
+                        <div class="nav-card-title">All Issues</div>
+                        <div class="nav-card-desc">Browse all issues grouped by epic</div>
+                    </a>
+                    <a href="/epics" class="nav-card">
+                        <div class="nav-card-icon">🎯</div>
+                        <div class="nav-card-title">Epics</div>
+                        <div class="nav-card-desc">View epics with progress tracking</div>
+                    </a>
+                    <a href="/board" class="nav-card">
+                        <div class="nav-card-icon">📊</div>
+                        <div class="nav-card-title">Board</div>
+                        <div class="nav-card-desc">Kanban board view by status</div>
+                    </a>
+                    <a href="/prds" class="nav-card">
+                        <div class="nav-card-icon">📄</div>
+                        <div class="nav-card-title">PRDs</div>
+                        <div class="nav-card-desc">Product requirements documents</div>
+                    </a>
+                </div>
+            </section>
+        </div>
+    </main>
+</body>
+</html>
