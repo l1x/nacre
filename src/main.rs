@@ -81,6 +81,7 @@ struct EpicWithProgress {
     total: usize,
     closed: usize,
     percent: f64,
+    children: Vec<beads::Issue>,
 }
 
 struct BoardColumn {
@@ -210,13 +211,17 @@ async fn epics() -> EpicsTemplate {
 
     for epic in epic_issues {
         let prefix = format!("{}.", epic.id);
-        let children: Vec<&beads::Issue> = all_issues
+        let mut children: Vec<beads::Issue> = all_issues
             .iter()
             .filter(|i| {
                 i.dependencies.iter().any(|d| d.depends_on_id == epic.id)
                     || i.id.starts_with(&prefix)
             })
+            .cloned()
             .collect();
+
+        // Sort children by status priority
+        children.sort_by_key(|i| i.status.sort_order());
 
         let total = children.len();
         let closed = children
@@ -234,6 +239,7 @@ async fn epics() -> EpicsTemplate {
             total,
             closed,
             percent,
+            children,
         });
     }
 

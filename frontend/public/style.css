@@ -363,6 +363,54 @@ main > h2 {
     text-align: right;
 }
 
+.epic-children {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border-subtle);
+}
+
+.epic-child-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 0;
+    font-size: 0.9rem;
+}
+
+.epic-child-item:not(:last-child) {
+    border-bottom: 1px solid var(--border-subtle);
+}
+
+.child-status {
+    font-size: 0.7rem;
+    padding: 2px 8px;
+    border-radius: 10px;
+    background-color: var(--bg-secondary);
+    color: var(--text-secondary);
+    min-width: 70px;
+    text-align: center;
+}
+
+.child-status.status-open { color: var(--accent); }
+.child-status.status-in_progress { color: #7eb8da; }
+.child-status.status-closed { color: var(--text-muted); }
+.child-status.status-blocked { color: #d48a8a; }
+
+.child-title {
+    flex: 1;
+    color: var(--text-primary);
+    text-decoration: none;
+}
+
+.child-title:hover {
+    color: var(--accent);
+}
+
+.child-meta {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+}
+
 /* Board View */
 .board {
     display: flex;

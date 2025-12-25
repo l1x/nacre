@@ -33,9 +33,17 @@
                 <div class="progress-stats">
                     {{ item.closed }} / {{ item.total }} tasks completed ({{ "{:.0}"|format(item.percent) }}%)
                 </div>
+                {% if !item.children.is_empty() %}
                 <div class="epic-children">
-                    <!-- Optional: list children here -->
+                    {% for child in item.children %}
+                    <div class="epic-child-item">
+                        <span class="child-status status-{{ child.status.as_str() }}">{{ child.status }}</span>
+                        <a href="/issues/{{ child.id }}" class="child-title">{{ child.title }}</a>
+                        <span class="child-meta">{{ child.id }}</span>
+                    </div>
+                    {% endfor %}
                 </div>
+                {% endif %}
             </div>
             {% endfor %}
         </div>
