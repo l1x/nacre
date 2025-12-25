@@ -455,7 +455,10 @@ pub async fn graph(State(state): State<crate::AppState>) -> GraphTemplate {
     }
 }
 
-pub async fn issue_detail(State(state): State<crate::AppState>, Path(id): Path<String>) -> crate::AppResult<IssueDetailTemplate> {
+pub async fn issue_detail(
+    State(state): State<crate::AppState>,
+    Path(id): Path<String>,
+) -> crate::AppResult<IssueDetailTemplate> {
     let issue = state.client.get_issue(&id)?;
     Ok(IssueDetailTemplate {
         project_name: state.project_name.clone(),
@@ -463,7 +466,10 @@ pub async fn issue_detail(State(state): State<crate::AppState>, Path(id): Path<S
     })
 }
 
-pub async fn edit_issue(State(state): State<crate::AppState>, Path(id): Path<String>) -> crate::AppResult<EditIssueTemplate> {
+pub async fn edit_issue(
+    State(state): State<crate::AppState>,
+    Path(id): Path<String>,
+) -> crate::AppResult<EditIssueTemplate> {
     let issue = state.client.get_issue(&id)?;
     Ok(EditIssueTemplate {
         project_name: state.project_name.clone(),

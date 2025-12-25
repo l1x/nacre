@@ -257,13 +257,12 @@ pub struct Dependency {
 /// - `Tombstone`: Soft-deleted issue (bd-vw8)
 /// - `Pinned`: Persistent bead that stays open indefinitely (bd-6v2)
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Default)]
-#[serde(rename_all = "kebab-case")]
+#[serde(rename_all = "snake_case")]
 pub enum Status {
     /// New issue ready for work consideration
     #[default]
     Open,
     /// Actively being worked on
-    #[serde(rename = "in-progress")]
     InProgress,
     /// Waiting on external dependencies or blockers
     Blocked,
@@ -292,11 +291,11 @@ impl fmt::Display for Status {
 }
 
 impl Status {
-    /// Returns the kebab-case string representation used by Beads CLI/API
+    /// Returns the snake_case string representation used by Beads CLI/API
     pub fn as_str(&self) -> &'static str {
         match self {
             Status::Open => "open",
-            Status::InProgress => "in-progress",
+            Status::InProgress => "in_progress",
             Status::Blocked => "blocked",
             Status::Deferred => "deferred",
             Status::Closed => "closed",
@@ -578,12 +577,12 @@ mod tests {
     fn test_status_serialization() {
         let status = Status::InProgress;
         let serialized = serde_json::to_string(&status).unwrap();
-        assert_eq!(serialized, "\"in-progress\"");
+        assert_eq!(serialized, "\"in_progress\"");
     }
 
     #[test]
     fn test_status_deserialization() {
-        let json = "\"in-progress\"";
+        let json = "\"in_progress\"";
         let status: Status = serde_json::from_str(json).unwrap();
         assert_eq!(status, Status::InProgress);
     }
@@ -602,7 +601,7 @@ mod tests {
     #[test]
     fn test_status_as_str() {
         assert_eq!(Status::Open.as_str(), "open");
-        assert_eq!(Status::InProgress.as_str(), "in-progress");
+        assert_eq!(Status::InProgress.as_str(), "in_progress");
         assert_eq!(Status::Blocked.as_str(), "blocked");
         assert_eq!(Status::Deferred.as_str(), "deferred");
         assert_eq!(Status::Closed.as_str(), "closed");

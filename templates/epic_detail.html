@@ -44,16 +44,29 @@
                 </div>
             </div>
 
-            <div class="epic-progress-section">
-                <div class="progress-container large">
-                    <div class="progress-bar" style="width: {{ epic.percent }}%"></div>
-                </div>
-                <div class="progress-stats large">
-                    {{ epic.closed }} / {{ epic.total }} tasks completed ({{ "{:.0}"|format(epic.percent) }}%)
+            <div class="detail-section">
+                <h3>Details</h3>
+                <div class="meta-grid">
+                    <div class="meta-label">ID</div>
+                    <div class="meta-value">{{ epic.issue.id }}</div>
+
+                    <div class="meta-label">Priority</div>
+                    <div class="meta-value">P{{ epic.issue.priority.unwrap_or(0) }}</div>
+
+                    {% if epic.issue.assignee.is_some() %}
+                    <div class="meta-label">Assignee</div>
+                    <div class="meta-value">{{ epic.issue.assignee.as_ref().unwrap() }}</div>
+                    {% endif %}
+
+                    <div class="meta-label">Progress</div>
+                    <div class="meta-value progress-meta">
+                        <div class="progress-container small">
+                            <div class="progress-bar" style="width: {{ epic.percent }}%"></div>
+                        </div>
+                        <span class="progress-text">{{ epic.closed }} / {{ epic.total }} ({{ "{:.0}"|format(epic.percent) }}%)</span>
+                    </div>
                 </div>
             </div>
-
-            <div class="detail-section">
                 <h3>Details</h3>
                 <div class="meta-grid">
                     <div class="meta-label">ID</div>
@@ -81,6 +94,25 @@
                 <div class="description-content">{{ epic.issue.description.as_ref().unwrap()|markdown|safe }}</div>
             </div>
             {% endif %}
+
+            <div class="timestamps-grid">
+                <div class="timestamp-item">
+                    <span class="timestamp-value">{{ epic.issue.created_at|format_date }}</span>
+                    <span class="timestamp-label">Created</span>
+                </div>
+                <div class="separator"></div>
+                <div class="timestamp-item">
+                    <span class="timestamp-value">{{ epic.issue.updated_at|format_date }}</span>
+                    <span class="timestamp-label">Updated</span>
+                </div>
+                {% if epic.issue.closed_at.is_some() %}
+                <div class="separator"></div>
+                <div class="timestamp-item">
+                    <span class="timestamp-value">{{ epic.issue.closed_at.as_ref().unwrap()|format_date }}</span>
+                    <span class="timestamp-label">Closed</span>
+                </div>
+                {% endif %}
+            </div>
 
             <div class="detail-section">
                 <h3>Child Issues ({{ epic.total }})</h3>

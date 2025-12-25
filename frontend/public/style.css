@@ -380,6 +380,25 @@ main > h2 {
     text-align: right;
 }
 
+.progress-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.progress-meta .progress-container.small {
+    width: 100px;
+    height: 4px;
+    margin: 0;
+    flex-shrink: 0;
+}
+
+.progress-text {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    white-space: nowrap;
+}
+
 .toggle-children {
     background: none;
     border: none;
