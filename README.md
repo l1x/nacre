@@ -23,6 +23,8 @@ A local-first web interface for [Beads](https://github.com/beads-project/beads) 
 git clone https://github.com/l1x/nacre.git
 cd nacre
 cargo build --release
+# or using mise
+mise build-prod
 ```
 
 The binary will be at `target/release/nacre`.
@@ -33,6 +35,7 @@ The binary will be at `target/release/nacre`.
 - **Platform**: macOS (Darwin)
 
 **Linked Libraries** (macOS):
+
 ```
 CoreText.framework
 CoreGraphics.framework
@@ -44,27 +47,18 @@ libSystem.B.dylib
 ## Usage
 
 ```bash
-# Start the server (default: http://127.0.0.1:3000)
-nacre
-
-# Specify host and port
-nacre --host 0.0.0.0 --port 8080
-
 # Open browser automatically
 nacre --open
-
-# Custom static files directory
-nacre --static-dir ./frontend/public
 ```
 
 ### Command-line Options
 
-| Option | Short | Default | Description |
-|--------|-------|---------|-------------|
-| `--host` | | `127.0.0.1` | Host to bind to |
-| `--port` | `-p` | `3000` | Port to listen on |
-| `--open` | `-o` | `false` | Open browser automatically |
-| `--static-dir` | `-s` | `frontend/public` | Directory for static files |
+| Option         | Short | Default           | Description                |
+| -------------- | ----- | ----------------- | -------------------------- |
+| `--host`       |       | `127.0.0.1`       | Host to bind to            |
+| `--port`       | `-p`  | `3000`            | Port to listen on          |
+| `--open`       | `-o`  | `false`           | Open browser automatically |
+| `--static-dir` | `-s`  | `frontend/public` | Directory for static files |
 
 ## Development
 
