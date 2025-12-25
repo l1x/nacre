@@ -1,9 +1,26 @@
 use chrono::{DateTime, FixedOffset};
 use serde::{Deserialize, Serialize};
 use std::fmt;
-use std::io;
 use std::io::BufRead;
 use std::process::Command;
+use thiserror::Error;
+
+#[derive(Error, Debug)]
+pub enum BeadsError {
+    #[error("Command execution failed: {0}")]
+    CommandFailed(#[from] std::io::Error),
+
+    #[error("Beads command returned error: {0}")]
+    CommandError(String),
+
+    #[error("Failed to parse response: {0}")]
+    ParseError(#[from] serde_json::Error),
+
+    #[error("Issue not found: {0}")]
+    NotFound(String),
+}
+
+pub type Result<T> = std::result::Result<T, BeadsError>;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Issue {
@@ -129,8 +146,15 @@ impl IssueType {
     }
 }
 
+#[derive(Clone)]
 pub struct Client {
     bin_path: String,
+}
+
+impl Default for Client {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 #[derive(Debug, Deserialize)]
@@ -153,12 +177,12 @@ impl Client {
         Self { bin_path }
     }
 
-    pub fn list_issues(&self) -> io::Result<Vec<Issue>> {
+    pub fn list_issues(&self) -> Result<Vec<Issue>> {
         let output = Command::new(&self.bin_path).arg("export").output()?;
 
         if !output.status.success() {
             let error_msg = String::from_utf8_lossy(&output.stderr);
-            return Err(io::Error::other(error_msg.to_string()));
+            return Err(BeadsError::CommandError(error_msg.to_string()));
         }
 
         let mut issues = Vec::new();
@@ -167,29 +191,22 @@ impl Client {
             if line.trim().is_empty() {
                 continue;
             }
-            let issue: Issue = serde_json::from_str(&line)
-                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+            let issue: Issue = serde_json::from_str(&line)?;
             issues.push(issue);
         }
 
         Ok(issues)
     }
 
-    pub fn get_issue(&self, id: &str) -> io::Result<Issue> {
-        // We can't use `bd list` effectively for dependencies if it doesn't return them.
-        // We could scan `list_issues` (export), but that's O(N).
-        // Or we use `bd list --json --id` and accept missing dependencies for detail view?
-        // But Detail view might want to show them.
-        // For now, let's use `list_issues` and find it.
-        // This is slower but correct for dependencies.
+    pub fn get_issue(&self, id: &str) -> Result<Issue> {
         let issues = self.list_issues()?;
         issues
             .into_iter()
             .find(|i| i.id == id)
-            .ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "Issue not found"))
+            .ok_or_else(|| BeadsError::NotFound(id.to_string()))
     }
 
-    pub fn update_issue(&self, id: &str, update: IssueUpdate) -> io::Result<()> {
+    pub fn update_issue(&self, id: &str, update: IssueUpdate) -> Result<()> {
         let mut cmd = Command::new(&self.bin_path);
         cmd.arg("update").arg(id);
 
@@ -204,13 +221,13 @@ impl Client {
 
         if !output.status.success() {
             let error_msg = String::from_utf8_lossy(&output.stderr);
-            return Err(io::Error::other(error_msg.to_string()));
+            return Err(BeadsError::CommandError(error_msg.to_string()));
         }
 
         Ok(())
     }
 
-    pub fn create_issue(&self, create: IssueCreate) -> io::Result<String> {
+    pub fn create_issue(&self, create: IssueCreate) -> Result<String> {
         let mut cmd = Command::new(&self.bin_path);
         cmd.arg("create")
             .arg("--title")
@@ -231,7 +248,7 @@ impl Client {
 
         if !output.status.success() {
             let error_msg = String::from_utf8_lossy(&output.stderr);
-            return Err(io::Error::other(error_msg.to_string()));
+            return Err(BeadsError::CommandError(error_msg.to_string()));
         }
 
         // bd create --silent outputs just the issue ID
@@ -239,7 +256,7 @@ impl Client {
         Ok(id)
     }
 
-    pub fn get_activity(&self) -> io::Result<Vec<Activity>> {
+    pub fn get_activity(&self) -> Result<Vec<Activity>> {
         let output = Command::new(&self.bin_path)
             .arg("activity")
             .arg("--json")
@@ -247,16 +264,14 @@ impl Client {
 
         if !output.status.success() {
             let error_msg = String::from_utf8_lossy(&output.stderr);
-            return Err(io::Error::other(error_msg.to_string()));
+            return Err(BeadsError::CommandError(error_msg.to_string()));
         }
 
-        let activities: Vec<Activity> = serde_json::from_slice(&output.stdout)
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
-
+        let activities: Vec<Activity> = serde_json::from_slice(&output.stdout)?;
         Ok(activities)
     }
 
-    pub fn get_status_summary(&self) -> io::Result<serde_json::Value> {
+    pub fn get_status_summary(&self) -> Result<serde_json::Value> {
         let output = Command::new(&self.bin_path)
             .arg("status")
             .arg("--json")
@@ -264,12 +279,10 @@ impl Client {
 
         if !output.status.success() {
             let error_msg = String::from_utf8_lossy(&output.stderr);
-            return Err(io::Error::other(error_msg.to_string()));
+            return Err(BeadsError::CommandError(error_msg.to_string()));
         }
 
-        let summary: serde_json::Value = serde_json::from_slice(&output.stdout)
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
-
+        let summary: serde_json::Value = serde_json::from_slice(&output.stdout)?;
         Ok(summary)
     }
 }
