@@ -27,10 +27,10 @@ pub async fn serve_js() -> impl IntoResponse {
     ([(header::CONTENT_TYPE, "application/javascript")], APP_JS)
 }
 
-pub async fn landing(State(client): State<crate::AppState>) -> LandingTemplate {
-    let all_issues = client.list_issues().unwrap_or_default();
-    let activities = client.get_activity().unwrap_or_default();
-    let summary = client.get_status_summary().unwrap_or_default();
+pub async fn landing(State(state): State<crate::AppState>) -> LandingTemplate {
+    let all_issues = state.client.list_issues().unwrap_or_default();
+    let activities = state.client.get_activity().unwrap_or_default();
+    let summary = state.client.get_status_summary().unwrap_or_default();
 
     let avg_lead_time_hours = summary["summary"]["average_lead_time_hours"]
         .as_f64()
@@ -110,6 +110,7 @@ pub async fn landing(State(client): State<crate::AppState>) -> LandingTemplate {
         .collect();
 
     LandingTemplate {
+        project_name: state.project_name.clone(),
         stats,
         epics,
         blocked,
@@ -117,8 +118,8 @@ pub async fn landing(State(client): State<crate::AppState>) -> LandingTemplate {
     }
 }
 
-pub async fn index(State(client): State<crate::AppState>) -> IndexTemplate {
-    let all_issues = client.list_issues().unwrap_or_default();
+pub async fn index(State(state): State<crate::AppState>) -> IndexTemplate {
+    let all_issues = state.client.list_issues().unwrap_or_default();
 
     let mut epics: Vec<beads::Issue> = all_issues
         .iter()
@@ -175,11 +176,14 @@ pub async fn index(State(client): State<crate::AppState>) -> IndexTemplate {
         });
     }
 
-    IndexTemplate { groups }
+    IndexTemplate {
+        project_name: state.project_name.clone(),
+        groups,
+    }
 }
 
-pub async fn epics(State(client): State<crate::AppState>) -> EpicsTemplate {
-    let all_issues = client.list_issues().unwrap_or_default();
+pub async fn epics(State(state): State<crate::AppState>) -> EpicsTemplate {
+    let all_issues = state.client.list_issues().unwrap_or_default();
 
     let mut epics: Vec<EpicWithProgress> = all_issues
         .iter()
@@ -190,11 +194,14 @@ pub async fn epics(State(client): State<crate::AppState>) -> EpicsTemplate {
     // Sort epics by most recently updated first
     epics.sort_by(|a, b| b.issue.updated_at.cmp(&a.issue.updated_at));
 
-    EpicsTemplate { epics }
+    EpicsTemplate {
+        project_name: state.project_name.clone(),
+        epics,
+    }
 }
 
-pub async fn epic_detail(State(client): State<crate::AppState>, Path(id): Path<String>) -> crate::AppResult<EpicDetailTemplate> {
-    let all_issues = client.list_issues()?;
+pub async fn epic_detail(State(state): State<crate::AppState>, Path(id): Path<String>) -> crate::AppResult<EpicDetailTemplate> {
+    let all_issues = state.client.list_issues()?;
 
     // Find the epic
     let epic = all_issues
@@ -203,12 +210,13 @@ pub async fn epic_detail(State(client): State<crate::AppState>, Path(id): Path<S
         .ok_or_else(|| crate::AppError::NotFound(format!("Epic {}", id)))?;
 
     Ok(EpicDetailTemplate {
+        project_name: state.project_name.clone(),
         epic: EpicWithProgress::from_epic(epic, &all_issues, true),
     })
 }
 
-pub async fn board(State(client): State<crate::AppState>) -> BoardTemplate {
-    let all_issues = client.list_issues().unwrap_or_default();
+pub async fn board(State(state): State<crate::AppState>) -> BoardTemplate {
+    let all_issues = state.client.list_issues().unwrap_or_default();
 
     let columns = vec![
         BoardColumn {
@@ -245,11 +253,14 @@ pub async fn board(State(client): State<crate::AppState>) -> BoardTemplate {
         },
     ];
 
-    BoardTemplate { columns }
+    BoardTemplate {
+        project_name: state.project_name.clone(),
+        columns,
+    }
 }
 
-pub async fn graph(State(client): State<crate::AppState>) -> GraphTemplate {
-    let all_issues = client.list_issues().unwrap_or_default();
+pub async fn graph(State(state): State<crate::AppState>) -> GraphTemplate {
+    let all_issues = state.client.list_issues().unwrap_or_default();
 
     // Build dependency graph
     let mut dependents: HashMap<String, Vec<String>> = HashMap::new();
@@ -389,6 +400,7 @@ pub async fn graph(State(client): State<crate::AppState>) -> GraphTemplate {
     }
 
     GraphTemplate {
+        project_name: state.project_name.clone(),
         nodes: graph_nodes,
         edges: graph_edges,
         width: svg_width,
@@ -396,16 +408,21 @@ pub async fn graph(State(client): State<crate::AppState>) -> GraphTemplate {
     }
 }
 
-pub async fn issue_detail(State(client): State<crate::AppState>, Path(id): Path<String>) -> crate::AppResult<IssueDetailTemplate> {
-    let issue = client.get_issue(&id)?;
-    Ok(IssueDetailTemplate { issue })
+pub async fn issue_detail(State(state): State<crate::AppState>, Path(id): Path<String>) -> crate::AppResult<IssueDetailTemplate> {
+    let issue = state.client.get_issue(&id)?;
+    Ok(IssueDetailTemplate {
+        project_name: state.project_name.clone(),
+        issue,
+    })
 }
 
-pub async fn new_issue_form() -> NewIssueTemplate {
-    NewIssueTemplate {}
+pub async fn new_issue_form(State(state): State<crate::AppState>) -> NewIssueTemplate {
+    NewIssueTemplate {
+        project_name: state.project_name.clone(),
+    }
 }
 
-pub async fn prds_list() -> PrdsListTemplate {
+pub async fn prds_list(State(state): State<crate::AppState>) -> PrdsListTemplate {
     let mut files_with_time: Vec<(String, std::time::SystemTime)> = Vec::new();
     if let Ok(entries) = std::fs::read_dir("docs/prds") {
         for entry in entries.flatten() {
@@ -423,10 +440,13 @@ pub async fn prds_list() -> PrdsListTemplate {
     // Sort by most recently modified first
     files_with_time.sort_by(|a, b| b.1.cmp(&a.1));
     let files: Vec<String> = files_with_time.into_iter().map(|(name, _)| name).collect();
-    PrdsListTemplate { files }
+    PrdsListTemplate {
+        project_name: state.project_name.clone(),
+        files,
+    }
 }
 
-pub async fn prd_view(Path(filename): Path<String>) -> crate::AppResult<PrdViewTemplate> {
+pub async fn prd_view(State(state): State<crate::AppState>, Path(filename): Path<String>) -> crate::AppResult<PrdViewTemplate> {
     if filename.contains("..") || filename.contains('/') || filename.contains('\\') {
         return Err(crate::AppError::BadRequest("Invalid filename".to_string()));
     }
@@ -440,20 +460,21 @@ pub async fn prd_view(Path(filename): Path<String>) -> crate::AppResult<PrdViewT
     html::push_html(&mut html_output, parser);
 
     Ok(PrdViewTemplate {
+        project_name: state.project_name.clone(),
         filename,
         content: html_output,
     })
 }
 
-pub async fn list_issues(State(client): State<crate::AppState>) -> crate::AppResult<Json<Vec<beads::Issue>>> {
-    let issues = client.list_issues()?;
+pub async fn list_issues(State(state): State<crate::AppState>) -> crate::AppResult<Json<Vec<beads::Issue>>> {
+    let issues = state.client.list_issues()?;
     Ok(Json(issues))
 }
 
-pub async fn metrics_handler(State(client): State<crate::AppState>) -> MetricsTemplate {
-    let all_issues = client.list_issues().unwrap_or_default();
-    let activities = client.get_activity().unwrap_or_default();
-    let summary = client.get_status_summary().unwrap_or_default();
+pub async fn metrics_handler(State(state): State<crate::AppState>) -> MetricsTemplate {
+    let all_issues = state.client.list_issues().unwrap_or_default();
+    let activities = state.client.get_activity().unwrap_or_default();
+    let summary = state.client.get_status_summary().unwrap_or_default();
 
     let avg_lead_time_hours = summary["summary"]["average_lead_time_hours"]
         .as_f64()
@@ -585,6 +606,7 @@ pub async fn metrics_handler(State(client): State<crate::AppState>) -> MetricsTe
     }
 
     MetricsTemplate {
+        project_name: state.project_name.clone(),
         avg_lead_time_hours,
         avg_cycle_time_hours,
         throughput_per_day,
@@ -596,18 +618,18 @@ pub async fn metrics_handler(State(client): State<crate::AppState>) -> MetricsTe
 }
 
 pub async fn update_issue_handler(
-    State(client): State<crate::AppState>,
+    State(state): State<crate::AppState>,
     Path(id): Path<String>,
     Json(update): Json<beads::IssueUpdate>,
 ) -> crate::AppResult<StatusCode> {
-    client.update_issue(&id, update)?;
+    state.client.update_issue(&id, update)?;
     Ok(StatusCode::OK)
 }
 
 pub async fn create_issue_handler(
-    State(client): State<crate::AppState>,
+    State(state): State<crate::AppState>,
     Json(create): Json<beads::IssueCreate>,
 ) -> crate::AppResult<Json<serde_json::Value>> {
-    let id = client.create_issue(create)?;
+    let id = state.client.create_issue(create)?;
     Ok(Json(serde_json::json!({ "id": id })))
 }

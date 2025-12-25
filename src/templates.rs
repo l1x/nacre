@@ -105,6 +105,7 @@ pub struct GraphEdge {
 #[derive(Template)]
 #[template(path = "landing.html")]
 pub struct LandingTemplate {
+    pub project_name: String,
     pub stats: ProjectStats,
     pub epics: Vec<EpicWithProgress>,
     pub blocked: Vec<beads::Issue>,
@@ -114,40 +115,48 @@ pub struct LandingTemplate {
 #[derive(Template)]
 #[template(path = "index.html")]
 pub struct IndexTemplate {
+    pub project_name: String,
     pub groups: Vec<IssueGroup>,
 }
 
 #[derive(Template)]
 #[template(path = "epics.html")]
 pub struct EpicsTemplate {
+    pub project_name: String,
     pub epics: Vec<EpicWithProgress>,
 }
 
 #[derive(Template)]
 #[template(path = "board.html")]
 pub struct BoardTemplate {
+    pub project_name: String,
     pub columns: Vec<BoardColumn>,
 }
 
 #[derive(Template)]
 #[template(path = "issue.html")]
 pub struct IssueDetailTemplate {
+    pub project_name: String,
     pub issue: beads::Issue,
 }
 
 #[derive(Template)]
 #[template(path = "new_issue.html")]
-pub struct NewIssueTemplate {}
+pub struct NewIssueTemplate {
+    pub project_name: String,
+}
 
 #[derive(Template)]
 #[template(path = "prds.html")]
 pub struct PrdsListTemplate {
+    pub project_name: String,
     pub files: Vec<String>,
 }
 
 #[derive(Template)]
 #[template(path = "prd.html")]
 pub struct PrdViewTemplate {
+    pub project_name: String,
     pub filename: String,
     pub content: String,
 }
@@ -155,12 +164,14 @@ pub struct PrdViewTemplate {
 #[derive(Template)]
 #[template(path = "epic_detail.html")]
 pub struct EpicDetailTemplate {
+    pub project_name: String,
     pub epic: EpicWithProgress,
 }
 
 #[derive(Template)]
 #[template(path = "graph.html")]
 pub struct GraphTemplate {
+    pub project_name: String,
     pub nodes: Vec<GraphNode>,
     pub edges: Vec<GraphEdge>,
     pub width: i32,
@@ -170,6 +181,7 @@ pub struct GraphTemplate {
 #[derive(Template)]
 #[template(path = "metrics.html")]
 pub struct MetricsTemplate {
+    pub project_name: String,
     pub avg_lead_time_hours: f64,
     pub avg_cycle_time_hours: f64,
     pub throughput_per_day: f64,

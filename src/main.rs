@@ -12,7 +12,25 @@ use std::net::SocketAddr;
 use tower_http::trace::TraceLayer;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
-pub type AppState = beads::Client;
+#[derive(Clone)]
+pub struct AppState {
+    pub client: beads::Client,
+    pub project_name: String,
+}
+
+impl AppState {
+    fn new() -> Self {
+        let project_name = std::env::current_dir()
+            .ok()
+            .and_then(|p| p.file_name().map(|n| n.to_string_lossy().to_string()))
+            .unwrap_or_else(|| "Nacre".to_string());
+
+        Self {
+            client: beads::Client::new(),
+            project_name,
+        }
+    }
+}
 
 #[derive(FromArgs, Debug)]
 /// Nacre: A local-first web interface for Beads.
@@ -42,7 +60,7 @@ async fn main() {
         .init();
 
     let args: Args = argh::from_env();
-    let client = beads::Client::new();
+    let state = AppState::new();
 
     let app = Router::new()
         .route("/", get(handlers::landing))
@@ -62,7 +80,7 @@ async fn main() {
         .route("/health", get(handlers::health_check))
         .route("/style.css", get(handlers::serve_css))
         .route("/app.js", get(handlers::serve_js))
-        .with_state(client)
+        .with_state(state)
         .layer(TraceLayer::new_for_http());
 
     let addr_str = format!("{}:{}", args.host, args.port);
@@ -90,8 +108,8 @@ mod tests {
     };
     use tower::ServiceExt;
 
-    fn test_client() -> beads::Client {
-        beads::Client::new()
+    fn test_state() -> AppState {
+        AppState::new()
     }
 
     #[tokio::test]
@@ -120,7 +138,7 @@ mod tests {
     async fn test_landing() {
         let app = Router::new()
             .route("/", get(handlers::landing))
-            .with_state(test_client());
+            .with_state(test_state());
 
         let response = app
             .oneshot(Request::builder().uri("/").body(Body::empty()).unwrap())
@@ -139,7 +157,7 @@ mod tests {
     async fn test_index() {
         let app = Router::new()
             .route("/issues", get(handlers::index))
-            .with_state(test_client());
+            .with_state(test_state());
 
         let response = app
             .oneshot(
@@ -163,7 +181,7 @@ mod tests {
     async fn test_epics() {
         let app = Router::new()
             .route("/epics", get(handlers::epics))
-            .with_state(test_client());
+            .with_state(test_state());
 
         let response = app
             .oneshot(
@@ -182,7 +200,7 @@ mod tests {
     async fn test_board() {
         let app = Router::new()
             .route("/board", get(handlers::board))
-            .with_state(test_client());
+            .with_state(test_state());
 
         let response = app
             .oneshot(
@@ -201,7 +219,7 @@ mod tests {
     async fn test_graph() {
         let app = Router::new()
             .route("/graph", get(handlers::graph))
-            .with_state(test_client());
+            .with_state(test_state());
 
         let response = app
             .oneshot(
@@ -220,7 +238,7 @@ mod tests {
     async fn test_issue_detail() {
         let app = Router::new()
             .route("/issues/:id", get(handlers::issue_detail))
-            .with_state(test_client());
+            .with_state(test_state());
 
         let response = app
             .oneshot(
@@ -239,7 +257,7 @@ mod tests {
     async fn test_list_issues() {
         let app = Router::new()
             .route("/api/issues", get(handlers::list_issues))
-            .with_state(test_client());
+            .with_state(test_state());
 
         let response = app
             .oneshot(
