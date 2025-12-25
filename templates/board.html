@@ -22,9 +22,9 @@
                 <div class="column-header">
                     <h2>{{ col.name }} <span class="count">{{ col.issues.len() }}</span></h2>
                 </div>
-                <div class="column-content">
+                <div class="column-content" data-status="{{ col.name }}">
                     {% for issue in col.issues %}
-                    <div class="issue-card" data-id="{{ issue.id }}">
+                    <div class="issue-card" data-id="{{ issue.id }}" draggable="true">
                         <div class="issue-title">{{ issue.title }}</div>
                         <div class="issue-meta"><a href="/issues/{{ issue.id }}">{{ issue.id }}</a> • P{{ issue.priority.unwrap_or(0) }}</div>
                     </div>
