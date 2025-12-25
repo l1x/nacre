@@ -157,43 +157,40 @@ async fn board() -> BoardTemplate {
     let client = beads::Client::new();
     let all_issues = client.list_issues().unwrap_or_default();
 
-    let mut columns = Vec::new();
-
-    columns.push(BoardColumn {
-        name: "Blocked".to_string(),
-        issues: all_issues
-            .iter()
-            .filter(|i| i.status == beads::Status::Blocked)
-            .cloned()
-            .collect(),
-    });
-
-    columns.push(BoardColumn {
-        name: "Ready".to_string(),
-        issues: all_issues
-            .iter()
-            .filter(|i| i.status == beads::Status::Open)
-            .cloned()
-            .collect(),
-    });
-
-    columns.push(BoardColumn {
-        name: "In Progress".to_string(),
-        issues: all_issues
-            .iter()
-            .filter(|i| i.status == beads::Status::InProgress)
-            .cloned()
-            .collect(),
-    });
-
-    columns.push(BoardColumn {
-        name: "Closed".to_string(),
-        issues: all_issues
-            .iter()
-            .filter(|i| i.status == beads::Status::Closed)
-            .cloned()
-            .collect(),
-    });
+    let columns = vec![
+        BoardColumn {
+            name: "Blocked".to_string(),
+            issues: all_issues
+                .iter()
+                .filter(|i| i.status == beads::Status::Blocked)
+                .cloned()
+                .collect(),
+        },
+        BoardColumn {
+            name: "Ready".to_string(),
+            issues: all_issues
+                .iter()
+                .filter(|i| i.status == beads::Status::Open)
+                .cloned()
+                .collect(),
+        },
+        BoardColumn {
+            name: "In Progress".to_string(),
+            issues: all_issues
+                .iter()
+                .filter(|i| i.status == beads::Status::InProgress)
+                .cloned()
+                .collect(),
+        },
+        BoardColumn {
+            name: "Closed".to_string(),
+            issues: all_issues
+                .iter()
+                .filter(|i| i.status == beads::Status::Closed)
+                .cloned()
+                .collect(),
+        },
+    ];
 
     BoardTemplate { columns }
 }

@@ -102,7 +102,7 @@ impl Client {
 
         if !output.status.success() {
             let error_msg = String::from_utf8_lossy(&output.stderr);
-            return Err(io::Error::new(io::ErrorKind::Other, error_msg.to_string()));
+            return Err(io::Error::other(error_msg.to_string()));
         }
 
         let issues: Vec<Issue> = serde_json::from_slice(&output.stdout)
@@ -126,7 +126,7 @@ impl Client {
 
         if !output.status.success() {
             let error_msg = String::from_utf8_lossy(&output.stderr);
-            return Err(io::Error::new(io::ErrorKind::Other, error_msg.to_string()));
+            return Err(io::Error::other(error_msg.to_string()));
         }
 
         Ok(())
