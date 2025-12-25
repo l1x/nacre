@@ -1,5 +1,14 @@
-/* Elegant Dark Theme - Inspired by Vectorian */
+/* Theme Variables */
 :root {
+    /* Sizing (shared) */
+    --header-height: 56px;
+    --content-max-width: 1200px;
+    --radius: 6px;
+    --radius-sm: 4px;
+}
+
+/* Dark Theme (default) */
+:root, [data-theme="dark"] {
     /* Color palette */
     --bg-primary: #141414;
     --bg-secondary: #1c1a19;
@@ -20,11 +29,41 @@
     --border-color: #2a2624;
     --border-subtle: #222020;
 
-    /* Sizing */
-    --header-height: 56px;
-    --content-max-width: 1200px;
-    --radius: 6px;
-    --radius-sm: 4px;
+    /* Shadows */
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+/* Light Theme */
+[data-theme="light"] {
+    /* Color palette */
+    --bg-primary: #f5f2ed;
+    --bg-secondary: #ebe7e1;
+    --bg-card: #ffffff;
+    --bg-card-hover: #faf8f5;
+
+    /* Accent colors - warm orange (slightly deeper for contrast) */
+    --accent: #d4693d;
+    --accent-muted: #a8512e;
+    --accent-glow: rgba(212, 105, 61, 0.12);
+
+    /* Text colors */
+    --text-primary: #2a2520;
+    --text-secondary: #5a5550;
+    --text-muted: #8a8580;
+
+    /* Borders */
+    --border-color: #e0dcd5;
+    --border-subtle: #ebe7e1;
+
+    /* Shadows */
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.08);
+    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Theme transition */
+body, body * {
+    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
 }
 
 /* Base styles */
@@ -132,6 +171,26 @@ nav a.active::after {
 #filter-input:focus {
     border-color: var(--accent-muted);
     box-shadow: 0 0 0 3px var(--accent-glow);
+}
+
+/* Theme toggle */
+.theme-toggle {
+    background: none;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    padding: 6px 10px;
+    cursor: pointer;
+    color: var(--text-secondary);
+    font-size: 1.1rem;
+    line-height: 1;
+    margin-left: 16px;
+    transition: color 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
+}
+
+.theme-toggle:hover {
+    color: var(--accent);
+    border-color: var(--accent-muted);
+    background-color: var(--accent-glow);
 }
 
 /* Main content */

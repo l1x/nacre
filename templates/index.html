@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nacre</title>
     <link rel="stylesheet" href="/style.css">
+    <script src="/app.js"></script>
 </head>
 <body>
     <header>
@@ -18,6 +19,7 @@
         <div class="search-container">
             <input type="text" id="filter-input" placeholder="Filter issues..." aria-label="Filter issues">
         </div>
+        <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">☀️</button>
     </header>
     <main id="content">
         {% if groups.is_empty() %}
@@ -43,6 +45,5 @@
             {% endfor %}
         {% endif %}
     </main>
-    <script src="/app.js"></script>
 </body>
 </html>
