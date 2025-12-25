@@ -34,10 +34,17 @@
                     <div class="progress-bar" style="width: {{ item.percent }}%"></div>
                 </div>
                 <div class="progress-stats">
+                    {% if !item.children.is_empty() %}
+                    <button class="toggle-children" aria-label="Toggle children">
+                        <span class="toggle-icon">▶</span>
+                        {{ item.closed }} / {{ item.total }} tasks
+                    </button>
+                    {% else %}
                     {{ item.closed }} / {{ item.total }} tasks completed ({{ "{:.0}"|format(item.percent) }}%)
+                    {% endif %}
                 </div>
                 {% if !item.children.is_empty() %}
-                <div class="epic-children">
+                <div class="epic-children collapsed">
                     {% for child in item.children %}
                     <div class="epic-child-item">
                         <span class="child-status status-{{ child.status.as_str() }}">{{ child.status }}</span>

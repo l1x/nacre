@@ -49,6 +49,30 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // Epic children toggle
+    const toggleButtons = document.querySelectorAll('.toggle-children');
+    toggleButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const epicItem = button.closest('.epic-item');
+            const children = epicItem.querySelector('.epic-children');
+
+            if (children) {
+                const isCollapsed = children.classList.contains('collapsed');
+                children.classList.toggle('collapsed');
+                button.classList.toggle('expanded');
+
+                if (isCollapsed) {
+                    // Set max-height for animation
+                    children.style.maxHeight = children.scrollHeight + 'px';
+                    children.style.opacity = '1';
+                } else {
+                    children.style.maxHeight = '0';
+                    children.style.opacity = '0';
+                }
+            }
+        });
+    });
+
     // Inline Editing Logic
     document.addEventListener('click', (e) => {
         if (e.target.classList.contains('issue-title')) {

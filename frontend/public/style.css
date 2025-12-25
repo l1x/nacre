@@ -378,10 +378,48 @@ main > h2 {
     text-align: right;
 }
 
+.toggle-children {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 0.85rem;
+    padding: 4px 8px;
+    border-radius: var(--radius-sm);
+    transition: color 0.2s ease, background-color 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.toggle-children:hover {
+    color: var(--text-primary);
+    background-color: var(--bg-secondary);
+}
+
+.toggle-icon {
+    font-size: 0.7rem;
+    transition: transform 0.2s ease;
+}
+
+.toggle-children.expanded .toggle-icon {
+    transform: rotate(90deg);
+}
+
 .epic-children {
     margin-top: 16px;
     padding-top: 16px;
     border-top: 1px solid var(--border-subtle);
+    overflow: hidden;
+    transition: max-height 0.3s ease, opacity 0.3s ease;
+}
+
+.epic-children.collapsed {
+    max-height: 0;
+    opacity: 0;
+    margin-top: 0;
+    padding-top: 0;
+    border-top: none;
 }
 
 .epic-child-item {
