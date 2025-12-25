@@ -10,7 +10,7 @@ use axum::{
     routing::{get, post},
 };
 use pulldown_cmark::{Parser, html};
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 use std::net::SocketAddr;
 use tower_http::trace::TraceLayer;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
@@ -104,6 +104,33 @@ struct EpicDetailTemplate {
     epic: EpicWithProgress,
 }
 
+#[derive(Template)]
+#[template(path = "graph.html")]
+struct GraphTemplate {
+    nodes: Vec<GraphNode>,
+    edges: Vec<GraphEdge>,
+    width: i32,
+    height: i32,
+}
+
+struct GraphNode {
+    id: String,
+    title: String,
+    title_short: String,
+    status: String,
+    issue_type: String,
+    priority: u8,
+    x: i32,
+    y: i32,
+}
+
+struct GraphEdge {
+    x1: i32,
+    y1: i32,
+    x2: i32,
+    y2: i32,
+}
+
 struct EpicWithProgress {
     issue: beads::Issue,
     total: usize,
@@ -136,6 +163,7 @@ async fn main() {
         .route("/epics", get(epics))
         .route("/epics/:id", get(epic_detail))
         .route("/board", get(board))
+        .route("/graph", get(graph))
         .route("/issues/new", get(new_issue_form))
         .route("/issues/:id", get(issue_detail))
         .route("/prds", get(prds_list))
@@ -475,6 +503,149 @@ async fn board() -> BoardTemplate {
     BoardTemplate { columns }
 }
 
+async fn graph() -> GraphTemplate {
+    let client = beads::Client::new();
+    let all_issues = client.list_issues().unwrap_or_default();
+
+    // Build dependency graph
+    let mut dependents: HashMap<String, Vec<String>> = HashMap::new();
+    let mut in_degree: HashMap<String, usize> = HashMap::new();
+
+    // Initialize all nodes
+    for issue in &all_issues {
+        dependents.entry(issue.id.clone()).or_default();
+        in_degree.entry(issue.id.clone()).or_insert(0);
+    }
+
+    // Build edges from dependencies
+    for issue in &all_issues {
+        for dep in &issue.dependencies {
+            // issue depends on dep.depends_on_id, so dep.depends_on_id -> issue
+            dependents
+                .entry(dep.depends_on_id.clone())
+                .or_default()
+                .push(issue.id.clone());
+            *in_degree.entry(issue.id.clone()).or_insert(0) += 1;
+        }
+    }
+
+    // Topological sort with levels (BFS)
+    let mut levels: HashMap<String, usize> = HashMap::new();
+    let mut queue: Vec<String> = Vec::new();
+
+    // Start with nodes that have no dependencies
+    for issue in &all_issues {
+        if in_degree.get(&issue.id).copied().unwrap_or(0) == 0 {
+            queue.push(issue.id.clone());
+            levels.insert(issue.id.clone(), 0);
+        }
+    }
+
+    let mut max_level = 0;
+    while !queue.is_empty() {
+        let current = queue.remove(0);
+        let current_level = levels.get(&current).copied().unwrap_or(0);
+
+        if let Some(deps) = dependents.get(&current) {
+            for dep_id in deps {
+                let new_level = current_level + 1;
+                let existing_level = levels.entry(dep_id.clone()).or_insert(0);
+                if new_level > *existing_level {
+                    *existing_level = new_level;
+                }
+                max_level = max_level.max(new_level);
+
+                let deg = in_degree.get_mut(dep_id).unwrap();
+                *deg -= 1;
+                if *deg == 0 {
+                    queue.push(dep_id.clone());
+                }
+            }
+        }
+    }
+
+    // Group nodes by level
+    let mut nodes_by_level: Vec<Vec<&beads::Issue>> = vec![Vec::new(); max_level + 1];
+    for issue in &all_issues {
+        let level = levels.get(&issue.id).copied().unwrap_or(0);
+        if level < nodes_by_level.len() {
+            nodes_by_level[level].push(issue);
+        }
+    }
+
+    // Calculate positions
+    let node_width = 180;
+    let node_height = 80;
+    let level_gap = 100;
+    let node_gap = 40;
+
+    let mut max_width = 0;
+    for level_nodes in &nodes_by_level {
+        let level_width = level_nodes.len() as i32 * (node_width + node_gap);
+        max_width = max_width.max(level_width);
+    }
+
+    let svg_width = max_width.max(600) + 100;
+    let svg_height = ((max_level + 1) as i32 * (node_height + level_gap)) + 100;
+
+    let mut node_positions: HashMap<String, (i32, i32)> = HashMap::new();
+    let mut graph_nodes = Vec::new();
+
+    for (level, level_nodes) in nodes_by_level.iter().enumerate() {
+        let total_width = level_nodes.len() as i32 * (node_width + node_gap) - node_gap;
+        let start_x = (svg_width - total_width) / 2 + node_width / 2;
+        let y = 50 + level as i32 * (node_height + level_gap) + node_height / 2;
+
+        for (i, issue) in level_nodes.iter().enumerate() {
+            let x = start_x + i as i32 * (node_width + node_gap);
+            node_positions.insert(issue.id.clone(), (x, y));
+
+            // Truncate title
+            let title_short = if issue.title.len() > 20 {
+                format!("{}...", &issue.title[..17])
+            } else {
+                issue.title.clone()
+            };
+
+            graph_nodes.push(GraphNode {
+                id: issue.id.clone(),
+                title: issue.title.clone(),
+                title_short,
+                status: issue.status.as_str().to_string(),
+                issue_type: issue.issue_type.as_css_class().to_string(),
+                priority: issue.priority.unwrap_or(2),
+                x,
+                y,
+            });
+        }
+    }
+
+    // Build edges
+    let mut graph_edges = Vec::new();
+    for issue in &all_issues {
+        if let Some(&(x2, y2)) = node_positions.get(&issue.id) {
+            for dep in &issue.dependencies {
+                if let Some(&(x1, y1)) = node_positions.get(&dep.depends_on_id) {
+                    // Edge from dependency to dependent (top to bottom)
+                    graph_edges.push(GraphEdge {
+                        x1,
+                        y1: y1 + 30, // Bottom of source node
+                        x2,
+                        y2: y2 - 30, // Top of target node
+                    });
+                }
+            }
+        }
+    }
+
+    GraphTemplate {
+        nodes: graph_nodes,
+        edges: graph_edges,
+        width: svg_width,
+        height: svg_height,
+    }
+}
+
 async fn issue_detail(Path(id): Path<String>) -> Result<IssueDetailTemplate, StatusCode> {
     let client = beads::Client::new();
     match client.get_issue(&id) {
@@ -664,6 +835,23 @@ mod tests {
             .oneshot(
                 Request::builder()
                     .uri("/board")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::OK);
+    }
+
+    #[tokio::test]
+    async fn test_graph() {
+        let app = Router::new().route("/graph", get(graph));
+
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .uri("/graph")
                     .body(Body::empty())
                     .unwrap(),
             )

@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nacre - Graph</title>
+    <link rel="stylesheet" href="/style.css">
+    <script src="/app.js"></script>
+</head>
+<body>
+    <header>
+        <a href="/" class="home-link"><h1>Nacre</h1></a>
+        <nav>
+            <a href="/">Dashboard</a>
+            <a href="/issues">Issues</a>
+            <a href="/epics">Epics</a>
+            <a href="/board">Board</a>
+            <a href="/graph" class="active">Graph</a>
+            <a href="/prds">PRDs</a>
+            <a href="/issues/new" class="create-btn">+ Create</a>
+        </nav>
+        <div class="search-container">
+            <input type="text" id="filter-input" placeholder="Filter nodes..." aria-label="Filter nodes">
+        </div>
+        <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme"></button>
+    </header>
+    <main id="content" class="graph-container">
+        <div class="graph-wrapper">
+            <svg id="graph-svg" width="{{ width }}" height="{{ height }}" viewBox="0 0 {{ width }} {{ height }}">
+                <defs>
+                    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+                        <polygon points="0 0, 10 3.5, 0 7" class="arrow-marker" />
+                    </marker>
+                </defs>
+
+                <!-- Edges -->
+                <g class="edges">
+                    {% for edge in edges %}
+                    <line
+                        x1="{{ edge.x1 }}"
+                        y1="{{ edge.y1 }}"
+                        x2="{{ edge.x2 }}"
+                        y2="{{ edge.y2 }}"
+                        class="edge"
+                        marker-end="url(#arrowhead)"
+                    />
+                    {% endfor %}
+                </g>
+
+                <!-- Nodes -->
+                <g class="nodes">
+                    {% for node in nodes %}
+                    <a href="/issues/{{ node.id }}" class="graph-node-link" data-filter-text="{{ node.title|lower }} {{ node.id|lower }}">
+                        <g class="graph-node node-{{ node.status }} type-{{ node.issue_type }}" transform="translate({{ node.x }}, {{ node.y }})">
+                            <rect
+                                x="-80"
+                                y="-30"
+                                width="160"
+                                height="60"
+                                rx="6"
+                                class="node-bg"
+                            />
+                            <text x="0" y="-8" class="node-title" text-anchor="middle">{{ node.title_short }}</text>
+                            <text x="0" y="10" class="node-id" text-anchor="middle">{{ node.id }}</text>
+                            <text x="0" y="22" class="node-meta" text-anchor="middle">{{ node.issue_type }} | P{{ node.priority }}</text>
+                        </g>
+                    </a>
+                    {% endfor %}
+                </g>
+            </svg>
+        </div>
+        <div class="graph-legend">
+            <h3>Legend</h3>
+            <div class="legend-items">
+                <div class="legend-item"><span class="legend-color status-open"></span> Ready</div>
+                <div class="legend-item"><span class="legend-color status-in_progress"></span> In Progress</div>
+                <div class="legend-item"><span class="legend-color status-blocked"></span> Blocked</div>
+                <div class="legend-item"><span class="legend-color status-closed"></span> Closed</div>
+            </div>
+        </div>
+    </main>
+    <script>
+        // Graph node filtering
+        document.getElementById('filter-input').addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase();
+            document.querySelectorAll('.graph-node-link').forEach(link => {
+                const text = link.getAttribute('data-filter-text');
+                const matches = text && text.includes(query);
+                link.style.opacity = matches || !query ? '1' : '0.2';
+            });
+        });
+    </script>
+</body>
+</html>
