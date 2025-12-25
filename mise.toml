@@ -17,6 +17,10 @@ run = "cargo fmt"
 description = "Running tests"
 run = "cargo test -- --nocapture"
 
+[tasks.bench-markdown-comparison]
+description = "Running markdown-comparison benchmark"
+run = "cargo bench --bench markdown_comparison"
+
 [tasks.build-dev]
 description = "Building the development version"
 run = "cargo build"
