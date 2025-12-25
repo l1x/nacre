@@ -19,22 +19,27 @@
         </div>
     </header>
     <main id="content">
-        {% if issues.is_empty() %}
+        {% if groups.is_empty() %}
             <div class="empty">No issues found</div>
         {% else %}
-            <div class="issue-list" id="issue-list">
-                {% for issue in issues %}
-                <div class="issue-item" data-id="{{ issue.id }}" data-filter-text="{{ issue.title|lower }} {{ issue.id|lower }} {{ issue.status|lower }}">
-                    <div class="issue-main">
-                        <div class="issue-title">{{ issue.title }}</div>
-                        <div class="issue-meta">{{ issue.id }} • {{ issue.issue_type }} • P{{ issue.priority.unwrap_or(0) }}</div>
-                    </div>
-                    <div class="issue-status">
-                        <span class="status-badge">{{ issue.status }}</span>
+            {% for group in groups %}
+                <div class="issue-group">
+                    <h2 class="group-title">{{ group.epic_title }}</h2>
+                    <div class="issue-list">
+                        {% for issue in group.issues %}
+                        <div class="issue-item" data-id="{{ issue.id }}" data-filter-text="{{ issue.title|lower }} {{ issue.id|lower }} {{ issue.status|lower }}">
+                            <div class="issue-main">
+                                <div class="issue-title">{{ issue.title }}</div>
+                                <div class="issue-meta">{{ issue.id }} • {{ issue.issue_type }} • P{{ issue.priority.unwrap_or(0) }}</div>
+                            </div>
+                            <div class="issue-status">
+                                <span class="status-badge">{{ issue.status }}</span>
+                            </div>
+                        </div>
+                        {% endfor %}
                     </div>
                 </div>
-                {% endfor %}
-            </div>
+            {% endfor %}
         {% endif %}
     </main>
     <script src="/app.js"></script>

@@ -8,6 +8,7 @@ use axum::{
     http::StatusCode,
     routing::{get, post},
 };
+use std::collections::HashSet;
 use std::net::SocketAddr;
 use tower_http::{services::ServeDir, trace::TraceLayer};
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
@@ -35,6 +36,11 @@ struct Args {
 #[derive(Template)]
 #[template(path = "index.html")]
 struct IndexTemplate {
+    groups: Vec<IssueGroup>,
+}
+
+struct IssueGroup {
+    epic_title: String,
     issues: Vec<beads::Issue>,
 }
 
@@ -91,7 +97,7 @@ async fn main() {
     tracing::info!("listening on {}", addr);
 
     if args.open {
-        let url = format!("{}", addr);
+        let url = format!("http://{}", addr);
         if let Err(e) = open::that(&url) {
             tracing::error!("Failed to open browser: {}", e);
         }
@@ -107,8 +113,52 @@ async fn health_check() -> &'static str {
 
 async fn index() -> IndexTemplate {
     let client = beads::Client::new();
-    let issues = client.list_issues().unwrap_or_default();
-    IndexTemplate { issues }
+    let all_issues = client.list_issues().unwrap_or_default();
+
+    let epics: Vec<beads::Issue> = all_issues
+        .iter()
+        .filter(|i| i.issue_type == beads::IssueType::Epic)
+        .cloned()
+        .collect();
+
+    let mut groups: Vec<IssueGroup> = Vec::new();
+
+    for epic in epics {
+        let prefix = format!("{}.", epic.id);
+        let children: Vec<beads::Issue> = all_issues
+            .iter()
+            .filter(|i| i.id.starts_with(&prefix))
+            .cloned()
+            .collect();
+
+        if !children.is_empty() {
+            groups.push(IssueGroup {
+                epic_title: epic.title.clone(),
+                issues: children,
+            });
+        }
+    }
+
+    // Un-grouped issues (excluding epics themselves and issues already in groups)
+    let grouped_ids: HashSet<String> = groups
+        .iter()
+        .flat_map(|g| g.issues.iter().map(|i| i.id.clone()))
+        .collect();
+
+    let un_grouped: Vec<beads::Issue> = all_issues
+        .iter()
+        .filter(|i| i.issue_type != beads::IssueType::Epic && !grouped_ids.contains(&i.id))
+        .cloned()
+        .collect();
+
+    if !un_grouped.is_empty() {
+        groups.push(IssueGroup {
+            epic_title: "No Epic".to_string(),
+            issues: un_grouped,
+        });
+    }
+
+    IndexTemplate { groups }
 }
 
 async fn epics() -> EpicsTemplate {

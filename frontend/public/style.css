@@ -78,6 +78,18 @@ main {
     padding: 20px;
 }
 
+.issue-group {
+    margin-bottom: 30px;
+}
+
+.group-title {
+    font-size: 1.1rem;
+    margin-bottom: 15px;
+    border-left: 4px solid var(--accent-color);
+    padding-left: 10px;
+    color: var(--accent-color);
+}
+
 /* Issues List */
 .issue-list {
     display: flex;
