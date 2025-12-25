@@ -9,8 +9,10 @@ use argh::FromArgs;
 use axum::Router;
 use axum::routing::{get, post};
 use std::net::SocketAddr;
-use tower_http::trace::TraceLayer;
+use tower_http::trace::{DefaultOnResponse, TraceLayer};
+use tracing::{Level, Span};
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
+use std::sync::atomic::{AtomicU64, Ordering};
 
 #[derive(Clone)]
 pub struct AppState {
@@ -54,7 +56,7 @@ async fn main() {
     tracing_subscriber::registry()
         .with(
             tracing_subscriber::EnvFilter::try_from_default_env()
-                .unwrap_or_else(|_| "nacre=debug,tower_http=debug".into()),
+                .unwrap_or_else(|_| "nacre=info,tower_http=info".into()),
         )
         .with(tracing_subscriber::fmt::layer())
         .init();
@@ -81,7 +83,23 @@ async fn main() {
         .route("/style.css", get(handlers::serve_css))
         .route("/app.js", get(handlers::serve_js))
         .with_state(state)
-        .layer(TraceLayer::new_for_http());
+        .layer(
+            TraceLayer::new_for_http()
+                .make_span_with(|request: &axum::http::Request<_>| {
+                    static REQUEST_ID: AtomicU64 = AtomicU64::new(1);
+                    let request_id = REQUEST_ID.fetch_add(1, Ordering::Relaxed);
+                    tracing::info_span!(
+                        "request",
+                        id = request_id,
+                        method = %request.method(),
+                        uri = %request.uri(),
+                    )
+                })
+                .on_request(|request: &axum::http::Request<_>, _span: &Span| {
+                    tracing::info!("-> {} {}", request.method(), request.uri());
+                })
+                .on_response(DefaultOnResponse::new().level(Level::INFO)),
+        );
 
     let addr_str = format!("{}:{}", args.host, args.port);
     let addr: SocketAddr = addr_str.parse().expect("Invalid host or port");
