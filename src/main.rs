@@ -5,14 +5,19 @@ use askama::Template;
 use axum::{
     Json, Router,
     extract::Path,
-    http::StatusCode,
+    http::{StatusCode, header},
+    response::IntoResponse,
     routing::{get, post},
 };
 use pulldown_cmark::{Parser, html};
 use std::collections::HashSet;
 use std::net::SocketAddr;
-use tower_http::{services::ServeDir, trace::TraceLayer};
+use tower_http::trace::TraceLayer;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
+
+// Embed static assets at compile time
+const STYLE_CSS: &str = include_str!("../frontend/public/style.css");
+const APP_JS: &str = include_str!("../frontend/public/app.js");
 
 #[derive(FromArgs, Debug)]
 /// Nacre: A local-first web interface for Beads.
@@ -21,17 +26,13 @@ struct Args {
     #[argh(option, default = "String::from(\"127.0.0.1\")")]
     host: String,
 
-    /// port to listen on
-    #[argh(option, short = 'p', default = "3000")]
+    /// port to listen on (0 for random available port)
+    #[argh(option, short = 'p', default = "0")]
     port: u16,
 
     /// open the browser automatically
     #[argh(switch, short = 'o')]
     open: bool,
-
-    /// directory to serve static files from
-    #[argh(option, short = 's', default = "String::from(\"frontend/public\")")]
-    static_dir: String,
 }
 
 #[derive(Template)]
@@ -118,27 +119,36 @@ async fn main() {
         .route("/api/issues/:id", post(update_issue_handler))
         .route("/api/issues", post(create_issue_handler))
         .route("/health", get(health_check))
-        .fallback_service(ServeDir::new(&args.static_dir))
+        .route("/style.css", get(serve_css))
+        .route("/app.js", get(serve_js))
         .layer(TraceLayer::new_for_http());
 
     let addr_str = format!("{}:{}", args.host, args.port);
     let addr: SocketAddr = addr_str.parse().expect("Invalid host or port");
 
-    tracing::info!("listening on {}", addr);
+    let listener = tokio::net::TcpListener::bind(addr).await.unwrap();
+    let actual_addr = listener.local_addr().unwrap();
+    let url = format!("http://{}", actual_addr);
 
-    if args.open {
-        let url = format!("http://{}", addr);
-        if let Err(e) = open::that(&url) {
-            tracing::error!("Failed to open browser: {}", e);
-        }
+    tracing::info!("{}", url);
+
+    if args.open && let Err(e) = open::that(&url) {
+        tracing::error!("Failed to open browser: {}", e);
     }
 
-    let listener = tokio::net::TcpListener::bind(addr).await.unwrap();
     axum::serve(listener, app).await.unwrap();
 }
 
 async fn health_check() -> &'static str {
     "OK"
+}
+
+async fn serve_css() -> impl IntoResponse {
+    ([(header::CONTENT_TYPE, "text/css")], STYLE_CSS)
+}
+
+async fn serve_js() -> impl IntoResponse {
+    ([(header::CONTENT_TYPE, "application/javascript")], APP_JS)
 }
 
 async fn index() -> IndexTemplate {
