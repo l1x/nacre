@@ -1,6 +1,8 @@
+mod beads;
+
 use axum::{
     routing::get,
-    Router,
+    Json, Router,
 };
 use argh::FromArgs;
 use std::net::SocketAddr;
@@ -42,6 +44,7 @@ async fn main() {
 
     let app = Router::new()
         .nest_service("/", ServeDir::new(&args.static_dir))
+        .route("/api/issues", get(list_issues))
         .route("/health", get(health_check))
         .layer(TraceLayer::new_for_http());
 
@@ -62,153 +65,82 @@ async fn main() {
 }
 
 async fn health_check() -> &'static str {
-
     "OK"
-
 }
 
-
+async fn list_issues() -> Json<Vec<beads::Issue>> {
+    let client = beads::Client::new();
+    match client.list_issues() {
+        Ok(issues) => Json(issues),
+        Err(e) => {
+            tracing::error!("Failed to list issues: {}", e);
+            Json(vec![])
+        }
+    }
+}
 
 #[cfg(test)]
-
 mod tests {
-
     use super::*;
-
     use axum::{
-
         body::Body,
-
         http::{Request, StatusCode},
-
     };
-
     use tower::ServiceExt;
 
-
-
     #[tokio::test]
-
     async fn test_health_check() {
-
         let app = Router::new().route("/health", get(health_check));
 
-
-
         let response = app
-
             .oneshot(
-
                 Request::builder()
-
                     .uri("/health")
-
                     .body(Body::empty())
-
                     .unwrap(),
-
             )
-
             .await
-
             .unwrap();
-
-
 
         assert_eq!(response.status(), StatusCode::OK);
 
-
-
-                let body = axum::body::to_bytes(response.into_body(), usize::MAX)
-
-
-
-                    .await
-
-
-
-                    .unwrap();
-
-
-
-                assert_eq!(&body[..], b"OK");
-
-
-
-            }
-
-
-
-        
-
-
-
-            #[tokio::test]
-
-
-
-            async fn test_static_files() {
-
-
-
-                let app = Router::new().nest_service("/", ServeDir::new("frontend/dist"));
-
-
-
-        
-
-
-
-                let response = app
-
-
-
-                    .oneshot(Request::builder().uri("/").body(Body::empty()).unwrap())
-
-
-
-                    .await
-
-
-
-                    .unwrap();
-
-
-
-        
-
-
-
-                assert_eq!(response.status(), StatusCode::OK);
-
-
-
-        
-
-
-
-                let body = axum::body::to_bytes(response.into_body(), usize::MAX)
-
-
-
-                    .await
-
-
-
-                    .unwrap();
-
-
-
-                assert!(body.starts_with(b"<h1>Nacre</h1>"));
-
-
-
-            }
-
-
-
-        }
-
-
-
-        
+        let body = axum::body::to_bytes(response.into_body(), usize::MAX)
+            .await
+            .unwrap();
+        assert_eq!(&body[..], b"OK");
+    }
+
+    #[tokio::test]
+    async fn test_static_files() {
+        let app = Router::new().nest_service("/", ServeDir::new("frontend/dist"));
+
+        let response = app
+            .oneshot(Request::builder().uri("/").body(Body::empty()).unwrap())
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::OK);
+
+        let body = axum::body::to_bytes(response.into_body(), usize::MAX)
+            .await
+            .unwrap();
+        assert!(body.starts_with(b"<h1>Nacre</h1>"));
+    }
+
+    #[tokio::test]
+    async fn test_list_issues() {
+        let app = Router::new().route("/api/issues", get(list_issues));
+
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .uri("/api/issues")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::OK);
+    }
+}
