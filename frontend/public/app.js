@@ -314,6 +314,13 @@ document.addEventListener('DOMContentLoaded', () => {
             // Ignore if input is focused
             if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
 
+            // Backspace navigation
+            if (e.key === 'Backspace') {
+                e.preventDefault();
+                window.history.back();
+                return;
+            }
+
             if (isList) {
                 handleListNavigation(e);
             } else if (isBoard) {
