@@ -367,6 +367,26 @@ pub async fn graph(State(state): State<crate::AppState>) -> GraphTemplate {
                 issue.title.clone()
             };
 
+            // Determine parent_id by checking if this issue has a parent-child dependency
+            // OR if the issue ID has a prefix pattern matching another issue
+            let parent_id = issue.dependencies.iter()
+                .find(|d| d.dep_type == "parent-child")
+                .map(|d| d.depends_on_id.clone())
+                .or_else(|| {
+                    // Check if issue ID follows the pattern "parent-id.suffix"
+                    if let Some(dot_pos) = issue.id.rfind('.') {
+                        let potential_parent = &issue.id[..dot_pos];
+                        // Only consider it a parent if that parent issue exists
+                        if all_issues.iter().any(|i| i.id == potential_parent) {
+                            Some(potential_parent.to_string())
+                        } else {
+                            None
+                        }
+                    } else {
+                        None
+                    }
+                });
+
             graph_nodes.push(GraphNode {
                 id: issue.id.clone(),
                 title: issue.title.clone(),
@@ -374,9 +394,7 @@ pub async fn graph(State(state): State<crate::AppState>) -> GraphTemplate {
                 status: issue.status.as_str().to_string(),
                 issue_type: issue.issue_type.as_css_class().to_string(),
                 priority: issue.priority.unwrap_or(2),
-                parent_id: issue.dependencies.iter()
-                    .find(|d| d.dep_type == "parent-child")
-                    .map(|d| d.depends_on_id.clone()),
+                parent_id,
                 is_epic: issue.issue_type == beads::IssueType::Epic,
                 x,
                 y,
