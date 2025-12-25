@@ -14,6 +14,7 @@ use std::collections::{HashMap, HashSet};
 use std::net::SocketAddr;
 use tower_http::trace::TraceLayer;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
+use plotters::prelude::*;
 
 mod filters {
     pub fn format_hours(hours: &f64) -> askama::Result<String> {
@@ -136,7 +137,7 @@ struct MetricsTemplate {
     closed_last_7_days: usize,
     wip_count: usize,
     blocked_count: usize,
-    type_distribution: Vec<(String, usize)>,
+    tickets_chart_svg: String,
 }
 
 struct GraphNode {
@@ -648,7 +649,7 @@ async fn graph() -> GraphTemplate {
         max_width = max_width.max(level_width);
     }
 
-    let svg_width = max_width.max(600) + 100;
+    let svg_width = max_width.max(600).min(4000) + 100;
     let svg_height = ((max_level + 1) as i32 * (node_height + level_gap)) + 100;
 
     let mut node_positions: HashMap<String, (i32, i32)> = HashMap::new();
@@ -836,14 +837,86 @@ async fn metrics_handler() -> MetricsTemplate {
         .filter(|i| i.status == beads::Status::Blocked)
         .count();
 
-    let mut types_map: HashMap<String, usize> = HashMap::new();
-    for issue in &all_issues {
-        if issue.status != beads::Status::Closed {
-            *types_map.entry(format!("{}", issue.issue_type)).or_insert(0) += 1;
+    // Generate Chart
+    let mut tickets_chart_svg = String::new();
+    {
+        let root = SVGBackend::with_string(&mut tickets_chart_svg, (800, 400)).into_drawing_area();
+        root.fill(&WHITE).unwrap();
+
+        let now_dt = chrono::Utc::now().with_timezone(&chrono::FixedOffset::east_opt(0).unwrap());
+        let start_dt = now_dt - chrono::Duration::days(30);
+
+        let mut created_by_day: HashMap<chrono::NaiveDate, usize> = HashMap::new();
+        let mut resolved_by_day: HashMap<chrono::NaiveDate, usize> = HashMap::new();
+
+        for issue in &all_issues {
+            let created_date = issue.created_at.date_naive();
+            if created_date >= start_dt.date_naive() {
+                *created_by_day.entry(created_date).or_insert(0) += 1;
+            }
+            if let Some(closed_at) = issue.closed_at {
+                let resolved_date = closed_at.date_naive();
+                if resolved_date >= start_dt.date_naive() {
+                    *resolved_by_day.entry(resolved_date).or_insert(0) += 1;
+                }
+            }
         }
+
+        let mut chart = ChartBuilder::on(&root)
+            .caption("Tickets Activity (Last 30 Days)", ("sans-serif", 20).into_font())
+            .margin(10)
+            .x_label_area_size(40)
+            .y_label_area_size(40)
+            .build_cartesian_2d(
+                start_dt.date_naive()..now_dt.date_naive(),
+                0..10usize, // Initial Y scale, will be updated if needed
+            ).unwrap();
+
+        // Adjust Y scale based on data
+        let max_v = created_by_day.values().chain(resolved_by_day.values()).max().copied().unwrap_or(5).max(5);
+        chart.configure_mesh()
+            .x_labels(10)
+            .y_labels(5)
+            .draw().unwrap();
+        
+        // Re-build with correct Y scale
+        let mut chart = ChartBuilder::on(&root)
+            .caption("Tickets Activity (Last 30 Days)", ("sans-serif", 20).into_font())
+            .margin(10)
+            .x_label_area_size(40)
+            .y_label_area_size(40)
+            .build_cartesian_2d(
+                start_dt.date_naive()..now_dt.date_naive(),
+                0..max_v + 1,
+            ).unwrap();
+
+        chart.configure_mesh()
+            .x_label_formatter(&|d| d.format("%m-%d").to_string())
+            .draw().unwrap();
+
+        let mut created_data: Vec<(chrono::NaiveDate, usize)> = created_by_day.into_iter().collect();
+        created_data.sort_by_key(|(d, _)| *d);
+        
+        let mut resolved_data: Vec<(chrono::NaiveDate, usize)> = resolved_by_day.into_iter().collect();
+        resolved_data.sort_by_key(|(d, _)| *d);
+
+        chart.draw_series(
+            LineSeries::new(created_data, &BLUE),
+        ).unwrap()
+        .label("Created")
+        .legend(|(x, y)| PathElement::new(vec![(x, y), (x + 20, y)], &BLUE));
+
+        chart.draw_series(
+            LineSeries::new(resolved_data, &GREEN),
+        ).unwrap()
+        .label("Resolved")
+        .legend(|(x, y)| PathElement::new(vec![(x, y), (x + 20, y)], &GREEN));
+
+        chart.configure_series_labels()
+            .background_style(&WHITE.mix(0.8))
+            .border_style(&BLACK)
+            .draw().unwrap();
     }
-    let mut type_distribution: Vec<(String, usize)> = types_map.into_iter().collect();
-    type_distribution.sort_by(|a, b| b.1.cmp(&a.1));
 
     MetricsTemplate {
         avg_lead_time_hours,
@@ -853,6 +926,7 @@ async fn metrics_handler() -> MetricsTemplate {
         wip_count,
         blocked_count,
         type_distribution,
+        tickets_chart_svg,
     }
 }
 

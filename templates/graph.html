@@ -14,6 +14,7 @@
             <a href="/">Dashboard</a>
             <a href="/epics">Epics</a>
             <a href="/board">Board</a>
+            <a href="/graph" class="active">Graph</a>
             <a href="/prds">PRDs</a>
             <a href="/metrics">Metrics</a>
         </nav>
@@ -27,14 +28,14 @@
                 <label>Show Types:</label>
                 <div class="checkbox-group">
                     <label><input type="checkbox" class="type-filter" value="epic" checked> Epics</label>
-                    <label><input type="checkbox" class="type-filter" value="feature"> Features</label>
-                    <label><input type="checkbox" class="type-filter" value="bug"> Bugs</label>
-                    <label><input type="checkbox" class="type-filter" value="task"> Tasks</label>
-                    <label><input type="checkbox" class="type-filter" value="chore"> Chores</label>
+                    <label><input type="checkbox" class="type-filter" value="feature" checked> Features</label>
+                    <label><input type="checkbox" class="type-filter" value="bug" checked> Bugs</label>
+                    <label><input type="checkbox" class="type-filter" value="task" checked> Tasks</label>
+                    <label><input type="checkbox" class="type-filter" value="chore" checked> Chores</label>
                 </div>
             </div>
-            <button id="expand-all" class="btn btn-secondary"></button>
-            <button id="collapse-all" class="btn btn-secondary"></button>
+            <button id="expand-all" class="btn btn-secondary">Expand All</button>
+            <button id="collapse-all" class="btn btn-secondary">Collapse All</button>
         </div>
 
         <div class="graph-wrapper">
@@ -117,7 +118,9 @@
         let expandedNodes = new Set();
 
         function updateVisibility() {
+            console.log("Updating visibility...");
             const activeTypes = new Set(Array.from(typeFilters).filter(f => f.checked).map(f => f.value));
+            console.log("Active types:", Array.from(activeTypes));
             
             nodes.forEach(node => {
                 const id = node.getAttribute('data-id');
@@ -127,7 +130,7 @@
                 let visible = false;
                 
                 // Visible if it's a top-level node (no parent)
-                if (!parentId) {
+                if (!parentId || parentId === "") {
                     visible = true;
                 } else if (expandedNodes.has(parentId)) {
                     // Visible if its parent is expanded
@@ -146,19 +149,29 @@
                 }
             });
 
+            let edgeCount = 0;
             edges.forEach(edge => {
                 const sourceId = edge.getAttribute('data-source');
                 const targetId = edge.getAttribute('data-target');
                 
-                const sourceVisible = !document.querySelector(`.graph-node-container[data-id="${sourceId}"]`).classList.contains('hidden');
-                const targetVisible = !document.querySelector(`.graph-node-container[data-id="${targetId}"]`).classList.contains('hidden');
+                const sourceNode = document.querySelector(`.graph-node-container[data-id="${sourceId}"]`);
+                const targetNode = document.querySelector(`.graph-node-container[data-id="${targetId}"]`);
                 
-                if (sourceVisible && targetVisible) {
-                    edge.classList.remove('hidden');
+                if (sourceNode && targetNode) {
+                    const sourceVisible = !sourceNode.classList.contains('hidden');
+                    const targetVisible = !targetNode.classList.contains('hidden');
+                    
+                    if (sourceVisible && targetVisible) {
+                        edge.classList.remove('hidden');
+                        edgeCount++;
+                    } else {
+                        edge.classList.add('hidden');
+                    }
                 } else {
                     edge.classList.add('hidden');
                 }
             });
+            console.log(`Visible nodes: ${document.querySelectorAll('.graph-node-container:not(.hidden)').length}, Visible edges: ${edgeCount}`);
         }
 
         expandBtns.forEach(btn => {

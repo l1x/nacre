@@ -14,6 +14,7 @@
             <a href="/">Dashboard</a>
             <a href="/epics">Epics</a>
             <a href="/board">Board</a>
+            <a href="/graph">Graph</a>
             <a href="/prds">PRDs</a>
             <a href="/metrics" class="active">Metrics</a>
         </nav>
@@ -58,6 +59,13 @@
                     <div class="metric-label">Issues currently blocked</div>
                 </div>
             </div>
+
+            <section class="metrics-section">
+                <h2>Ticket Activity</h2>
+                <div class="chart-container">
+                    {{ tickets_chart_svg|safe }}
+                </div>
+            </section>
         </div>
     </main>
 </body>

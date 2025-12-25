@@ -1469,6 +1469,7 @@ main:has(.board) {
 #graph-svg {
     display: block;
     margin: 0 auto;
+    background-color: var(--bg-card);
 }
 
 .edge {
@@ -1656,6 +1657,21 @@ main:has(.board) {
     margin-bottom: 24px;
     padding-bottom: 12px;
     border-bottom: 1px solid var(--border-subtle);
+}
+
+.chart-container {
+    background-color: white; /* Plotters graph has white background by default in my code */
+    padding: 20px;
+    border-radius: var(--radius);
+    border: 1px solid var(--border-color);
+    overflow-x: auto;
+    display: flex;
+    justify-content: center;
+}
+
+.chart-container svg {
+    max-width: 100%;
+    height: auto;
 }
 
 .type-distribution {
