@@ -20,7 +20,7 @@ struct Args {
     host: String,
 
     /// port to listen on
-    #[argh(option, short = 'p', default = "3000")]
+    #[argh(option, short = 'p', default = "4000")]
     port: u16,
 
     /// open the browser automatically
@@ -38,6 +38,19 @@ struct IndexTemplate {
     issues: Vec<beads::Issue>,
 }
 
+#[derive(Template)]
+#[template(path = "epics.html")]
+struct EpicsTemplate {
+    epics: Vec<EpicWithProgress>,
+}
+
+struct EpicWithProgress {
+    issue: beads::Issue,
+    total: usize,
+    closed: usize,
+    percent: f64,
+}
+
 #[tokio::main]
 async fn main() {
     // Initialize tracing
@@ -53,6 +66,7 @@ async fn main() {
 
     let app = Router::new()
         .route("/", get(index))
+        .route("/epics", get(epics))
         .route("/api/issues", get(list_issues))
         .route("/api/issues/:id", post(update_issue_handler))
         .route("/health", get(health_check))
@@ -83,6 +97,48 @@ async fn index() -> IndexTemplate {
     let client = beads::Client::new();
     let issues = client.list_issues().unwrap_or_default();
     IndexTemplate { issues }
+}
+
+async fn epics() -> EpicsTemplate {
+    let client = beads::Client::new();
+    let all_issues = client.list_issues().unwrap_or_default();
+
+    let mut epics: Vec<EpicWithProgress> = Vec::new();
+
+    // Filter epics
+    let epic_issues: Vec<&beads::Issue> = all_issues
+        .iter()
+        .filter(|i| i.issue_type == beads::IssueType::Epic)
+        .collect();
+
+    for epic in epic_issues {
+        // Find children: starts with epic.id + "."
+        let prefix = format!("{}.", epic.id);
+        let children: Vec<&beads::Issue> = all_issues
+            .iter()
+            .filter(|i| i.id.starts_with(&prefix))
+            .collect();
+
+        let total = children.len();
+        let closed = children
+            .iter()
+            .filter(|i| i.status == beads::Status::Closed)
+            .count();
+        let percent = if total > 0 {
+            (closed as f64 / total as f64) * 100.0
+        } else {
+            0.0
+        };
+
+        epics.push(EpicWithProgress {
+            issue: epic.clone(),
+            total,
+            closed,
+            percent,
+        });
+    }
+
+    EpicsTemplate { epics }
 }
 
 async fn list_issues() -> Json<Vec<beads::Issue>> {
@@ -166,6 +222,23 @@ mod tests {
             .oneshot(
                 Request::builder()
                     .uri("/api/issues")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::OK);
+    }
+
+    #[tokio::test]
+    async fn test_epics() {
+        let app = Router::new().route("/epics", get(epics));
+
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .uri("/epics")
                     .body(Body::empty())
                     .unwrap(),
             )

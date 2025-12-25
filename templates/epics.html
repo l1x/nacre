@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nacre - Epics</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <header>
+        <h1>Nacre</h1>
+        <nav>
+            <a href="/">Issues</a>
+            <a href="/epics" class="active">Epics</a>
+            <a href="#">Board</a>
+        </nav>
+    </header>
+    <main id="content">
+        <div class="epic-list">
+            {% for item in epics %}
+            <div class="epic-item">
+                <div class="epic-header">
+                    <div class="epic-title">{{ item.issue.title }}</div>
+                    <div class="epic-meta">{{ item.issue.id }} • {{ item.issue.status }}</div>
+                </div>
+                <div class="progress-container">
+                    <div class="progress-bar" style="width: {{ item.percent }}%"></div>
+                </div>
+                <div class="progress-stats">
+                    {{ item.closed }} / {{ item.total }} tasks completed ({{ "{:.0}"|format(item.percent) }}%)
+                </div>
+                <div class="epic-children">
+                    <!-- Optional: list children here -->
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </main>
+</body>
+</html>
