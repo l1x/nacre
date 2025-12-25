@@ -191,11 +191,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const draggable = document.querySelector('.dragging');
                 if (!draggable) return;
 
-                const statusName = droppable.getAttribute('data-status');
-                let apiStatus = statusName.toLowerCase();
-                if (statusName === "Ready") apiStatus = "open";
-                if (statusName === "In Progress") apiStatus = "in_progress";
-
+                const apiStatus = droppable.getAttribute('data-status');
                 const id = draggable.getAttribute('data-id');
 
                 if (id && apiStatus) {

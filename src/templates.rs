@@ -77,6 +77,7 @@ pub struct IssueGroup {
 
 pub struct BoardColumn {
     pub name: String,
+    pub status: String,
     pub issues: Vec<beads::Issue>,
 }
 

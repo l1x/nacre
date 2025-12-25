@@ -225,15 +225,8 @@ pub async fn board(State(state): State<crate::AppState>) -> BoardTemplate {
 
     let columns = vec![
         BoardColumn {
-            name: "Blocked".to_string(),
-            issues: all_issues
-                .iter()
-                .filter(|i| i.status == beads::Status::Blocked)
-                .cloned()
-                .collect(),
-        },
-        BoardColumn {
-            name: "Ready".to_string(),
+            name: "Open".to_string(),
+            status: "open".to_string(),
             issues: all_issues
                 .iter()
                 .filter(|i| i.status == beads::Status::Open)
@@ -242,6 +235,7 @@ pub async fn board(State(state): State<crate::AppState>) -> BoardTemplate {
         },
         BoardColumn {
             name: "In Progress".to_string(),
+            status: "in-progress".to_string(),
             issues: all_issues
                 .iter()
                 .filter(|i| i.status == beads::Status::InProgress)
@@ -249,7 +243,26 @@ pub async fn board(State(state): State<crate::AppState>) -> BoardTemplate {
                 .collect(),
         },
         BoardColumn {
+            name: "Blocked".to_string(),
+            status: "blocked".to_string(),
+            issues: all_issues
+                .iter()
+                .filter(|i| i.status == beads::Status::Blocked)
+                .cloned()
+                .collect(),
+        },
+        BoardColumn {
+            name: "Deferred".to_string(),
+            status: "deferred".to_string(),
+            issues: all_issues
+                .iter()
+                .filter(|i| i.status == beads::Status::Deferred)
+                .cloned()
+                .collect(),
+        },
+        BoardColumn {
             name: "Closed".to_string(),
+            status: "closed".to_string(),
             issues: all_issues
                 .iter()
                 .filter(|i| i.status == beads::Status::Closed)
