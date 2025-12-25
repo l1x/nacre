@@ -56,3 +56,7 @@ run = "cargo tarpaulin --out Stdout --skip-clean"
 [tasks.coverage-html]
 description = "Run tests with coverage and generate HTML report"
 run = "cargo tarpaulin --out Html --skip-clean --output-dir target/tarpaulin"
+
+[tasks.start-dev-server]
+description = "Building the development version"
+run = "cargo run --"
