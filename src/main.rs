@@ -64,6 +64,10 @@ struct IssueDetailTemplate {
 }
 
 #[derive(Template)]
+#[template(path = "new_issue.html")]
+struct NewIssueTemplate {}
+
+#[derive(Template)]
 #[template(path = "prds.html")]
 struct PrdsListTemplate {
     files: Vec<String>,
@@ -106,11 +110,13 @@ async fn main() {
         .route("/", get(index))
         .route("/epics", get(epics))
         .route("/board", get(board))
+        .route("/issues/new", get(new_issue_form))
         .route("/issues/:id", get(issue_detail))
         .route("/prds", get(prds_list))
         .route("/prds/:filename", get(prd_view))
         .route("/api/issues", get(list_issues))
         .route("/api/issues/:id", post(update_issue_handler))
+        .route("/api/issues", post(create_issue_handler))
         .route("/health", get(health_check))
         .fallback_service(ServeDir::new(&args.static_dir))
         .layer(TraceLayer::new_for_http());
@@ -302,6 +308,10 @@ async fn issue_detail(Path(id): Path<String>) -> Result<IssueDetailTemplate, Sta
     }
 }
 
+async fn new_issue_form() -> NewIssueTemplate {
+    NewIssueTemplate {}
+}
+
 async fn prds_list() -> PrdsListTemplate {
     let mut files_with_time: Vec<(String, std::time::SystemTime)> = Vec::new();
     if let Ok(entries) = std::fs::read_dir("docs/prds") {
@@ -364,6 +374,19 @@ async fn update_issue_handler(
         Err(e) => {
             tracing::error!("Failed to update issue: {}", e);
             StatusCode::INTERNAL_SERVER_ERROR
+        }
+    }
+}
+
+async fn create_issue_handler(
+    Json(create): Json<beads::IssueCreate>,
+) -> Result<Json<serde_json::Value>, StatusCode> {
+    let client = beads::Client::new();
+    match client.create_issue(create) {
+        Ok(id) => Ok(Json(serde_json::json!({ "id": id }))),
+        Err(e) => {
+            tracing::error!("Failed to create issue: {}", e);
+            Err(StatusCode::INTERNAL_SERVER_ERROR)
         }
     }
 }

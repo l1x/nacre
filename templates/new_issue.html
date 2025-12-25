@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nacre - New Issue</title>
+    <link rel="stylesheet" href="/style.css">
+    <script src="/app.js"></script>
+</head>
+<body>
+    <header>
+        <a href="/" class="home-link"><h1>Nacre</h1></a>
+        <nav>
+            <a href="/">Issues</a>
+            <a href="/epics">Epics</a>
+            <a href="/board">Board</a>
+            <a href="/prds">PRDs</a>
+        </nav>
+        <div class="search-container"></div>
+        <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme"></button>
+    </header>
+    <main id="content">
+        <div class="issue-form-container">
+            <h2>Create New Issue</h2>
+            <form id="new-issue-form" class="issue-form">
+                <div class="form-group">
+                    <label for="title">Title</label>
+                    <input type="text" id="title" name="title" required placeholder="Issue title">
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="issue_type">Type</label>
+                        <select id="issue_type" name="issue_type">
+                            <option value="task">Task</option>
+                            <option value="bug">Bug</option>
+                            <option value="feature">Feature</option>
+                            <option value="epic">Epic</option>
+                            <option value="chore">Chore</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="priority">Priority</label>
+                        <select id="priority" name="priority">
+                            <option value="2">P2 - Medium</option>
+                            <option value="0">P0 - Critical</option>
+                            <option value="1">P1 - High</option>
+                            <option value="3">P3 - Low</option>
+                            <option value="4">P4 - Backlog</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="description">Description</label>
+                    <textarea id="description" name="description" rows="6" placeholder="Describe the issue..."></textarea>
+                </div>
+
+                <div class="form-actions">
+                    <a href="/" class="btn btn-secondary">Cancel</a>
+                    <button type="submit" class="btn btn-primary">Create Issue</button>
+                </div>
+            </form>
+        </div>
+    </main>
+    <script>
+        document.getElementById('new-issue-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const form = e.target;
+            const submitBtn = form.querySelector('button[type="submit"]');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Creating...';
+
+            const data = {
+                title: form.title.value,
+                issue_type: form.issue_type.value,
+                priority: parseInt(form.priority.value),
+                description: form.description.value || null
+            };
+
+            try {
+                const response = await fetch('/api/issues', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    window.location.href = '/issues/' + result.id;
+                } else {
+                    alert('Failed to create issue');
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Create Issue';
+                }
+            } catch (err) {
+                alert('Error creating issue: ' + err.message);
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Create Issue';
+            }
+        });
+    </script>
+</body>
+</html>

@@ -113,6 +113,14 @@ pub struct IssueUpdate {
     pub status: Option<Status>,
 }
 
+#[derive(Debug, Deserialize)]
+pub struct IssueCreate {
+    pub title: String,
+    pub issue_type: Option<String>,
+    pub priority: Option<u8>,
+    pub description: Option<String>,
+}
+
 impl Client {
     pub fn new() -> Self {
         let bin_path = std::env::var("BD_BIN").unwrap_or_else(|_| "bd".to_string());
@@ -174,5 +182,34 @@ impl Client {
         }
 
         Ok(())
+    }
+
+    pub fn create_issue(&self, create: IssueCreate) -> io::Result<String> {
+        let mut cmd = Command::new(&self.bin_path);
+        cmd.arg("create")
+            .arg("--title")
+            .arg(&create.title)
+            .arg("--silent");
+
+        if let Some(issue_type) = &create.issue_type {
+            cmd.arg("--type").arg(issue_type);
+        }
+        if let Some(priority) = create.priority {
+            cmd.arg("--priority").arg(priority.to_string());
+        }
+        if let Some(description) = &create.description {
+            cmd.arg("--description").arg(description);
+        }
+
+        let output = cmd.output()?;
+
+        if !output.status.success() {
+            let error_msg = String::from_utf8_lossy(&output.stderr);
+            return Err(io::Error::other(error_msg.to_string()));
+        }
+
+        // bd create --silent outputs just the issue ID
+        let id = String::from_utf8_lossy(&output.stdout).trim().to_string();
+        Ok(id)
     }
 }
