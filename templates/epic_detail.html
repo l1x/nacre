@@ -26,7 +26,7 @@
     <main id="content">
         <div class="epic-detail">
             <a href="/issues/{{ epic.issue.id }}/edit" class="edit-action-btn">Edit</a>
-            <div class="scandi-header">
+            <div class="scandi-header" style="margin-bottom: 24px;">
                 <div class="issue-eyebrow">
                     <span>{{ epic.issue.id }}</span>
                     <span>&middot;</span>
@@ -44,7 +44,7 @@
                 </div>
             </div>
 
-            <div class="detail-section">
+            <div class="detail-section" style="margin-bottom: 24px;">
                 <h3>Progress</h3>
                 <div class="progress-container large" style="margin-bottom: 8px;">
                     <div class="progress-bar" style="width: {{ epic.percent }}%"></div>
@@ -61,7 +61,7 @@
             </div>
             {% endif %}
 
-            <div class="timestamps-grid">
+            <div class="timestamps-grid" style="margin-top: 32px;">
                 <div class="timestamp-item">
                     <span class="timestamp-value">{{ epic.issue.created_at|format_date }}</span>
                     <span class="timestamp-label">Created</span>
@@ -80,7 +80,7 @@
                 {% endif %}
             </div>
 
-            <div style="margin-top: 60px; padding-top: 40px; border-top: 1px solid var(--border-subtle);">
+            <div style="margin-top: 32px; padding-top: 24px; border-top: 1px solid var(--border-subtle);">
                 <div class="detail-section">
                     <h3>Child Issues ({{ epic.total }})</h3>
                     {% if epic.children.is_empty() %}
