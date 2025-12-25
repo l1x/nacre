@@ -649,7 +649,7 @@ async fn graph() -> GraphTemplate {
         max_width = max_width.max(level_width);
     }
 
-    let svg_width = max_width.max(600).min(4000) + 100;
+    let svg_width = max_width.max(600) + 100;
     let svg_height = ((max_level + 1) as i32 * (node_height + level_gap)) + 100;
 
     let mut node_positions: HashMap<String, (i32, i32)> = HashMap::new();
