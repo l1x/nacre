@@ -144,8 +144,9 @@ nav a.active::after {
     bottom: -4px;
     left: 0;
     right: 0;
-    height: 1px;
+    height: 2px;
     background: var(--accent);
+    border-radius: 1px;
 }
 
 .search-container {
@@ -937,4 +938,67 @@ main:has(.board) {
 .create-btn:hover {
     background-color: var(--accent-muted);
     color: white;
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+    header {
+        padding: 0 16px;
+        gap: 12px;
+    }
+
+    nav {
+        margin-left: 24px;
+        gap: 16px;
+    }
+
+    nav a {
+        font-size: 0.85rem;
+    }
+
+    #filter-input {
+        width: 160px;
+    }
+
+    .create-btn {
+        padding: 6px 10px;
+        margin-left: 16px;
+        font-size: 0.8rem;
+    }
+
+    main {
+        padding: 24px 16px;
+    }
+}
+
+@media (max-width: 480px) {
+    h1 {
+        font-size: 1rem;
+    }
+
+    nav {
+        margin-left: 16px;
+        gap: 12px;
+    }
+
+    nav a {
+        font-size: 0.8rem;
+    }
+
+    #filter-input {
+        width: 120px;
+        padding: 6px 10px;
+        font-size: 0.85rem;
+    }
+
+    .theme-toggle {
+        padding: 4px 8px;
+        font-size: 1rem;
+        margin-left: 8px;
+    }
+
+    .create-btn {
+        padding: 4px 8px;
+        margin-left: 8px;
+    }
 }
