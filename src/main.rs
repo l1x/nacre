@@ -82,6 +82,8 @@ async fn main() {
         .route("/health", get(handlers::health_check))
         .route("/style.css", get(handlers::serve_css))
         .route("/app.js", get(handlers::serve_js))
+        .route("/favicon.ico", get(handlers::serve_favicon))
+        .route("/favicon.svg", get(handlers::serve_favicon))
         .with_state(state)
         .layer(
             TraceLayer::new_for_http()

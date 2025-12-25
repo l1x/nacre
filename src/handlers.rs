@@ -14,6 +14,7 @@ use crate::templates::*;
 // Embed static assets at compile time
 const STYLE_CSS: &str = include_str!("../frontend/public/style.css");
 const APP_JS: &str = include_str!("../frontend/public/app.js");
+const FAVICON_SVG: &str = include_str!("../frontend/public/favicon.svg");
 
 pub async fn health_check() -> &'static str {
     "OK"
@@ -25,6 +26,10 @@ pub async fn serve_css() -> impl IntoResponse {
 
 pub async fn serve_js() -> impl IntoResponse {
     ([(header::CONTENT_TYPE, "application/javascript")], APP_JS)
+}
+
+pub async fn serve_favicon() -> impl IntoResponse {
+    ([(header::CONTENT_TYPE, "image/svg+xml")], FAVICON_SVG)
 }
 
 pub async fn landing(State(state): State<crate::AppState>) -> LandingTemplate {
