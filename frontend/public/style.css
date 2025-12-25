@@ -6,10 +6,10 @@
     --bg-card: #231f1d;
     --bg-card-hover: #2a2523;
 
-    /* Accent colors - warm copper/bronze */
-    --accent: #c49a6c;
-    --accent-muted: #a07d54;
-    --accent-glow: rgba(196, 154, 108, 0.15);
+    /* Accent colors - warm orange */
+    --accent: #e07a4a;
+    --accent-muted: #b8623c;
+    --accent-glow: rgba(224, 122, 74, 0.15);
 
     /* Text colors */
     --text-primary: #e8e4e0;
@@ -171,13 +171,13 @@ main > h2 {
 .issue-list {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 8px;
 }
 
 .issue-item {
     background-color: var(--bg-card);
     border: 1px solid var(--border-color);
-    padding: 18px 22px;
+    padding: 10px 16px;
     border-radius: var(--radius);
     display: flex;
     justify-content: space-between;
