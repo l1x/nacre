@@ -460,6 +460,12 @@ main > h2 {
     color: var(--text-secondary);
 }
 
+.description-content {
+    color: var(--text-secondary);
+    line-height: 1.7;
+    white-space: pre-wrap;
+}
+
 /* PRDs View */
 .prd-list {
     list-style: none;

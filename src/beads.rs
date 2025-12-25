@@ -16,6 +16,10 @@ pub struct Issue {
     pub closed_at: Option<String>,
     pub assignee: Option<String>,
     pub labels: Option<Vec<String>>,
+    pub description: Option<String>,
+    pub acceptance_criteria: Option<String>,
+    pub close_reason: Option<String>,
+    pub estimate: Option<u32>,
     #[serde(default)]
     pub dependencies: Vec<Dependency>,
 }

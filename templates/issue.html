@@ -28,22 +28,49 @@
                 <div class="meta-grid">
                     <div class="meta-label">Type</div>
                     <div class="meta-value">{{ issue.issue_type }}</div>
-                    
+
                     <div class="meta-label">Priority</div>
                     <div class="meta-value">P{{ issue.priority.unwrap_or(0) }}</div>
-                    
+
+                    {% if issue.assignee.is_some() %}
+                    <div class="meta-label">Assignee</div>
+                    <div class="meta-value">{{ issue.assignee.as_ref().unwrap() }}</div>
+                    {% endif %}
+
+                    {% if issue.estimate.is_some() %}
+                    <div class="meta-label">Estimate</div>
+                    <div class="meta-value">{{ issue.estimate.unwrap() }} min</div>
+                    {% endif %}
+
                     <div class="meta-label">Created</div>
                     <div class="meta-value">{{ issue.created_at }}</div>
-                    
+
                     <div class="meta-label">Updated</div>
                     <div class="meta-value">{{ issue.updated_at }}</div>
+
+                    {% if issue.closed_at.is_some() %}
+                    <div class="meta-label">Closed</div>
+                    <div class="meta-value">{{ issue.closed_at.as_ref().unwrap() }}</div>
+                    {% endif %}
+
+                    {% if issue.close_reason.is_some() %}
+                    <div class="meta-label">Close Reason</div>
+                    <div class="meta-value">{{ issue.close_reason.as_ref().unwrap() }}</div>
+                    {% endif %}
                 </div>
             </div>
 
-            {% if issue.assignee.is_some() %}
+            {% if issue.description.is_some() %}
             <div class="detail-section">
-                <h3>Assignee</h3>
-                <div>{{ issue.assignee.as_ref().unwrap() }}</div>
+                <h3>Description</h3>
+                <div class="description-content">{{ issue.description.as_ref().unwrap() }}</div>
+            </div>
+            {% endif %}
+
+            {% if issue.acceptance_criteria.is_some() %}
+            <div class="detail-section">
+                <h3>Acceptance Criteria</h3>
+                <div class="description-content">{{ issue.acceptance_criteria.as_ref().unwrap() }}</div>
             </div>
             {% endif %}
 
