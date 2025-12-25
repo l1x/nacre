@@ -64,6 +64,17 @@ impl Status {
             Status::Closed => "closed",
         }
     }
+
+    /// Returns sort order (lower = higher priority in list)
+    pub fn sort_order(&self) -> u8 {
+        match self {
+            Status::InProgress => 0,
+            Status::Blocked => 1,
+            Status::Open => 2,
+            Status::Deferred => 3,
+            Status::Closed => 4,
+        }
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]

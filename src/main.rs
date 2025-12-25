@@ -148,7 +148,7 @@ async fn index() -> IndexTemplate {
 
     for epic in &epics {
         let prefix = format!("{}.", epic.id);
-        let children: Vec<beads::Issue> = all_issues
+        let mut children: Vec<beads::Issue> = all_issues
             .iter()
             .filter(|i| {
                 i.dependencies.iter().any(|d| d.depends_on_id == epic.id)
@@ -156,6 +156,9 @@ async fn index() -> IndexTemplate {
             })
             .cloned()
             .collect();
+
+        // Sort by status priority
+        children.sort_by_key(|i| i.status.sort_order());
 
         if !children.is_empty() {
             groups.push(IssueGroup {
@@ -171,11 +174,14 @@ async fn index() -> IndexTemplate {
         .flat_map(|g| g.issues.iter().map(|i| i.id.clone()))
         .collect();
 
-    let un_grouped: Vec<beads::Issue> = all_issues
+    let mut un_grouped: Vec<beads::Issue> = all_issues
         .iter()
         .filter(|i| i.issue_type != beads::IssueType::Epic && !grouped_ids.contains(&i.id))
         .cloned()
         .collect();
+
+    // Sort by status priority
+    un_grouped.sort_by_key(|i| i.status.sort_order());
 
     if !un_grouped.is_empty() {
         groups.push(IssueGroup {
