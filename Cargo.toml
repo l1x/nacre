@@ -14,3 +14,5 @@ tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 argh = "0.1"
 open = "5.0"
+askama = "0.12"
+askama_axum = "0.4"

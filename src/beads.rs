@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
-use std::process::Command;
 use std::io;
+use std::process::Command;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Issue {
@@ -16,6 +16,8 @@ pub struct Issue {
     pub labels: Option<Vec<String>>,
 }
 
+use std::fmt;
+
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub enum Status {
@@ -24,6 +26,18 @@ pub enum Status {
     Blocked,
     Deferred,
     Closed,
+}
+
+impl fmt::Display for Status {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Status::Open => write!(f, "Open"),
+            Status::InProgress => write!(f, "In Progress"),
+            Status::Blocked => write!(f, "Blocked"),
+            Status::Deferred => write!(f, "Deferred"),
+            Status::Closed => write!(f, "Closed"),
+        }
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
@@ -36,6 +50,20 @@ pub enum IssueType {
     Chore,
     MergeRequest,
     Molecule,
+}
+
+impl fmt::Display for IssueType {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            IssueType::Task => write!(f, "Task"),
+            IssueType::Bug => write!(f, "Bug"),
+            IssueType::Feature => write!(f, "Feature"),
+            IssueType::Epic => write!(f, "Epic"),
+            IssueType::Chore => write!(f, "Chore"),
+            IssueType::MergeRequest => write!(f, "Merge Request"),
+            IssueType::Molecule => write!(f, "Molecule"),
+        }
+    }
 }
 
 pub struct Client {

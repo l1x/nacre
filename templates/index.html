@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nacre</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <header>
+        <h1>Nacre</h1>
+        <nav>
+            <a href="/" class="active">Issues</a>
+            <a href="#">Epics</a>
+            <a href="#">Board</a>
+        </nav>
+        <div class="search-container">
+            <input type="text" id="filter-input" placeholder="Filter issues..." aria-label="Filter issues">
+        </div>
+    </header>
+    <main id="content">
+        {% if issues.is_empty() %}
+            <div class="empty">No issues found</div>
+        {% else %}
+            <div class="issue-list" id="issue-list">
+                {% for issue in issues %}
+                <div class="issue-item" data-filter-text="{{ issue.title|lower }} {{ issue.id|lower }} {{ issue.status|lower }}">
+                    <div class="issue-main">
+                        <div class="issue-title">{{ issue.title }}</div>
+                        <div class="issue-meta">{{ issue.id }} • {{ issue.issue_type }} • P{{ issue.priority.unwrap_or(0) }}</div>
+                    </div>
+                    <div class="issue-status">
+                        <span class="status-badge">{{ issue.status }}</span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </main>
+    <script src="/app.js"></script>
+</body>
+</html>

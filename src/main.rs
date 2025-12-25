@@ -1,6 +1,7 @@
 mod beads;
 
 use argh::FromArgs;
+use askama::Template;
 use axum::{Json, Router, routing::get};
 use std::net::SocketAddr;
 use tower_http::{services::ServeDir, trace::TraceLayer};
@@ -26,6 +27,12 @@ struct Args {
     static_dir: String,
 }
 
+#[derive(Template)]
+#[template(path = "index.html")]
+struct IndexTemplate {
+    issues: Vec<beads::Issue>,
+}
+
 #[tokio::main]
 async fn main() {
     // Initialize tracing
@@ -40,9 +47,10 @@ async fn main() {
     let args: Args = argh::from_env();
 
     let app = Router::new()
-        .nest_service("/", ServeDir::new(&args.static_dir))
+        .route("/", get(index))
         .route("/api/issues", get(list_issues))
         .route("/health", get(health_check))
+        .fallback_service(ServeDir::new(&args.static_dir))
         .layer(TraceLayer::new_for_http());
 
     let addr_str = format!("{}:{}", args.host, args.port);
@@ -63,6 +71,12 @@ async fn main() {
 
 async fn health_check() -> &'static str {
     "OK"
+}
+
+async fn index() -> IndexTemplate {
+    let client = beads::Client::new();
+    let issues = client.list_issues().unwrap_or_default();
+    IndexTemplate { issues }
 }
 
 async fn list_issues() -> Json<Vec<beads::Issue>> {
@@ -108,8 +122,8 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_static_files() {
-        let app = Router::new().nest_service("/", ServeDir::new("frontend/public"));
+    async fn test_index() {
+        let app = Router::new().route("/", get(index));
 
         let response = app
             .oneshot(Request::builder().uri("/").body(Body::empty()).unwrap())
