@@ -88,6 +88,11 @@ cargo clippy
 - **[Tokio](https://tokio.rs/)** - Async runtime
 - **[pulldown-cmark](https://github.com/raphlinus/pulldown-cmark)** - Markdown rendering
 
+## Version History
+
+- **0.2.0** (2024-12-25) - Current release
+- **0.1.0** - Initial release
+
 ## License
 
 MIT
