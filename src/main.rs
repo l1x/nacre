@@ -9,8 +9,8 @@ use argh::FromArgs;
 use axum::Router;
 use axum::routing::{get, post};
 use std::net::SocketAddr;
-use tower_http::trace::{DefaultOnResponse, TraceLayer};
-use tracing::{Level, Span};
+use tower_http::trace::TraceLayer;
+use tracing::Span;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 use std::sync::atomic::{AtomicU64, Ordering};
 
@@ -100,7 +100,13 @@ async fn main() {
                 .on_request(|request: &axum::http::Request<_>, _span: &Span| {
                     tracing::info!("-> {} {}", request.method(), request.uri());
                 })
-                .on_response(DefaultOnResponse::new().level(Level::INFO)),
+                .on_response(
+                    |response: &axum::http::Response<_>,
+                     latency: std::time::Duration,
+                     _span: &Span| {
+                        tracing::info!("<- {} latency={}ms", response.status().as_u16(), latency.as_millis());
+                    },
+                ),
         );
 
     let addr_str = format!("{}:{}", args.host, args.port);
