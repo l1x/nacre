@@ -370,7 +370,7 @@ pub async fn graph(State(state): State<crate::AppState>) -> GraphTemplate {
             // Determine parent_id by checking if this issue has a parent-child dependency
             // OR if the issue ID has a prefix pattern matching another issue
             let parent_id = issue.dependencies.iter()
-                .find(|d| d.dep_type == "parent-child")
+                .find(|d| d.dep_type == beads::DependencyType::ParentChild)
                 .map(|d| d.depends_on_id.clone())
                 .or_else(|| {
                     // Check if issue ID follows the pattern "parent-id.suffix"
