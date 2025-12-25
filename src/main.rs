@@ -81,6 +81,12 @@ struct PrdViewTemplate {
     content: String,
 }
 
+#[derive(Template)]
+#[template(path = "epic_detail.html")]
+struct EpicDetailTemplate {
+    epic: EpicWithProgress,
+}
+
 struct EpicWithProgress {
     issue: beads::Issue,
     total: usize,
@@ -110,6 +116,7 @@ async fn main() {
     let app = Router::new()
         .route("/", get(index))
         .route("/epics", get(epics))
+        .route("/epics/:id", get(epic_detail))
         .route("/board", get(board))
         .route("/issues/new", get(new_issue_form))
         .route("/issues/:id", get(issue_detail))
@@ -263,6 +270,59 @@ async fn epics() -> EpicsTemplate {
     epics.sort_by(|a, b| b.issue.updated_at.cmp(&a.issue.updated_at));
 
     EpicsTemplate { epics }
+}
+
+async fn epic_detail(Path(id): Path<String>) -> Result<EpicDetailTemplate, StatusCode> {
+    let client = beads::Client::new();
+    let all_issues = client.list_issues().unwrap_or_default();
+
+    // Find the epic
+    let epic_issue = all_issues
+        .iter()
+        .find(|i| i.id == id && i.issue_type == beads::IssueType::Epic)
+        .cloned();
+
+    match epic_issue {
+        Some(epic) => {
+            let prefix = format!("{}.", epic.id);
+            let mut children: Vec<beads::Issue> = all_issues
+                .iter()
+                .filter(|i| {
+                    i.dependencies.iter().any(|d| d.depends_on_id == epic.id)
+                        || i.id.starts_with(&prefix)
+                })
+                .cloned()
+                .collect();
+
+            // Sort children by status priority
+            children.sort_by_key(|i| i.status.sort_order());
+
+            let total = children.len();
+            let closed = children
+                .iter()
+                .filter(|i| i.status == beads::Status::Closed)
+                .count();
+            let percent = if total > 0 {
+                (closed as f64 / total as f64) * 100.0
+            } else {
+                0.0
+            };
+
+            Ok(EpicDetailTemplate {
+                epic: EpicWithProgress {
+                    issue: epic,
+                    total,
+                    closed,
+                    percent,
+                    children,
+                },
+            })
+        }
+        None => {
+            tracing::error!("Epic not found: {}", id);
+            Err(StatusCode::NOT_FOUND)
+        }
+    }
 }
 
 async fn board() -> BoardTemplate {

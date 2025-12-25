@@ -344,6 +344,20 @@ main > h2 {
     color: var(--text-primary);
 }
 
+.epic-title-link {
+    font-family: 'Georgia', 'Times New Roman', serif;
+    font-size: 1.15rem;
+    font-weight: 400;
+    font-style: italic;
+    color: var(--text-primary);
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.epic-title-link:hover {
+    color: var(--accent);
+}
+
 .progress-container {
     height: 4px;
     background-color: var(--bg-secondary);
@@ -410,6 +424,89 @@ main > h2 {
 .child-meta {
     color: var(--text-muted);
     font-size: 0.8rem;
+}
+
+/* Epic Detail View */
+.epic-detail {
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
+    padding: 40px 48px;
+    border-radius: var(--radius);
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.epic-progress-section {
+    margin: 24px 0 32px;
+    padding: 20px;
+    background-color: var(--bg-secondary);
+    border-radius: var(--radius);
+}
+
+.progress-container.large {
+    height: 12px;
+    margin-bottom: 12px;
+}
+
+.progress-stats.large {
+    font-size: 1rem;
+    text-align: center;
+    color: var(--text-primary);
+}
+
+.epic-children-list {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.epic-child-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background-color: var(--bg-secondary);
+    border-radius: var(--radius-sm);
+    transition: background-color 0.15s ease;
+}
+
+.epic-child-row:hover {
+    background-color: var(--bg-card-hover);
+}
+
+.child-type {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 2px 6px;
+    border-radius: 3px;
+    background-color: var(--bg-card);
+    color: var(--text-muted);
+}
+
+.child-type.type-task { border-left: 2px solid var(--text-muted); }
+.child-type.type-bug { border-left: 2px solid #e74c3c; }
+.child-type.type-feature { border-left: 2px solid #3498db; }
+.child-type.type-chore { border-left: 2px solid #95a5a6; }
+
+.child-id {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    font-family: monospace;
+}
+
+.child-priority {
+    color: var(--text-secondary);
+    font-size: 0.75rem;
+    padding: 2px 6px;
+    background-color: var(--bg-card);
+    border-radius: var(--radius-sm);
+}
+
+.empty-message {
+    color: var(--text-muted);
+    font-style: italic;
+    padding: 24px 0;
 }
 
 /* Board View */

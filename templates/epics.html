@@ -27,7 +27,7 @@
             {% for item in epics %}
             <div class="epic-item" data-filter-text="{{ item.issue.title|lower }} {{ item.issue.id|lower }}">
                 <div class="epic-header">
-                    <div class="epic-title">{{ item.issue.title }}</div>
+                    <a href="/epics/{{ item.issue.id }}" class="epic-title-link">{{ item.issue.title }}</a>
                     <div class="epic-meta">{{ item.issue.id }} • {{ item.issue.status }}</div>
                 </div>
                 <div class="progress-container">

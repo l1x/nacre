@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nacre - {{ epic.issue.id }}</title>
+    <link rel="stylesheet" href="/style.css">
+    <script src="/app.js"></script>
+</head>
+<body>
+    <header>
+        <a href="/" class="home-link"><h1>Nacre</h1></a>
+        <nav>
+            <a href="/">Issues</a>
+            <a href="/epics" class="active">Epics</a>
+            <a href="/board">Board</a>
+            <a href="/prds">PRDs</a>
+            <a href="/issues/new" class="create-btn">+ Create</a>
+        </nav>
+        <div class="search-container">
+            <input type="text" id="filter-input" placeholder="Filter children..." aria-label="Filter children">
+        </div>
+        <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">☀️</button>
+    </header>
+    <main id="content">
+        <div class="epic-detail">
+            <div class="detail-header">
+                <h2>{{ epic.issue.title }}</h2>
+                <span class="status-badge">{{ epic.issue.status }}</span>
+            </div>
+
+            <div class="epic-progress-section">
+                <div class="progress-container large">
+                    <div class="progress-bar" style="width: {{ epic.percent }}%"></div>
+                </div>
+                <div class="progress-stats large">
+                    {{ epic.closed }} / {{ epic.total }} tasks completed ({{ "{:.0}"|format(epic.percent) }}%)
+                </div>
+            </div>
+
+            <div class="detail-section">
+                <h3>Details</h3>
+                <div class="meta-grid">
+                    <div class="meta-label">ID</div>
+                    <div class="meta-value">{{ epic.issue.id }}</div>
+
+                    <div class="meta-label">Priority</div>
+                    <div class="meta-value">P{{ epic.issue.priority.unwrap_or(0) }}</div>
+
+                    {% if epic.issue.assignee.is_some() %}
+                    <div class="meta-label">Assignee</div>
+                    <div class="meta-value">{{ epic.issue.assignee.as_ref().unwrap() }}</div>
+                    {% endif %}
+
+                    <div class="meta-label">Created</div>
+                    <div class="meta-value">{{ epic.issue.created_at }}</div>
+
+                    <div class="meta-label">Updated</div>
+                    <div class="meta-value">{{ epic.issue.updated_at }}</div>
+                </div>
+            </div>
+
+            {% if epic.issue.description.is_some() %}
+            <div class="detail-section">
+                <h3>Description</h3>
+                <div class="description-content">{{ epic.issue.description.as_ref().unwrap() }}</div>
+            </div>
+            {% endif %}
+
+            <div class="detail-section">
+                <h3>Child Issues ({{ epic.total }})</h3>
+                {% if epic.children.is_empty() %}
+                <p class="empty-message">No child issues</p>
+                {% else %}
+                <div class="epic-children-list">
+                    {% for child in epic.children %}
+                    <div class="epic-child-row" data-filter-text="{{ child.title|lower }} {{ child.id|lower }} {{ child.status|lower }}">
+                        <span class="child-status status-{{ child.status.as_str() }}">{{ child.status }}</span>
+                        <span class="child-type type-{{ child.issue_type.as_css_class() }}">{{ child.issue_type }}</span>
+                        <a href="/issues/{{ child.id }}" class="child-title">{{ child.title }}</a>
+                        <span class="child-id">{{ child.id }}</span>
+                        <span class="child-priority">P{{ child.priority.unwrap_or(0) }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </main>
+</body>
+</html>
