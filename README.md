@@ -60,7 +60,6 @@ nacre --open
 | `--host`       |       | `127.0.0.1`       | Host to bind to            |
 | `--port`       | `-p`  | `3000`            | Port to listen on          |
 | `--open`       | `-o`  | `false`           | Open browser automatically |
-| `--static-dir` | `-s`  | `frontend/public` | Directory for static files |
 
 ## Development
 
@@ -121,6 +120,17 @@ cargo clippy
 - **[pulldown-cmark](https://github.com/raphlinus/pulldown-cmark)** - Markdown rendering
 
 ## Version History
+
+### 0.4.0 (2025-12-27)
+
+**Metrics & Charts**
+- Standardized all charts (Ticket Activity, Cycle Time, Throughput, Lead Time) to use consistent date-based stacked bar styling with dark theme
+- Added Cycle Time and Throughput charts to Metrics view
+- Charts now linkable via anchor tags
+
+**Issue Management**
+- Display subtasks in Issue Detail view
+- Hide 'Deferred' column by default in Board view
 
 ### 0.3.0 (2025-12-26)
 
