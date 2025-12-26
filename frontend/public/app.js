@@ -155,13 +155,17 @@ function initBoardFeatures() {
       localStorage.setItem("board-column-visibility", JSON.stringify(newState));
     };
     const savedVisibility = localStorage.getItem("board-column-visibility");
-    let visibilityState = savedVisibility ? JSON.parse(savedVisibility) : {};
+    let visibilityState = savedVisibility ? JSON.parse(savedVisibility) : null;
     const columnCheckboxes = columnsDropdown.querySelectorAll('input[type="checkbox"]');
     columnCheckboxes.forEach((checkbox) => {
       const status = checkbox.getAttribute("data-status");
       if (!status)
         return;
-      checkbox.checked = visibilityState[status] !== false;
+      if (visibilityState === null) {
+        checkbox.checked = status !== "deferred";
+      } else {
+        checkbox.checked = visibilityState[status] !== false;
+      }
       updateColumnVisibility(status, checkbox.checked);
       checkbox.addEventListener("change", (e) => {
         const isVisible = e.target.checked;

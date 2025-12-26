@@ -61,7 +61,25 @@
                 </div>
             </div>
 
-            <section class="metrics-section">
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <h3>p50 Cycle Time</h3>
+                    <div class="metric-value">{{ p50_cycle_time_mins|format_minutes }}</div>
+                    <div class="metric-label">Median cycle time</div>
+                </div>
+                <div class="metric-card">
+                    <h3>p90 Cycle Time</h3>
+                    <div class="metric-value">{{ p90_cycle_time_mins|format_minutes }}</div>
+                    <div class="metric-label">90th percentile</div>
+                </div>
+                <div class="metric-card">
+                    <h3>p100 Cycle Time</h3>
+                    <div class="metric-value">{{ p100_cycle_time_mins|format_minutes }}</div>
+                    <div class="metric-label">Maximum cycle time</div>
+                </div>
+            </div>
+
+            <section class="metrics-section" id="ticket-activity">
                 <h2>Ticket Activity</h2>
                 <div class="chart-container">
                     {{ tickets_chart_svg|safe }}
@@ -69,10 +87,28 @@
             </section>
 
             {% if !lead_time_chart_svg.is_empty() %}
-            <section class="metrics-section">
-                <h2>Lead Time Distribution</h2>
+            <section class="metrics-section" id="lead-time">
+                <h2>Lead Time</h2>
                 <div class="chart-container">
                     {{ lead_time_chart_svg|safe }}
+                </div>
+            </section>
+            {% endif %}
+
+            {% if !cycle_time_distribution_svg.is_empty() %}
+            <section class="metrics-section" id="cycle-time">
+                <h2>Cycle Time</h2>
+                <div class="chart-container">
+                    {{ cycle_time_distribution_svg|safe }}
+                </div>
+            </section>
+            {% endif %}
+
+            {% if !throughput_distribution_svg.is_empty() %}
+            <section class="metrics-section" id="throughput">
+                <h2>Throughput</h2>
+                <div class="chart-container">
+                    {{ throughput_distribution_svg|safe }}
                 </div>
             </section>
             {% endif %}

@@ -151,6 +151,7 @@ pub struct IssueDetailTemplate {
     pub active_nav: &'static str,
     pub app_version: String,
     pub issue: beads::Issue,
+    pub children: Vec<beads::Issue>,
 }
 
 #[derive(Template)]
@@ -228,7 +229,12 @@ pub struct MetricsTemplate {
     pub blocked_count: usize,
     pub tickets_chart_svg: String,
     pub lead_time_chart_svg: String,
+    pub cycle_time_distribution_svg: String,
+    pub throughput_distribution_svg: String,
     pub p50_lead_time_hours: f64,
     pub p90_lead_time_hours: f64,
     pub p100_lead_time_hours: f64,
+    pub p50_cycle_time_mins: f64,
+    pub p90_cycle_time_mins: f64,
+    pub p100_cycle_time_mins: f64,
 }

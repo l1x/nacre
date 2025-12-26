@@ -26,12 +26,27 @@ pub async fn issue_detail(
     Path(id): Path<String>,
 ) -> crate::AppResult<IssueDetailTemplate> {
     let issue = state.client.get_issue(&id)?;
+    let all_issues = state.client.list_issues().unwrap_or_default();
+    
+    // Find children (ParentChild dependency or dot-notation)
+    let prefix = format!("{}.", id);
+    let mut children: Vec<beads::Issue> = all_issues
+        .into_iter()
+        .filter(|i| {
+            i.dependencies.iter().any(|d| d.depends_on_id == id && d.dep_type == beads::DependencyType::ParentChild)
+                || i.id.starts_with(&prefix)
+        })
+        .collect();
+
+    children.sort_by_key(|i| i.status.sort_order());
+
     Ok(IssueDetailTemplate {
         project_name: state.project_name.clone(),
         page_title: id,
         active_nav: "",
         app_version: state.app_version.clone(),
         issue,
+        children,
     })
 }
 

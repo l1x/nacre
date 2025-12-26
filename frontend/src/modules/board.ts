@@ -5,14 +5,20 @@ export function initBoardFeatures() {
     
     if (columnsToggle && columnsDropdown) {
         const savedVisibility = localStorage.getItem('board-column-visibility');
-        let visibilityState = savedVisibility ? JSON.parse(savedVisibility) : {};
+        let visibilityState = savedVisibility ? JSON.parse(savedVisibility) : null;
         
         const columnCheckboxes = columnsDropdown.querySelectorAll('input[type="checkbox"]') as NodeListOf<HTMLInputElement>;
         columnCheckboxes.forEach(checkbox => {
             const status = checkbox.getAttribute('data-status');
             if (!status) return;
             
-            checkbox.checked = visibilityState[status] !== false;
+            // Default: deferred is hidden, others are visible
+            if (visibilityState === null) {
+                checkbox.checked = status !== 'deferred';
+            } else {
+                checkbox.checked = visibilityState[status] !== false;
+            }
+            
             updateColumnVisibility(status, checkbox.checked);
             
             checkbox.addEventListener('change', (e) => {

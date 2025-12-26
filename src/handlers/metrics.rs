@@ -49,6 +49,9 @@ pub async fn metrics_handler(State(state): State<crate::AppState>) -> MetricsTem
         0.0
     };
 
+    let mut sorted_cycle_times = cycle_times.clone();
+    sorted_cycle_times.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
+
     let throughput_per_day = closed_last_7_days as f64 / 7.0;
 
     let wip_count = all_issues
@@ -82,17 +85,37 @@ pub async fn metrics_handler(State(state): State<crate::AppState>) -> MetricsTem
     let p90_lead_time_hours = calculate_percentile(&all_lead_times, 90.0);
     let p100_lead_time_hours = calculate_percentile(&all_lead_times, 100.0);
 
+    let p50_cycle_time_mins = calculate_percentile(&sorted_cycle_times, 50.0);
+    let p90_cycle_time_mins = calculate_percentile(&sorted_cycle_times, 90.0);
+    let p100_cycle_time_mins = calculate_percentile(&sorted_cycle_times, 100.0);
+
     // Generate Chart
     let mut tickets_chart_svg = String::new();
     {
+        // Theme colors matching others
+        let color_created = RGBColor(79, 129, 189); // Blue
+        let color_resolved = RGBColor(155, 187, 89); // Green
+        
+        let bg_color = RGBColor(35, 31, 29);
+        let text_color = RGBColor(154, 149, 144);
+        let grid_color = RGBColor(34, 32, 32);
+
         let root = SVGBackend::with_string(&mut tickets_chart_svg, (800, 400)).into_drawing_area();
-        root.fill(&WHITE).unwrap();
+        root.fill(&bg_color).unwrap();
 
         let now_dt = chrono::Utc::now().with_timezone(&chrono::FixedOffset::east_opt(0).unwrap());
         let start_dt = now_dt - chrono::Duration::days(30);
 
         let mut created_by_day: HashMap<chrono::NaiveDate, usize> = HashMap::new();
         let mut resolved_by_day: HashMap<chrono::NaiveDate, usize> = HashMap::new();
+
+        // Initialize maps with 0 for all days
+        let mut curr = start_dt.date_naive();
+        while curr <= now_dt.date_naive() {
+            created_by_day.insert(curr, 0);
+            resolved_by_day.insert(curr, 0);
+            curr = curr.succ_opt().unwrap();
+        }
 
         for issue in &all_issues {
             let created_date = issue.created_at.date_naive();
@@ -107,79 +130,106 @@ pub async fn metrics_handler(State(state): State<crate::AppState>) -> MetricsTem
             }
         }
 
+        // Collect and sort dates
+        let mut all_dates: Vec<chrono::NaiveDate> = created_by_day.keys().cloned().collect();
+        all_dates.sort();
+
+        let mut day_data: Vec<(String, usize, usize)> = Vec::new(); // (label, created, resolved)
+        let mut max_v = 0;
+
+        for date in &all_dates {
+            let created = *created_by_day.get(date).unwrap_or(&0);
+            let resolved = *resolved_by_day.get(date).unwrap_or(&0);
+            day_data.push((date.format("%m-%d").to_string(), created, resolved));
+            if created + resolved > max_v {
+                max_v = created + resolved;
+            }
+        }
+
+        // Ensure Y axis has some height
+        if max_v == 0 { max_v = 5; }
+
+        let num_days = day_data.len();
+        let bar_padding = 0.10;
+
         let mut chart = ChartBuilder::on(&root)
             .caption(
                 "Tickets Activity (Last 30 Days)",
-                ("sans-serif", 20).into_font(),
+                ("sans-serif", 20).into_font().color(&text_color),
             )
             .margin(10)
             .x_label_area_size(40)
             .y_label_area_size(40)
-            .build_cartesian_2d(
-                start_dt.date_naive()..now_dt.date_naive(),
-                0..10usize, // Initial Y scale, will be updated if needed
-            )
+            .build_cartesian_2d(0f64..(num_days as f64), 0usize..(max_v + 1))
             .unwrap();
 
-        // Adjust Y scale based on data
-        let max_v = created_by_day
-            .values()
-            .chain(resolved_by_day.values())
-            .max()
-            .copied()
-            .unwrap_or(5)
-            .max(5);
         chart
             .configure_mesh()
-            .x_labels(10)
+            .bold_line_style(grid_color)
+            .light_line_style(grid_color.mix(0.5))
+            .x_labels(num_days)
+            .x_label_formatter(&|x| {
+                let idx = x.round() as usize;
+                if idx < day_data.len() && (*x - idx as f64).abs() < 0.3 {
+                    day_data[idx].0.clone()
+                } else {
+                    String::new()
+                }
+            })
             .y_labels(5)
+            .axis_style(text_color)
+            .label_style(("sans-serif", 12).into_font().color(&text_color))
             .draw()
             .unwrap();
 
-        // Re-build with correct Y scale
-        let mut chart = ChartBuilder::on(&root)
-            .caption(
-                "Tickets Activity (Last 30 Days)",
-                ("sans-serif", 20).into_font(),
-            )
-            .margin(10)
-            .x_label_area_size(40)
-            .y_label_area_size(40)
-            .build_cartesian_2d(start_dt.date_naive()..now_dt.date_naive(), 0..max_v + 1)
+        // Draw stacked bars
+        for (idx, (_, created, resolved)) in day_data.iter().enumerate() {
+            let x_left = idx as f64 + bar_padding;
+            let x_right = (idx + 1) as f64 - bar_padding;
+            
+            // Created bar (bottom)
+            if *created > 0 {
+                chart
+                    .draw_series(std::iter::once(Rectangle::new(
+                        [(x_left, 0), (x_right, *created)],
+                        color_created.filled(),
+                    )))
+                    .unwrap();
+            }
+
+            // Resolved bar (stacked on top of created)
+            if *resolved > 0 {
+                chart
+                    .draw_series(std::iter::once(Rectangle::new(
+                        [(x_left, *created), (x_right, *created + *resolved)],
+                        color_resolved.filled(),
+                    )))
+                    .unwrap();
+            }
+        }
+
+        // Legend
+        let legend_items = [
+            (color_created, "Created"),
+            (color_resolved, "Resolved"),
+        ];
+        let legend_start_x = 300i32;
+        let legend_spacing = 100i32;
+
+        for (i, (color, label)) in legend_items.iter().enumerate() {
+            let x = legend_start_x + (i as i32) * legend_spacing;
+            root.draw(&Rectangle::new(
+                [(x, 370), (x + 20, 385)],
+                color.filled(),
+            ))
             .unwrap();
-
-        chart
-            .configure_mesh()
-            .x_label_formatter(&|d| d.format("%m-%d").to_string())
-            .draw()
+            root.draw(&Text::new(
+                *label,
+                (x + 25, 373),
+                ("sans-serif", 13).into_font().color(&text_color),
+            ))
             .unwrap();
-
-        let mut created_data: Vec<(chrono::NaiveDate, usize)> =
-            created_by_day.into_iter().collect();
-        created_data.sort_by_key(|(d, _)| *d);
-
-        let mut resolved_data: Vec<(chrono::NaiveDate, usize)> =
-            resolved_by_day.into_iter().collect();
-        resolved_data.sort_by_key(|(d, _)| *d);
-
-        chart
-            .draw_series(LineSeries::new(created_data, BLUE))
-            .unwrap()
-            .label("Created")
-            .legend(|(x, y)| PathElement::new(vec![(x, y), (x + 20, y)], BLUE));
-
-        chart
-            .draw_series(LineSeries::new(resolved_data, GREEN))
-            .unwrap()
-            .label("Resolved")
-            .legend(|(x, y)| PathElement::new(vec![(x, y), (x + 20, y)], GREEN));
-
-        chart
-            .configure_series_labels()
-            .background_style(WHITE.mix(0.8))
-            .border_style(BLACK)
-            .draw()
-            .unwrap();
+        }
     }
 
     // Generate Lead Time Percentiles Chart (p50, p90, p100 over time)
@@ -414,6 +464,278 @@ pub async fn metrics_handler(State(state): State<crate::AppState>) -> MetricsTem
         }
     }
 
+    // Generate Cycle Time Percentiles Chart (p50, p90, p100 over time)
+    let mut cycle_time_distribution_svg = String::new();
+    {
+        let now_dt = chrono::Utc::now().with_timezone(&chrono::FixedOffset::east_opt(0).unwrap());
+        let start_dt = now_dt - chrono::Duration::days(7);
+
+        // Group closed issues by close date and calculate cycle times
+        let mut cycle_times_by_day: HashMap<chrono::NaiveDate, Vec<f64>> = HashMap::new();
+        for issue in &all_issues {
+            if let Some(closed_at) = issue.closed_at {
+                let close_date = closed_at.date_naive();
+                if close_date >= start_dt.date_naive() {
+                    if let Some(started_at) = started_times.get(&issue.id) {
+                        let duration_mins = (closed_at - *started_at).num_minutes() as f64;
+                        cycle_times_by_day
+                            .entry(close_date)
+                            .or_default()
+                            .push(duration_mins);
+                    }
+                }
+            }
+        }
+
+        if !cycle_times_by_day.is_empty() {
+            // Collect and sort dates
+            let mut all_dates: Vec<chrono::NaiveDate> = cycle_times_by_day.keys().cloned().collect();
+            all_dates.sort();
+
+            // Calculate percentiles per day
+            let mut day_data: Vec<(String, f64, f64, f64)> = Vec::new(); // (label, p50, p90, p100)
+            for date in &all_dates {
+                let mut times = cycle_times_by_day.get(date).cloned().unwrap_or_default();
+                times.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
+                let p50 = calculate_percentile(&times, 50.0);
+                let p90 = calculate_percentile(&times, 90.0);
+                let p100 = calculate_percentile(&times, 100.0);
+                day_data.push((date.format("%a").to_string(), p50, p90, p100));
+            }
+
+            let max_mins = day_data
+                .iter()
+                .map(|(_, _, _, p100)| *p100)
+                .fold(1.0_f64, f64::max);
+
+            // Theme colors
+            let color_p50 = RGBColor(79, 129, 189); // Blue
+            let color_p90 = RGBColor(155, 187, 89); // Green
+            let color_p100 = RGBColor(247, 150, 70); // Orange
+            
+            let bg_color = RGBColor(35, 31, 29);
+            let text_color = RGBColor(154, 149, 144);
+            let grid_color = RGBColor(34, 32, 32);
+
+            let root =
+                SVGBackend::with_string(&mut cycle_time_distribution_svg, (700, 400)).into_drawing_area();
+            root.fill(&bg_color).unwrap();
+
+            let num_days = day_data.len();
+            let bar_padding = 0.10;
+
+            let mut chart = ChartBuilder::on(&root)
+                .x_label_area_size(40)
+                .y_label_area_size(50)
+                .margin(20)
+                .margin_bottom(60)
+                .build_cartesian_2d(0f64..(num_days as f64), 0f64..(max_mins * 1.1))
+                .unwrap();
+
+            chart
+                .configure_mesh()
+                .disable_x_mesh()
+                .bold_line_style(grid_color)
+                .light_line_style(grid_color.mix(0.5))
+                .y_desc("Cycle Time (min)")
+                .y_label_formatter(&|v| format!("{:.0}m", v))
+                .x_labels(num_days)
+                .x_label_formatter(&|x| {
+                    let idx = x.round() as usize;
+                    if idx < day_data.len() && (*x - idx as f64).abs() < 0.3 {
+                        day_data[idx].0.clone()
+                    } else {
+                        String::new()
+                    }
+                })
+                .axis_desc_style(("sans-serif", 14).into_font().color(&text_color))
+                .label_style(("sans-serif", 12).into_font().color(&text_color))
+                .axis_style(text_color)
+                .draw()
+                .unwrap();
+
+            // Draw stacked bars
+            for (idx, (_, p50, p90, p100)) in day_data.iter().enumerate() {
+                let x_left = idx as f64 + bar_padding;
+                let x_right = (idx + 1) as f64 - bar_padding;
+                let x_center = idx as f64 + 0.5;
+                let label_font = ("sans-serif", 12).into_font().color(&WHITE);
+
+                // p50 segment
+                chart
+                    .draw_series(std::iter::once(Rectangle::new(
+                        [(x_left, 0.0), (x_right, *p50)],
+                        color_p50.filled(),
+                    )))
+                    .unwrap();
+
+                if *p50 > max_mins * 0.06 {
+                    chart
+                        .draw_series(std::iter::once(Text::new(
+                            format!("{:.0}", p50),
+                            (x_center, *p50 / 2.0),
+                            label_font.clone(),
+                        )))
+                        .unwrap();
+                }
+
+                // p90 segment
+                if *p90 > *p50 {
+                    chart
+                        .draw_series(std::iter::once(Rectangle::new(
+                            [(x_left, *p50), (x_right, *p90)],
+                            color_p90.filled(),
+                        )))
+                        .unwrap();
+
+                    if (*p90 - *p50) > max_mins * 0.06 {
+                        chart
+                            .draw_series(std::iter::once(Text::new(
+                                format!("{:.0}", p90),
+                                (x_center, *p50 + (*p90 - *p50) / 2.0),
+                                label_font.clone(),
+                            )))
+                            .unwrap();
+                    }
+                }
+
+                // p100 segment
+                if *p100 > *p90 {
+                    chart
+                        .draw_series(std::iter::once(Rectangle::new(
+                            [(x_left, *p90), (x_right, *p100)],
+                            color_p100.filled(),
+                        )))
+                        .unwrap();
+
+                    if (*p100 - *p90) > max_mins * 0.06 {
+                        chart
+                            .draw_series(std::iter::once(Text::new(
+                                format!("{:.0}", p100),
+                                (x_center, *p90 + (*p100 - *p90) / 2.0),
+                                label_font.clone(),
+                            )))
+                            .unwrap();
+                    }
+                }
+            }
+
+            // Draw legend
+            let legend_items = [
+                (color_p50, "p50"),
+                (color_p90, "p90"),
+                (color_p100, "p100"),
+            ];
+            let legend_start_x = 250i32;
+            let legend_spacing = 80i32;
+
+            for (i, (color, label)) in legend_items.iter().enumerate() {
+                let x = legend_start_x + (i as i32) * legend_spacing;
+                root.draw(&Rectangle::new(
+                    [(x, 370), (x + 20, 385)],
+                    color.filled(),
+                ))
+                .unwrap();
+                root.draw(&Text::new(
+                    *label,
+                    (x + 25, 373),
+                    ("sans-serif", 13).into_font().color(&text_color),
+                ))
+                .unwrap();
+            }
+        }
+    }
+
+    // Generate Throughput Chart (Date-based)
+    let mut throughput_distribution_svg = String::new();
+    {
+        let now_dt = chrono::Utc::now().with_timezone(&chrono::FixedOffset::east_opt(0).unwrap());
+        let start_dt = now_dt - chrono::Duration::days(30);
+        
+        let mut throughput_by_day: HashMap<chrono::NaiveDate, usize> = HashMap::new();
+        // Fill in all days with 0 first
+        let mut curr = start_dt.date_naive();
+        while curr <= now_dt.date_naive() {
+            throughput_by_day.insert(curr, 0);
+            curr = curr.succ_opt().unwrap();
+        }
+
+        for issue in &all_issues {
+            if let Some(closed_at) = issue.closed_at {
+                let resolved_date = closed_at.date_naive();
+                if resolved_date >= start_dt.date_naive() {
+                    *throughput_by_day.entry(resolved_date).or_insert(0) += 1;
+                }
+            }
+        }
+
+        // Collect and sort dates
+        let mut all_dates: Vec<chrono::NaiveDate> = throughput_by_day.keys().cloned().collect();
+        all_dates.sort();
+
+        let mut day_data: Vec<(String, usize)> = Vec::new();
+        for date in &all_dates {
+            let count = *throughput_by_day.get(date).unwrap_or(&0);
+            day_data.push((date.format("%m-%d").to_string(), count));
+        }
+
+        let max_val = *throughput_by_day.values().max().unwrap_or(&0);
+
+        // Theme colors
+        let bg_color = RGBColor(35, 31, 29);
+        let text_color = RGBColor(154, 149, 144);
+        let grid_color = RGBColor(34, 32, 32);
+        let color_throughput = RGBColor(155, 187, 89); // Green matching p90/Resolved
+
+        let root = SVGBackend::with_string(&mut throughput_distribution_svg, (700, 400)).into_drawing_area();
+        root.fill(&bg_color).unwrap();
+
+        let num_days = day_data.len();
+        let bar_padding = 0.10;
+
+        let mut chart = ChartBuilder::on(&root)
+            .x_label_area_size(40)
+            .y_label_area_size(50)
+            .margin(20)
+            .margin_bottom(60)
+            .build_cartesian_2d(0f64..(num_days as f64), 0usize..(max_val + 1))
+            .unwrap();
+
+        chart
+            .configure_mesh()
+            .disable_x_mesh()
+            .bold_line_style(grid_color)
+            .light_line_style(grid_color.mix(0.5))
+            .y_desc("Issues Closed")
+            .x_labels(num_days)
+            .x_label_formatter(&|x| {
+                let idx = x.round() as usize;
+                if idx < day_data.len() && (*x - idx as f64).abs() < 0.3 {
+                    day_data[idx].0.clone()
+                } else {
+                    String::new()
+                }
+            })
+            .axis_desc_style(("sans-serif", 14).into_font().color(&text_color))
+            .label_style(("sans-serif", 12).into_font().color(&text_color))
+            .axis_style(text_color)
+            .draw()
+            .unwrap();
+
+        // Draw bars
+        for (idx, (_, count)) in day_data.iter().enumerate() {
+            let x_left = idx as f64 + bar_padding;
+            let x_right = (idx + 1) as f64 - bar_padding;
+            
+            chart
+                .draw_series(std::iter::once(Rectangle::new(
+                    [(x_left, 0), (x_right, *count)],
+                    color_throughput.filled(),
+                )))
+                .unwrap();
+        }
+    }
+
     MetricsTemplate {
         project_name: state.project_name.clone(),
         page_title: "Metrics".to_string(),
@@ -427,8 +749,13 @@ pub async fn metrics_handler(State(state): State<crate::AppState>) -> MetricsTem
         blocked_count,
         tickets_chart_svg,
         lead_time_chart_svg,
+        cycle_time_distribution_svg,
+        throughput_distribution_svg,
         p50_lead_time_hours,
         p90_lead_time_hours,
         p100_lead_time_hours,
+        p50_cycle_time_mins,
+        p90_cycle_time_mins,
+        p100_cycle_time_mins,
     }
 }

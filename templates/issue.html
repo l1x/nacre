@@ -55,6 +55,21 @@
             </div>
             {% endif %}
 
+            {% if !children.is_empty() %}
+            <div class="detail-section">
+                <h3>Subtasks</h3>
+                <div class="subtask-list">
+                    {% for child in children %}
+                    <div class="subtask-item">
+                        <span class="meta-chip status-{{ child.status.as_str() }}">{{ child.status }}</span>
+                        <a href="/issues/{{ child.id }}" class="subtask-title">{{ child.title }}</a>
+                        <span class="subtask-id">{{ child.id }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
             <div class="timestamps-grid">
                 <div class="timestamp-item">
                     <span class="timestamp-value">{{ issue.created_at|format_date }}</span>
