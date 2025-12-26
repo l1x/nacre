@@ -748,74 +748,75 @@ pub async fn metrics_handler(State(state): State<crate::AppState>) -> MetricsTem
                 .draw()
                 .unwrap();
 
-            // Draw stacked bars using Histogram
-            // First layer: p50 (bottom)
-            chart
-                .draw_series(
-                    Histogram::vertical(&chart)
-                        .style(color_p50.filled())
-                        .margin(3)
-                        .data((0u32..).zip(day_data.iter()).map(|(idx, (_, p50, _, _))| (idx, *p50))),
-                )
-                .unwrap();
-
-            // Second layer: p50 to p90 (stacked on top)
-            chart
-                .draw_series(
-                    Histogram::vertical(&chart)
-                        .style(color_p90.filled())
-                        .margin(3)
-                        .baseline(*day_data.iter().map(|(_, p50, _, _)| p50).min_by(|a, b| a.partial_cmp(b).unwrap()).unwrap_or(&0.0))
-                        .data((0u32..).zip(day_data.iter()).map(|(idx, (_, p50, p90, _))| (idx, *p90 - *p50))),
-                )
-                .unwrap();
-
-            // Third layer: p90 to p100 (top)
-            chart
-                .draw_series(
-                    Histogram::vertical(&chart)
-                        .style(color_p100.filled())
-                        .margin(3)
-                        .data((0u32..).zip(day_data.iter()).map(|(idx, (_, _, p90, p100))| (idx, *p100 - *p90))),
-                )
-                .unwrap();
-
-            // Draw labels on each bar segment
+            // Draw stacked bars manually with proper layering
+            // Order matters: draw from bottom to top (p50, then p90, then p100)
             for (idx, (_, p50, p90, p100)) in day_data.iter().enumerate() {
-                let x = SegmentValue::CenterOf(idx as u32);
-                let label_font = ("sans-serif", 11).into_font().color(&WHITE);
+                let x_left = SegmentValue::Exact(idx as u32);
+                let x_right = SegmentValue::Exact(idx as u32 + 1);
+                let x_center = SegmentValue::CenterOf(idx as u32);
+                let label_font = ("sans-serif", 12).into_font().color(&WHITE);
 
-                // p50 label (center of bottom segment)
-                if *p50 > max_hours * 0.05 {
+                // p50 segment (bottom): 0 to p50 - BLUE
+                if *p50 > 0.0 {
                     chart
-                        .draw_series(std::iter::once(Text::new(
-                            format_hours(*p50),
-                            (x.clone(), p50 / 2.0),
-                            label_font.clone(),
+                        .draw_series(std::iter::once(Rectangle::new(
+                            [(x_left.clone(), 0.0), (x_right.clone(), *p50)],
+                            color_p50.filled(),
                         )))
                         .unwrap();
+
+                    // p50 label
+                    if *p50 > max_hours * 0.08 {
+                        chart
+                            .draw_series(std::iter::once(Text::new(
+                                format_hours(*p50),
+                                (x_center.clone(), *p50 / 2.0),
+                                label_font.clone(),
+                            )))
+                            .unwrap();
+                    }
                 }
 
-                // p90 label (center of middle segment)
-                if *p90 > *p50 && (*p90 - *p50) > max_hours * 0.05 {
+                // p90 segment (middle): p50 to p90 - GREEN
+                if *p90 > *p50 {
                     chart
-                        .draw_series(std::iter::once(Text::new(
-                            format_hours(*p90),
-                            (x.clone(), *p50 + (*p90 - *p50) / 2.0),
-                            label_font.clone(),
+                        .draw_series(std::iter::once(Rectangle::new(
+                            [(x_left.clone(), *p50), (x_right.clone(), *p90)],
+                            color_p90.filled(),
                         )))
                         .unwrap();
+
+                    // p90 label
+                    if (*p90 - *p50) > max_hours * 0.08 {
+                        chart
+                            .draw_series(std::iter::once(Text::new(
+                                format_hours(*p90),
+                                (x_center.clone(), *p50 + (*p90 - *p50) / 2.0),
+                                label_font.clone(),
+                            )))
+                            .unwrap();
+                    }
                 }
 
-                // p100 label (center of top segment)
-                if *p100 > *p90 && (*p100 - *p90) > max_hours * 0.05 {
+                // p100 segment (top): p90 to p100 - ORANGE
+                if *p100 > *p90 {
                     chart
-                        .draw_series(std::iter::once(Text::new(
-                            format_hours(*p100),
-                            (x, *p90 + (*p100 - *p90) / 2.0),
-                            label_font.clone(),
+                        .draw_series(std::iter::once(Rectangle::new(
+                            [(x_left, *p90), (x_right, *p100)],
+                            color_p100.filled(),
                         )))
                         .unwrap();
+
+                    // p100 label
+                    if (*p100 - *p90) > max_hours * 0.08 {
+                        chart
+                            .draw_series(std::iter::once(Text::new(
+                                format_hours(*p100),
+                                (x_center, *p90 + (*p100 - *p90) / 2.0),
+                                label_font.clone(),
+                            )))
+                            .unwrap();
+                    }
                 }
             }
 
