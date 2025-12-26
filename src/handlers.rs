@@ -693,7 +693,7 @@ pub async fn metrics_handler(State(state): State<crate::AppState>) -> MetricsTem
                 let p50 = percentile(&times, 50.0);
                 let p90 = percentile(&times, 90.0);
                 let p100 = percentile(&times, 100.0);
-                day_data.push((date.format("%m-%d").to_string(), p50, p90, p100));
+                day_data.push((date.format("%a").to_string(), p50, p90, p100));
             }
 
             let max_hours = day_data
@@ -701,20 +701,24 @@ pub async fn metrics_handler(State(state): State<crate::AppState>) -> MetricsTem
                 .map(|(_, _, _, p100)| *p100)
                 .fold(1.0_f64, f64::max);
 
-            // Theme colors
-            let color_p50 = RGBColor(86, 156, 214); // Blue
-            let color_p90 = RGBColor(78, 154, 87); // Green
-            let color_p100 = RGBColor(224, 122, 74); // Orange/copper
-            let bg_color = RGBColor(30, 30, 30);
-            let text_color = RGBColor(220, 220, 220);
-            let grid_color = RGBColor(60, 60, 60);
+            // Theme colors matching the "good example" but adapted for dark mode
+            let color_p50 = RGBColor(79, 129, 189); // Direct (Blue)
+            let color_p90 = RGBColor(155, 187, 89); // Mail Ad (Green)
+            let color_p100 = RGBColor(247, 150, 70); // Video Ad (Orange)
+            
+            // Match CSS --bg-card: #231f1d
+            let bg_color = RGBColor(35, 31, 29);
+            // Match CSS --text-secondary: #9a9590
+            let text_color = RGBColor(154, 149, 144);
+            // Match CSS --border-subtle: #222020
+            let grid_color = RGBColor(34, 32, 32);
 
             let root =
                 SVGBackend::with_string(&mut lead_time_chart_svg, (700, 400)).into_drawing_area();
             root.fill(&bg_color).unwrap();
 
             let num_days = day_data.len();
-            let bar_padding = 0.15; // Gap between bars (15% on each side = 70% bar width)
+            let bar_padding = 0.10; // Gap between bars (10% on each side = 80% bar width)
 
             let mut chart = ChartBuilder::on(&root)
                 .x_label_area_size(40)
@@ -735,6 +739,32 @@ pub async fn metrics_handler(State(state): State<crate::AppState>) -> MetricsTem
                 .x_label_formatter(&|x| {
                     let idx = x.round() as usize;
                     if idx < day_data.len() && (*x - idx as f64).abs() < 0.3 {
+                        // Parse date string (MM-DD) back to date object to get weekday
+                        // Or just modify day_data generation to include weekday
+                        // For now, we'll try to parse the MM-DD if possible, or just use what we have.
+                        // Actually, day_data only has MM-DD string. 
+                        // Let's modify the day_data generation above to include the weekday.
+                        // But since I can't easily modify the code above in this replace block without replacing huge chunk...
+                        // I will rely on the fact that I can't easily change day_data type here.
+                        // Wait, I can't change the day_data type in this scope?
+                        // I am replacing the drawing part. The day_data generation is ABOVE this block.
+                        // So I must stick to using the string in day_data.0
+                        // However, I can try to append weekday if I modify the generation logic.
+                        // But the `replace` tool requires EXACT match. 
+                        // I am replacing the block starting from `// Theme colors` to the end of the legend loop.
+                        
+                        // I will change the day_data generation in a separate call if needed.
+                        // For now, let's just stick to the MM-DD label but use the new colors/style.
+                        // Or I can parse the MM-DD relative to current year?
+                        // It's safer to just leave MM-DD for now or do a separate refactor.
+                        // BUT the requirement was "Mon", "Tue".
+                        
+                        // Let's look at day_data generation. It is OUTSIDE the block I am replacing?
+                        // No, the `replace` block I selected starts at `// Theme colors`.
+                        // The day_data generation is ABOVE it.
+                        // "let mut day_data: Vec<(String, f64, f64, f64)> = Vec::new();"
+                        // I need to include day_data generation in the replacement to change the label.
+                        
                         day_data[idx].0.clone()
                     } else {
                         String::new()
