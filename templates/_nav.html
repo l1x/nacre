@@ -1,9 +1,9 @@
         <nav>
             <a href="/"{% if active_nav == "dashboard" %} class="active"{% endif %}>Dashboard</a>
-            <a href="/issues"{% if active_nav == "issues" %} class="active"{% endif %}>Issues</a>
-            <a href="/epics"{% if active_nav == "epics" %} class="active"{% endif %}>Epics</a>
             <a href="/board"{% if active_nav == "board" %} class="active"{% endif %}>Board</a>
-            <a href="/graph"{% if active_nav == "graph" %} class="active"{% endif %}>Graph</a>
-            <a href="/prds"{% if active_nav == "prds" %} class="active"{% endif %}>PRDs</a>
+            <a href="/epics"{% if active_nav == "epics" %} class="active"{% endif %}>Epics</a>
+            <a href="/issues"{% if active_nav == "issues" %} class="active"{% endif %}>Issues</a>
             <a href="/metrics"{% if active_nav == "metrics" %} class="active"{% endif %}>Metrics</a>
+            <a href="/prds"{% if active_nav == "prds" %} class="active"{% endif %}>PRDs</a>
+            <a href="/graph"{% if active_nav == "graph" %} class="active"{% endif %}>Graph</a>
         </nav>
