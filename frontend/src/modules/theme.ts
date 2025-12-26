@@ -1,10 +1,13 @@
-export function initTheme() {
-    // Theme switching - run immediately to prevent flash
+// Theme switching - run immediately at module load to prevent flash
+(function() {
     const stored = localStorage.getItem('theme');
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
     const theme = stored || (prefersDark ? 'dark' : 'light');
     document.documentElement.setAttribute('data-theme', theme);
+})();
 
+export function initTheme() {
+    // Set up theme toggle button (requires DOM to be ready)
     const themeToggle = document.getElementById('theme-toggle');
     if (themeToggle) {
         const updateIcon = () => {
