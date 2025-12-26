@@ -645,7 +645,7 @@ pub async fn metrics_handler(State(state): State<crate::AppState>) -> MetricsTem
     let mut lead_time_chart_svg = String::new();
     {
         let now_dt = chrono::Utc::now().with_timezone(&chrono::FixedOffset::east_opt(0).unwrap());
-        let start_dt = now_dt - chrono::Duration::days(30);
+        let start_dt = now_dt - chrono::Duration::days(7);
 
         // Group closed issues by close date and calculate lead times
         let mut lead_times_by_day: HashMap<chrono::NaiveDate, Vec<f64>> = HashMap::new();
@@ -725,7 +725,7 @@ pub async fn metrics_handler(State(state): State<crate::AppState>) -> MetricsTem
             let num_dates = all_dates.len() as f64;
             let mut chart = ChartBuilder::on(&root)
                 .caption(
-                    "Lead Time Percentiles (Last 30 Days)",
+                    "Lead Time Percentiles (Last 7 Days)",
                     ("sans-serif", 18).into_font().color(&RGBColor(200, 200, 200)),
                 )
                 .margin(15)
@@ -754,14 +754,15 @@ pub async fn metrics_handler(State(state): State<crate::AppState>) -> MetricsTem
                 .draw()
                 .unwrap();
 
-            // Draw stacked bars for each day
+            // Draw stacked bars for each day (narrow bars with gaps like the example)
+            let bar_padding = 0.3; // 30% padding on each side = 40% bar width
             for (idx, date) in all_dates.iter().enumerate() {
                 let p50_val = *p50_map.get(date).unwrap_or(&0.0);
                 let p90_val = *p90_map.get(date).unwrap_or(&0.0);
                 let p100_val = *p100_map.get(date).unwrap_or(&0.0);
 
-                let x_left = idx as f64;
-                let x_right = (idx + 1) as f64;
+                let x_left = idx as f64 + bar_padding;
+                let x_right = (idx + 1) as f64 - bar_padding;
 
                 // Stacked bar segments (bottom to top): p50, p50-p90, p90-p100
                 // p50 segment (bottom)
