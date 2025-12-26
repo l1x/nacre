@@ -261,16 +261,16 @@ fn build_issue_tree(all_issues: &[beads::Issue]) -> Vec<TreeNode> {
         }
 
         // Check dot-notation for implicit parent-child (e.g., nacre-3hd.1 -> nacre-3hd)
-        if !parent_map.contains_key(&issue.id) {
-            if let Some(dot_pos) = issue.id.rfind('.') {
-                let potential_parent = &issue.id[..dot_pos];
-                if all_issues.iter().any(|i| i.id == potential_parent) {
-                    children_map
-                        .entry(potential_parent.to_string())
-                        .or_default()
-                        .push(issue.id.clone());
-                    parent_map.insert(issue.id.clone(), potential_parent.to_string());
-                }
+        if !parent_map.contains_key(&issue.id)
+            && let Some(dot_pos) = issue.id.rfind('.')
+        {
+            let potential_parent = &issue.id[..dot_pos];
+            if all_issues.iter().any(|i| i.id == potential_parent) {
+                children_map
+                    .entry(potential_parent.to_string())
+                    .or_default()
+                    .push(issue.id.clone());
+                parent_map.insert(issue.id.clone(), potential_parent.to_string());
             }
         }
     }
@@ -308,11 +308,10 @@ fn build_issue_tree(all_issues: &[beads::Issue]) -> Vec<TreeNode> {
 
         // Determine parent_id for this node
         let parent_id = if depth > 0 {
-            if let Some(dot_pos) = issue.id.rfind('.') {
-                Some(issue.id[..dot_pos].to_string())
-            } else {
-                None
-            }
+            issue
+                .id
+                .rfind('.')
+                .map(|dot_pos| issue.id[..dot_pos].to_string())
         } else {
             None
         };

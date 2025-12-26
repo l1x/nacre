@@ -168,6 +168,7 @@ pub struct PrdViewTemplate {
     pub project_name: String,
     pub page_title: String,
     pub active_nav: &'static str,
+    #[allow(dead_code)]
     pub filename: String,
     pub content: String,
 }
