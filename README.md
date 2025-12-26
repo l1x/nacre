@@ -4,11 +4,13 @@ A local-first web interface for [Beads](https://github.com/beads-project/beads) 
 
 ## Features
 
-- **Issues List** - View all issues grouped by epic, sorted by status priority
-- **Board View** - Kanban-style board with drag-and-drop status updates
-- **Epics View** - Track epic progress with completion percentages
+- **Dashboard** - Project overview with stats, epic progress, blocked and in-progress issues
+- **Board View** - Kanban-style board with drag-and-drop status updates and column visibility toggle
+- **Epics View** - Track epic progress with completion percentages and expandable child issues
+- **Issues List** - Hierarchical tree view with type filtering and expand/collapse controls
+- **Metrics View** - Lead time, cycle time, throughput, and ticket activity charts
 - **PRDs View** - Browse and read product requirement documents (Markdown)
-- **Issue Details** - View full issue information including description, acceptance criteria, and metadata
+- **Issue Details** - View and edit issues with description, acceptance criteria, labels, and timestamps
 
 ## Installation
 
@@ -120,8 +122,43 @@ cargo clippy
 
 ## Version History
 
-- **0.2.0** (2024-12-25) - Current release
-- **0.1.0** - Initial release
+### 0.2.0 (2025-12-26)
+
+**Template System**
+- DRY refactoring with Askama includes (`_head.html`, `_nav.html`, `_header.html`)
+- Dynamic page titles and active navigation highlighting
+
+**Frontend**
+- Complete TypeScript migration (modular architecture in `frontend/src/modules/`)
+- Backspace navigation support
+- Global keyboard shortcuts on all views
+
+**Views**
+- Hierarchical tree view for Issues page
+- Graph view placeholder (dependency visualization coming soon)
+- Board card titles now clickable
+- Column visibility toggle on Board view
+- Redesigned issue detail UI with edit functionality
+
+**Fixes**
+- Status enum serialization (snake_case consistency)
+- Board drag-and-drop status updates
+
+### 0.1.0 (2025-12-25)
+
+**Core Features**
+- Issues list view grouped by epic
+- Kanban board with drag-and-drop
+- Epics view with progress tracking
+- PRDs view with Markdown rendering
+- Issue detail view
+
+**Infrastructure**
+- Axum web server with Askama templates
+- Beads CLI integration
+- Request logging with correlation IDs
+- Dynamic project name from directory
+- Pearl-inspired favicon
 
 ## License
 
