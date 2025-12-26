@@ -5,6 +5,7 @@ import { initInlineEdit } from './modules/edit';
 import { initBoardFeatures } from './modules/board';
 import { initDragAndDrop } from './modules/dragdrop';
 import { initNavigation } from './modules/navigation';
+import { initGraph } from './modules/graph';
 
 document.addEventListener('DOMContentLoaded', () => {
     initTheme();
@@ -14,6 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initBoardFeatures();
     initDragAndDrop();
     initNavigation();
-    
+    initGraph();
+
     console.log("Nacre modular frontend initialized");
 });

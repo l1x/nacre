@@ -289,183 +289,151 @@ pub async fn board(State(state): State<crate::AppState>) -> BoardTemplate {
 pub async fn graph(State(state): State<crate::AppState>) -> GraphTemplate {
     let all_issues = state.client.list_issues().unwrap_or_default();
 
-    // Build dependency graph
-    let mut dependents: HashMap<String, Vec<String>> = HashMap::new();
-    let mut in_degree: HashMap<String, usize> = HashMap::new();
-    let mut has_children: HashMap<String, bool> = HashMap::new();
+    // Build parent-child relationships
+    let mut children_map: HashMap<String, Vec<String>> = HashMap::new();
+    let mut parent_map: HashMap<String, String> = HashMap::new();
 
-    // Initialize all nodes
     for issue in &all_issues {
-        dependents.entry(issue.id.clone()).or_default();
-        in_degree.entry(issue.id.clone()).or_insert(0);
-        has_children.insert(issue.id.clone(), false);
-    }
-
-    // Build edges from dependencies
-    for issue in &all_issues {
+        // Check explicit parent-child dependency
         for dep in &issue.dependencies {
-            // issue depends on dep.depends_on_id, so dep.depends_on_id -> issue
-            dependents
-                .entry(dep.depends_on_id.clone())
-                .or_default()
-                .push(issue.id.clone());
-            *in_degree.entry(issue.id.clone()).or_insert(0) += 1;
-
             if dep.dep_type == beads::DependencyType::ParentChild {
-                has_children.insert(dep.depends_on_id.clone(), true);
+                children_map
+                    .entry(dep.depends_on_id.clone())
+                    .or_default()
+                    .push(issue.id.clone());
+                parent_map.insert(issue.id.clone(), dep.depends_on_id.clone());
             }
         }
 
-        // Also check dot-notation for implicit parent-child
-        if let Some(dot_pos) = issue.id.rfind('.') {
-            let potential_parent = &issue.id[..dot_pos];
-            if all_issues.iter().any(|i| i.id == potential_parent) {
-                has_children.insert(potential_parent.to_string(), true);
-            }
-        }
-    }
-
-    // Topological sort with levels (BFS)
-    let mut levels: HashMap<String, usize> = HashMap::new();
-    let mut queue: Vec<String> = Vec::new();
-
-    // Start with nodes that have no dependencies
-    for issue in &all_issues {
-        if in_degree.get(&issue.id).copied().unwrap_or(0) == 0 {
-            queue.push(issue.id.clone());
-            levels.insert(issue.id.clone(), 0);
-        }
-    }
-
-    let mut max_level = 0;
-    while !queue.is_empty() {
-        let current = queue.remove(0);
-        let current_level = levels.get(&current).copied().unwrap_or(0);
-
-        if let Some(deps) = dependents.get(&current) {
-            for dep_id in deps {
-                let new_level = current_level + 1;
-                let existing_level = levels.entry(dep_id.clone()).or_insert(0);
-                if new_level > *existing_level {
-                    *existing_level = new_level;
-                }
-                max_level = max_level.max(new_level);
-
-                let deg = in_degree.get_mut(dep_id).unwrap();
-                *deg -= 1;
-                if *deg == 0 {
-                    queue.push(dep_id.clone());
+        // Check dot-notation for implicit parent-child (e.g., nacre-3hd.1 -> nacre-3hd)
+        if !parent_map.contains_key(&issue.id) {
+            if let Some(dot_pos) = issue.id.rfind('.') {
+                let potential_parent = &issue.id[..dot_pos];
+                if all_issues.iter().any(|i| i.id == potential_parent) {
+                    children_map
+                        .entry(potential_parent.to_string())
+                        .or_default()
+                        .push(issue.id.clone());
+                    parent_map.insert(issue.id.clone(), potential_parent.to_string());
                 }
             }
         }
     }
 
-    // Group nodes by level
-    let mut nodes_by_level: Vec<Vec<&beads::Issue>> = vec![Vec::new(); max_level + 1];
+    // Count blocking dependencies (non-parent-child) for each issue
+    let mut blocked_by_count: HashMap<String, usize> = HashMap::new();
     for issue in &all_issues {
-        let level = levels.get(&issue.id).copied().unwrap_or(0);
-        if level < nodes_by_level.len() {
-            nodes_by_level[level].push(issue);
-        }
+        let count = issue
+            .dependencies
+            .iter()
+            .filter(|d| d.dep_type != beads::DependencyType::ParentChild)
+            .count();
+        blocked_by_count.insert(issue.id.clone(), count);
     }
 
-    // Calculate positions
-    let node_width = 180;
-    let node_height = 80;
-    let level_gap = 100;
-    let node_gap = 40;
+    // Build issue lookup
+    let issue_map: HashMap<String, &beads::Issue> =
+        all_issues.iter().map(|i| (i.id.clone(), i)).collect();
 
-    let mut max_width = 0;
-    for level_nodes in &nodes_by_level {
-        let level_width = level_nodes.len() as i32 * (node_width + node_gap);
-        max_width = max_width.max(level_width);
-    }
+    // Recursive function to build tree nodes
+    fn build_tree(
+        issue_id: &str,
+        issue_map: &HashMap<String, &beads::Issue>,
+        children_map: &HashMap<String, Vec<String>>,
+        blocked_by_count: &HashMap<String, usize>,
+        depth: usize,
+        nodes: &mut Vec<TreeNode>,
+    ) {
+        let Some(issue) = issue_map.get(issue_id) else {
+            return;
+        };
 
-    let svg_width = max_width.max(600) + 100;
-    let svg_height = ((max_level + 1) as i32 * (node_height + level_gap)) + 100;
+        let children_ids = children_map.get(issue_id);
+        let has_children = children_ids.map(|c| !c.is_empty()).unwrap_or(false);
 
-    let mut node_positions: HashMap<String, (i32, i32)> = HashMap::new();
-    let mut graph_nodes = Vec::new();
-
-    for (level, level_nodes) in nodes_by_level.iter().enumerate() {
-        let total_width = level_nodes.len() as i32 * (node_width + node_gap) - node_gap;
-        let start_x = (svg_width - total_width) / 2 + node_width / 2;
-        let y = 50 + level as i32 * (node_height + level_gap) + node_height / 2;
-
-        for (i, issue) in level_nodes.iter().enumerate() {
-            let x = start_x + i as i32 * (node_width + node_gap);
-            node_positions.insert(issue.id.clone(), (x, y));
-
-            // Truncate title
-            let title_short = if issue.title.len() > 20 {
-                format!("{}...", &issue.title[..17])
+        // Determine parent_id for this node
+        let parent_id = if depth > 0 {
+            // Find parent from dot notation or will be passed contextually
+            if let Some(dot_pos) = issue.id.rfind('.') {
+                Some(issue.id[..dot_pos].to_string())
             } else {
-                issue.title.clone()
-            };
+                None
+            }
+        } else {
+            None
+        };
 
-            // Determine parent_id
-            let parent_id = issue
-                .dependencies
+        nodes.push(TreeNode {
+            id: issue.id.clone(),
+            title: issue.title.clone(),
+            status: issue.status.as_str().to_string(),
+            issue_type: issue.issue_type.as_css_class().to_string(),
+            priority: issue.priority.unwrap_or(2),
+            blocked_by_count: blocked_by_count.get(&issue.id).copied().unwrap_or(0),
+            has_children,
+            depth,
+            parent_id,
+        });
+
+        // Recursively add children
+        if let Some(children) = children_ids {
+            let mut sorted_children: Vec<_> = children
                 .iter()
-                .find(|d| d.dep_type == beads::DependencyType::ParentChild)
-                .map(|d| d.depends_on_id.clone())
-                .or_else(|| {
-                    if let Some(dot_pos) = issue.id.rfind('.') {
-                        let potential_parent = &issue.id[..dot_pos];
-                        if all_issues.iter().any(|i| i.id == potential_parent) {
-                            Some(potential_parent.to_string())
-                        } else {
-                            None
-                        }
-                    } else {
-                        None
-                    }
-                });
-
-            let node_has_children = has_children.get(&issue.id).copied().unwrap_or(false);
-
-            graph_nodes.push(GraphNode {
-                id: issue.id.clone(),
-                title: issue.title.clone(),
-                title_short,
-                status: issue.status.as_str().to_string(),
-                issue_type: issue.issue_type.as_css_class().to_string(),
-                priority: issue.priority.unwrap_or(2),
-                parent_id,
-                is_epic: issue.issue_type == beads::IssueType::Epic,
-                has_children: node_has_children,
-                x,
-                y,
+                .filter_map(|id| issue_map.get(id).map(|i| (id, *i)))
+                .collect();
+            // Sort by status priority, then by id
+            sorted_children.sort_by(|a, b| {
+                a.1.status
+                    .sort_order()
+                    .cmp(&b.1.status.sort_order())
+                    .then_with(|| a.0.cmp(b.0))
             });
+
+            for (child_id, _) in sorted_children {
+                build_tree(
+                    child_id,
+                    issue_map,
+                    children_map,
+                    blocked_by_count,
+                    depth + 1,
+                    nodes,
+                );
+            }
         }
     }
 
-    // Build edges
-    let mut graph_edges = Vec::new();
-    for issue in &all_issues {
-        if let Some(&(x2, y2)) = node_positions.get(&issue.id) {
-            for dep in &issue.dependencies {
-                if let Some(&(x1, y1)) = node_positions.get(&dep.depends_on_id) {
-                    // Edge from dependency to dependent (top to bottom)
-                    graph_edges.push(GraphEdge {
-                        source_id: dep.depends_on_id.clone(),
-                        target_id: issue.id.clone(),
-                        x1,
-                        y1: y1 + 30, // Bottom of source node
-                        x2,
-                        y2: y2 - 30, // Top of target node
-                    });
-                }
-            }
-        }
+    // Find top-level nodes (no parent)
+    let mut top_level: Vec<&beads::Issue> = all_issues
+        .iter()
+        .filter(|i| !parent_map.contains_key(&i.id))
+        .collect();
+
+    // Sort top-level: epics first, then by status, then by id
+    top_level.sort_by(|a, b| {
+        let a_is_epic = a.issue_type == beads::IssueType::Epic;
+        let b_is_epic = b.issue_type == beads::IssueType::Epic;
+        b_is_epic
+            .cmp(&a_is_epic)
+            .then_with(|| a.status.sort_order().cmp(&b.status.sort_order()))
+            .then_with(|| a.id.cmp(&b.id))
+    });
+
+    // Build flat tree
+    let mut nodes = Vec::new();
+    for issue in top_level {
+        build_tree(
+            &issue.id,
+            &issue_map,
+            &children_map,
+            &blocked_by_count,
+            0,
+            &mut nodes,
+        );
     }
 
     GraphTemplate {
         project_name: state.project_name.clone(),
-        nodes: graph_nodes,
-        edges: graph_edges,
-        width: svg_width,
-        height: svg_height,
+        nodes,
     }
 }
 

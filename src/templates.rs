@@ -89,27 +89,17 @@ pub struct BoardColumn {
     pub issues: Vec<beads::Issue>,
 }
 
-pub struct GraphNode {
+/// Tree node for hierarchical graph view
+pub struct TreeNode {
     pub id: String,
     pub title: String,
-    pub title_short: String,
     pub status: String,
     pub issue_type: String,
     pub priority: u8,
-    pub parent_id: Option<String>,
-    pub is_epic: bool,
+    pub blocked_by_count: usize,
     pub has_children: bool,
-    pub x: i32,
-    pub y: i32,
-}
-
-pub struct GraphEdge {
-    pub source_id: String,
-    pub target_id: String,
-    pub x1: i32,
-    pub y1: i32,
-    pub x2: i32,
-    pub y2: i32,
+    pub depth: usize,
+    pub parent_id: Option<String>,
 }
 
 #[derive(Template)]
@@ -189,10 +179,7 @@ pub struct EditIssueTemplate {
 #[template(path = "graph.html")]
 pub struct GraphTemplate {
     pub project_name: String,
-    pub nodes: Vec<GraphNode>,
-    pub edges: Vec<GraphEdge>,
-    pub width: i32,
-    pub height: i32,
+    pub nodes: Vec<TreeNode>,
 }
 
 #[derive(Template)]

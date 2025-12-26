@@ -39,181 +39,49 @@
             <button id="collapse-all" class="btn btn-secondary">Collapse All</button>
         </div>
 
-        <div class="graph-wrapper">
-            <svg id="graph-svg" width="{{ width }}" height="{{ height }}" viewBox="0 0 {{ width }} {{ height }}">
-                <defs>
-                    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
-                        <polygon points="0 0, 10 3.5, 0 7" class="arrow-marker" />
-                    </marker>
-                </defs>
-
-                <!-- Edges -->
-                <g class="edges">
-                    {% for edge in edges %}
-                    <line
-                        x1="{{ edge.x1 }}"
-                        y1="{{ edge.y1 }}"
-                        x2="{{ edge.x2 }}"
-                        y2="{{ edge.y2 }}"
-                        class="edge"
-                        data-source="{{ edge.source_id }}"
-                        data-target="{{ edge.target_id }}"
-                        marker-end="url(#arrowhead)"
-                    />
-                    {% endfor %}
-                </g>
-
-                <!-- Nodes -->
-                <g class="nodes">
-                    {% for node in nodes %}
-                    <g class="graph-node-container" 
-                       data-id="{{ node.id }}" 
-                       data-parent="{% if let Some(p) = node.parent_id %}{{ p }}{% endif %}"
-                       data-type="{{ node.issue_type }}"
-                       data-is-epic="{{ node.is_epic }}">
-                        <a href="/issues/{{ node.id }}" class="graph-node-link" data-filter-text="{{ node.title|lower }} {{ node.id|lower }}">
-                            <g class="graph-node node-{{ node.status }} type-{{ node.issue_type }}" transform="translate({{ node.x }}, {{ node.y }})">
-                                <rect
-                                    x="-80"
-                                    y="-30"
-                                    width="160"
-                                    height="60"
-                                    rx="6"
-                                    class="node-bg"
-                                />
-                                <text x="0" y="-8" class="node-title" text-anchor="middle">{{ node.title_short }}</text>
-                                <text x="0" y="10" class="node-id" text-anchor="middle">{{ node.id }}</text>
-                                <text x="0" y="22" class="node-meta" text-anchor="middle">{{ node.issue_type }} | P{{ node.priority }}</text>
-                            </g>
-                        </a>
-                        {% if node.is_epic && node.has_children %}
-                        <circle cx="{{ node.x + 70 }}" cy="{{ node.y + 20 }}" r="8" class="expand-btn" data-id="{{ node.id }}" />
-                        <text x="{{ node.x + 70 }}" y="{{ node.y + 23 }}" class="expand-icon" text-anchor="middle">+</text>
+        <div class="tree-view">
+            <ul class="tree-list">
+                {% for node in nodes %}
+                <li class="tree-node depth-{{ node.depth }}"
+                    data-id="{{ node.id }}"
+                    data-type="{{ node.issue_type }}"
+                    data-parent="{% if let Some(p) = node.parent_id %}{{ p }}{% endif %}"
+                    data-has-children="{{ node.has_children }}"
+                    data-filter-text="{{ node.title|lower }} {{ node.id|lower }}"
+                    style="--depth: {{ node.depth }}">
+                    <div class="tree-node-content">
+                        {% if node.has_children %}
+                        <button class="tree-toggle" aria-label="Toggle children">
+                            <span class="toggle-icon">+</span>
+                        </button>
+                        {% else %}
+                        <span class="tree-toggle-placeholder"></span>
                         {% endif %}
-                    </g>
-                    {% endfor %}
-                </g>
-            </svg>
+                        <span class="tree-status status-{{ node.status }}"></span>
+                        <span class="tree-type type-{{ node.issue_type }}">{{ node.issue_type }}</span>
+                        <a href="/issues/{{ node.id }}" class="tree-title">{{ node.title }}</a>
+                        <span class="tree-id">{{ node.id }}</span>
+                        <span class="tree-priority">P{{ node.priority }}</span>
+                        {% if node.blocked_by_count > 0 %}
+                        <span class="tree-blocked" title="Blocked by {{ node.blocked_by_count }} issue(s)">
+                            blocked
+                        </span>
+                        {% endif %}
+                    </div>
+                </li>
+                {% endfor %}
+            </ul>
         </div>
+
         <div class="graph-legend">
             <h3>Legend</h3>
             <div class="legend-items">
-                <div class="legend-item"><span class="legend-color status-open"></span> Ready</div>
+                <div class="legend-item"><span class="legend-color status-open"></span> Open</div>
                 <div class="legend-item"><span class="legend-color status-in_progress"></span> In Progress</div>
                 <div class="legend-item"><span class="legend-color status-blocked"></span> Blocked</div>
                 <div class="legend-item"><span class="legend-color status-closed"></span> Closed</div>
             </div>
         </div>
     </main>
-    <script>
-        const nodes = document.querySelectorAll('.graph-node-container');
-        const edges = document.querySelectorAll('.edge');
-        const typeFilters = document.querySelectorAll('.type-filter');
-        const expandBtns = document.querySelectorAll('.expand-btn');
-        
-        let expandedNodes = new Set();
-
-        function updateVisibility() {
-            const activeTypes = new Set(Array.from(typeFilters).filter(f => f.checked).map(f => f.value));
-            
-            nodes.forEach(node => {
-                const id = node.getAttribute('data-id');
-                const parentId = node.getAttribute('data-parent');
-                const type = node.getAttribute('data-type');
-                
-                let visible = false;
-                
-                // Visible if it's a top-level node (no parent)
-                if (!parentId || parentId === "") {
-                    visible = true;
-                } else if (expandedNodes.has(parentId)) {
-                    // Visible if its parent is expanded
-                    visible = true;
-                }
-
-                // Also must match type filter
-                if (visible && !activeTypes.has(type)) {
-                    visible = false;
-                }
-
-                if (visible) {
-                    node.classList.remove('hidden');
-                } else {
-                    node.classList.add('hidden');
-                }
-            });
-
-            edges.forEach(edge => {
-                const sourceId = edge.getAttribute('data-source');
-                const targetId = edge.getAttribute('data-target');
-                
-                const sourceNode = document.querySelector(`.graph-node-container[data-id="${sourceId}"]`);
-                const targetNode = document.querySelector(`.graph-node-container[data-id="${targetId}"]`);
-                
-                if (sourceNode && targetNode) {
-                    const sourceVisible = !sourceNode.classList.contains('hidden');
-                    const targetVisible = !targetNode.classList.contains('hidden');
-                    
-                    if (sourceVisible && targetVisible) {
-                        edge.classList.remove('hidden');
-                    } else {
-                        edge.classList.add('hidden');
-                    }
-                } else {
-                    edge.classList.add('hidden');
-                }
-            });
-        }
-
-        expandBtns.forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                const id = btn.getAttribute('data-id');
-                if (expandedNodes.has(id)) {
-                    expandedNodes.delete(id);
-                    btn.nextElementSibling.textContent = '+';
-                } else {
-                    expandedNodes.add(id);
-                    btn.nextElementSibling.textContent = '-';
-                }
-                updateVisibility();
-            });
-        });
-
-        typeFilters.forEach(f => f.addEventListener('change', updateVisibility));
-
-        document.getElementById('expand-all').addEventListener('click', () => {
-            nodes.forEach(n => {
-                if (n.getAttribute('data-is-epic') === 'true') {
-                    expandedNodes.add(n.getAttribute('data-id'));
-                }
-            });
-            document.querySelectorAll('.expand-icon').forEach(i => i.textContent = '-');
-            updateVisibility();
-        });
-
-        document.getElementById('collapse-all').addEventListener('click', () => {
-            expandedNodes.clear();
-            document.querySelectorAll('.expand-icon').forEach(i => i.textContent = '+');
-            updateVisibility();
-        });
-
-        // Initialize
-        updateVisibility();
-
-        // Graph node title/id filtering (existing search box)
-        const filterInput = document.getElementById('filter-input');
-        if (filterInput) {
-            filterInput.addEventListener('input', (e) => {
-                const query = e.target.value.toLowerCase();
-                document.querySelectorAll('.graph-node-link').forEach(link => {
-                    const text = link.getAttribute('data-filter-text');
-                    const matches = text && text.includes(query);
-                    link.style.opacity = matches || !query ? '1' : '0.2';
-                });
-            });
-        }
-    </script>
 </body>
 </html>

@@ -368,6 +368,106 @@ function initNavigation() {
   }
 }
 
+// frontend/src/modules/graph.ts
+function initGraph() {
+  const treeView = document.querySelector(".tree-view");
+  if (!treeView)
+    return;
+  const nodes = document.querySelectorAll(".tree-node");
+  const typeFilters = document.querySelectorAll(".type-filter");
+  const expandAllBtn = document.getElementById("expand-all");
+  const collapseAllBtn = document.getElementById("collapse-all");
+  const expandedNodes = new Set;
+  function updateVisibility() {
+    const activeTypes = new Set(Array.from(typeFilters).filter((f) => f.checked).map((f) => f.value));
+    nodes.forEach((node) => {
+      const id = node.getAttribute("data-id") || "";
+      const parentId = node.getAttribute("data-parent") || "";
+      const type = node.getAttribute("data-type") || "";
+      let visible = false;
+      if (!parentId) {
+        visible = true;
+      } else if (expandedNodes.has(parentId)) {
+        visible = true;
+      }
+      if (visible && !activeTypes.has(type)) {
+        visible = false;
+      }
+      if (visible) {
+        node.classList.remove("hidden");
+      } else {
+        node.classList.add("hidden");
+      }
+    });
+  }
+  nodes.forEach((node) => {
+    const toggleBtn = node.querySelector(".tree-toggle");
+    if (toggleBtn) {
+      toggleBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const id = node.getAttribute("data-id");
+        if (!id)
+          return;
+        if (expandedNodes.has(id)) {
+          expandedNodes.delete(id);
+          toggleBtn.classList.remove("expanded");
+          const icon = toggleBtn.querySelector(".toggle-icon");
+          if (icon)
+            icon.textContent = "+";
+        } else {
+          expandedNodes.add(id);
+          toggleBtn.classList.add("expanded");
+          const icon = toggleBtn.querySelector(".toggle-icon");
+          if (icon)
+            icon.textContent = "−";
+        }
+        updateVisibility();
+      });
+    }
+  });
+  typeFilters.forEach((filter) => {
+    filter.addEventListener("change", updateVisibility);
+  });
+  if (expandAllBtn) {
+    expandAllBtn.addEventListener("click", () => {
+      nodes.forEach((node) => {
+        const hasChildren = node.getAttribute("data-has-children") === "true";
+        if (hasChildren) {
+          const id = node.getAttribute("data-id");
+          if (id) {
+            expandedNodes.add(id);
+            const toggleBtn = node.querySelector(".tree-toggle");
+            if (toggleBtn) {
+              toggleBtn.classList.add("expanded");
+              const icon = toggleBtn.querySelector(".toggle-icon");
+              if (icon)
+                icon.textContent = "−";
+            }
+          }
+        }
+      });
+      updateVisibility();
+    });
+  }
+  if (collapseAllBtn) {
+    collapseAllBtn.addEventListener("click", () => {
+      expandedNodes.clear();
+      nodes.forEach((node) => {
+        const toggleBtn = node.querySelector(".tree-toggle");
+        if (toggleBtn) {
+          toggleBtn.classList.remove("expanded");
+          const icon = toggleBtn.querySelector(".toggle-icon");
+          if (icon)
+            icon.textContent = "+";
+        }
+      });
+      updateVisibility();
+    });
+  }
+  updateVisibility();
+}
+
 // frontend/src/main.ts
 document.addEventListener("DOMContentLoaded", () => {
   initTheme();
@@ -377,5 +477,6 @@ document.addEventListener("DOMContentLoaded", () => {
   initBoardFeatures();
   initDragAndDrop();
   initNavigation();
+  initGraph();
   console.log("Nacre modular frontend initialized");
 });
