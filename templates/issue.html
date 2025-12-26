@@ -75,8 +75,9 @@
             </div>
 
             {% if issue.close_reason.is_some() %}
-            <div style="text-align: center; margin-top: 24px; color: var(--text-muted); font-size: 0.9rem; font-style: italic;">
-                "{{ issue.close_reason.as_ref().unwrap() }}"
+            <div class="detail-section">
+                <h3>Close Reason</h3>
+                <div class="description-content">{{ issue.close_reason.as_ref().unwrap() }}</div>
             </div>
             {% endif %}
         </div>
