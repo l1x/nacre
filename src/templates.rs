@@ -101,6 +101,8 @@ pub struct TreeNode {
 #[template(path = "landing.html")]
 pub struct LandingTemplate {
     pub project_name: String,
+    pub page_title: String,
+    pub active_nav: &'static str,
     pub stats: ProjectStats,
     pub epics: Vec<EpicWithProgress>,
     pub blocked: Vec<beads::Issue>,
@@ -111,6 +113,8 @@ pub struct LandingTemplate {
 #[template(path = "index.html")]
 pub struct IndexTemplate {
     pub project_name: String,
+    pub page_title: String,
+    pub active_nav: &'static str,
     pub nodes: Vec<TreeNode>,
 }
 
@@ -118,6 +122,8 @@ pub struct IndexTemplate {
 #[template(path = "epics.html")]
 pub struct EpicsTemplate {
     pub project_name: String,
+    pub page_title: String,
+    pub active_nav: &'static str,
     pub epics: Vec<EpicWithProgress>,
 }
 
@@ -125,6 +131,8 @@ pub struct EpicsTemplate {
 #[template(path = "board.html")]
 pub struct BoardTemplate {
     pub project_name: String,
+    pub page_title: String,
+    pub active_nav: &'static str,
     pub columns: Vec<BoardColumn>,
 }
 
@@ -132,6 +140,8 @@ pub struct BoardTemplate {
 #[template(path = "issue.html")]
 pub struct IssueDetailTemplate {
     pub project_name: String,
+    pub page_title: String,
+    pub active_nav: &'static str,
     pub issue: beads::Issue,
 }
 
@@ -139,12 +149,16 @@ pub struct IssueDetailTemplate {
 #[template(path = "new_issue.html")]
 pub struct NewIssueTemplate {
     pub project_name: String,
+    pub page_title: String,
+    pub active_nav: &'static str,
 }
 
 #[derive(Template)]
 #[template(path = "prds.html")]
 pub struct PrdsListTemplate {
     pub project_name: String,
+    pub page_title: String,
+    pub active_nav: &'static str,
     pub files: Vec<String>,
 }
 
@@ -152,6 +166,8 @@ pub struct PrdsListTemplate {
 #[template(path = "prd.html")]
 pub struct PrdViewTemplate {
     pub project_name: String,
+    pub page_title: String,
+    pub active_nav: &'static str,
     pub filename: String,
     pub content: String,
 }
@@ -160,6 +176,8 @@ pub struct PrdViewTemplate {
 #[template(path = "epic_detail.html")]
 pub struct EpicDetailTemplate {
     pub project_name: String,
+    pub page_title: String,
+    pub active_nav: &'static str,
     pub epic: EpicWithProgress,
 }
 
@@ -167,6 +185,8 @@ pub struct EpicDetailTemplate {
 #[template(path = "edit_issue.html")]
 pub struct EditIssueTemplate {
     pub project_name: String,
+    pub page_title: String,
+    pub active_nav: &'static str,
     pub issue: beads::Issue,
 }
 
@@ -174,12 +194,16 @@ pub struct EditIssueTemplate {
 #[template(path = "graph.html")]
 pub struct GraphTemplate {
     pub project_name: String,
+    pub page_title: String,
+    pub active_nav: &'static str,
 }
 
 #[derive(Template)]
 #[template(path = "metrics.html")]
 pub struct MetricsTemplate {
     pub project_name: String,
+    pub page_title: String,
+    pub active_nav: &'static str,
     pub avg_lead_time_hours: f64,
     pub avg_cycle_time_hours: f64,
     pub throughput_per_day: f64,

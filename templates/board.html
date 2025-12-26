@@ -1,28 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ project_name }} - Board</title>
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-    <link rel="stylesheet" href="/style.css">
-    <script src="/app.js"></script>
+    {% include "_head.html" %}
 </head>
 <body>
     <header>
         <a href="/" class="home-link"><h1>Nacre</h1></a>
-        <nav>
-            <a href="/">Dashboard</a>
-            <a href="/issues">Issues</a>
-            <a href="/epics">Epics</a>
-            <a href="/board" class="active">Board</a>
-            <a href="/graph">Graph</a>
-            <a href="/prds">PRDs</a>
-            <a href="/metrics">Metrics</a>
-        </nav>
+        {% include "_nav.html" %}
         <div class="search-container"><input type="text" id="filter-input" placeholder="Search issues..."></div>
         <div class="column-controls">
-            <button class="columns-toggle" id="columns-toggle" aria-label="Toggle column visibility">👁️ Columns</button>
+            <button class="columns-toggle" id="columns-toggle" aria-label="Toggle column visibility">Columns</button>
             <div class="columns-dropdown" id="columns-dropdown">
                 {% for col in columns %}
                 <label class="column-checkbox">

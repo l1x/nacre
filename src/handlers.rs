@@ -122,6 +122,8 @@ pub async fn landing(State(state): State<crate::AppState>) -> LandingTemplate {
 
     LandingTemplate {
         project_name: state.project_name.clone(),
+        page_title: String::new(),
+        active_nav: "dashboard",
         stats,
         epics,
         blocked,
@@ -135,6 +137,8 @@ pub async fn index(State(state): State<crate::AppState>) -> IndexTemplate {
 
     IndexTemplate {
         project_name: state.project_name.clone(),
+        page_title: "Issues".to_string(),
+        active_nav: "issues",
         nodes,
     }
 }
@@ -153,6 +157,8 @@ pub async fn epics(State(state): State<crate::AppState>) -> EpicsTemplate {
 
     EpicsTemplate {
         project_name: state.project_name.clone(),
+        page_title: "Epics".to_string(),
+        active_nav: "epics",
         epics,
     }
 }
@@ -171,6 +177,8 @@ pub async fn epic_detail(
 
     Ok(EpicDetailTemplate {
         project_name: state.project_name.clone(),
+        page_title: id.clone(),
+        active_nav: "epics",
         epic: EpicWithProgress::from_epic(epic, &all_issues, true),
     })
 }
@@ -228,6 +236,8 @@ pub async fn board(State(state): State<crate::AppState>) -> BoardTemplate {
 
     BoardTemplate {
         project_name: state.project_name.clone(),
+        page_title: "Board".to_string(),
+        active_nav: "board",
         columns,
     }
 }
@@ -380,6 +390,8 @@ fn build_issue_tree(all_issues: &[beads::Issue]) -> Vec<TreeNode> {
 pub async fn graph(State(state): State<crate::AppState>) -> GraphTemplate {
     GraphTemplate {
         project_name: state.project_name.clone(),
+        page_title: "Graph".to_string(),
+        active_nav: "graph",
     }
 }
 
@@ -390,6 +402,8 @@ pub async fn issue_detail(
     let issue = state.client.get_issue(&id)?;
     Ok(IssueDetailTemplate {
         project_name: state.project_name.clone(),
+        page_title: id,
+        active_nav: "",
         issue,
     })
 }
@@ -401,6 +415,8 @@ pub async fn edit_issue(
     let issue = state.client.get_issue(&id)?;
     Ok(EditIssueTemplate {
         project_name: state.project_name.clone(),
+        page_title: format!("Edit {}", id),
+        active_nav: "",
         issue,
     })
 }
@@ -408,6 +424,8 @@ pub async fn edit_issue(
 pub async fn new_issue_form(State(state): State<crate::AppState>) -> NewIssueTemplate {
     NewIssueTemplate {
         project_name: state.project_name.clone(),
+        page_title: "New Issue".to_string(),
+        active_nav: "",
     }
 }
 
@@ -431,6 +449,8 @@ pub async fn prds_list(State(state): State<crate::AppState>) -> PrdsListTemplate
     let files: Vec<String> = files_with_time.into_iter().map(|(name, _)| name).collect();
     PrdsListTemplate {
         project_name: state.project_name.clone(),
+        page_title: "PRDs".to_string(),
+        active_nav: "prds",
         files,
     }
 }
@@ -453,6 +473,8 @@ pub async fn prd_view(
 
     Ok(PrdViewTemplate {
         project_name: state.project_name.clone(),
+        page_title: filename.clone(),
+        active_nav: "prds",
         filename,
         content: html_output,
     })
@@ -622,6 +644,8 @@ pub async fn metrics_handler(State(state): State<crate::AppState>) -> MetricsTem
 
     MetricsTemplate {
         project_name: state.project_name.clone(),
+        page_title: "Metrics".to_string(),
+        active_nav: "metrics",
         avg_lead_time_hours,
         avg_cycle_time_hours,
         throughput_per_day,

@@ -1,29 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ project_name }} - {{ issue.id }}</title>
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-    <link rel="stylesheet" href="/style.css">
-    <script src="/app.js"></script>
+    {% include "_head.html" %}
 </head>
 <body>
-    <header>
-        <a href="/" class="home-link"><h1>Nacre</h1></a>
-        <nav>
-            <a href="/">Dashboard</a>
-            <a href="/issues">Issues</a>
-            <a href="/epics">Epics</a>
-            <a href="/board">Board</a>
-            <a href="/graph">Graph</a>
-            <a href="/prds">PRDs</a>
-            <a href="/metrics">Metrics</a>
-        </nav>
-        <div class="search-container"><input type="text" id="filter-input" placeholder="Search issues..."></div>
-        <a href="/issues/new" class="create-btn">+ Create</a>
-        <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme"></button>
-    </header>
+    {% include "_header.html" %}
     <main id="content">
         <div class="issue-detail">
             <a href="/issues/{{ issue.id }}/edit" class="edit-action-btn">Edit</a>
@@ -34,11 +15,11 @@
                     <span>{{ issue.issue_type }}</span>
                 </div>
                 <h1 class="issue-title-large">{{ issue.title }}</h1>
-                
+
                 <div class="issue-meta-row">
                     <span class="meta-chip status-{{ issue.status.as_str() }}">{{ issue.status }}</span>
                     <span class="meta-chip">P{{ issue.priority.unwrap_or(2) }}</span>
-                    
+
                     {% if issue.assignee.is_some() %}
                     <span class="meta-chip assignee">{{ issue.assignee.as_ref().unwrap() }}</span>
                     {% endif %}
