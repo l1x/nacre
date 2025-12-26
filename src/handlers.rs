@@ -672,43 +672,6 @@ pub async fn metrics_handler(State(state): State<crate::AppState>) -> MetricsTem
                 sorted[idx.min(sorted.len() - 1)]
             }
 
-            let mut p50_data: Vec<(chrono::NaiveDate, f64)> = Vec::new();
-            let mut p90_data: Vec<(chrono::NaiveDate, f64)> = Vec::new();
-            let mut p100_data: Vec<(chrono::NaiveDate, f64)> = Vec::new();
-
-            for (date, mut times) in lead_times_by_day {
-                times.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
-                p50_data.push((date, percentile(&times, 50.0)));
-                p90_data.push((date, percentile(&times, 90.0)));
-                p100_data.push((date, percentile(&times, 100.0)));
-            }
-
-            p50_data.sort_by_key(|(d, _)| *d);
-            p90_data.sort_by_key(|(d, _)| *d);
-            p100_data.sort_by_key(|(d, _)| *d);
-
-            let max_hours = p100_data
-                .iter()
-                .map(|(_, v)| *v)
-                .fold(0.0_f64, f64::max)
-                .max(1.0);
-
-            // Theme colors matching the project
-            let color_p50 = RGBColor(126, 184, 218); // #7eb8da - blue
-            let color_p90 = RGBColor(224, 122, 74); // #e07a4a - copper/accent
-            let color_p100 = RGBColor(212, 138, 138); // #d48a8a - red
-            let bg_color = RGBColor(26, 26, 26); // Match --bg-primary
-            let text_color = RGBColor(240, 240, 240);
-
-            // Convert dates to indices for bar chart
-            let mut all_dates: Vec<chrono::NaiveDate> = p50_data.iter().map(|(d, _)| *d).collect();
-            all_dates.sort();
-
-            // Build lookup maps
-            let p50_map: HashMap<_, _> = p50_data.iter().cloned().collect();
-            let p90_map: HashMap<_, _> = p90_data.iter().cloned().collect();
-            let p100_map: HashMap<_, _> = p100_data.iter().cloned().collect();
-
             // Format hours for display
             fn format_hours(h: f64) -> String {
                 if h >= 24.0 {
@@ -718,147 +681,169 @@ pub async fn metrics_handler(State(state): State<crate::AppState>) -> MetricsTem
                 }
             }
 
+            // Collect and sort dates
+            let mut all_dates: Vec<chrono::NaiveDate> = lead_times_by_day.keys().cloned().collect();
+            all_dates.sort();
+
+            // Calculate percentiles per day
+            let mut day_data: Vec<(String, f64, f64, f64)> = Vec::new(); // (label, p50, p90, p100)
+            for date in &all_dates {
+                let mut times = lead_times_by_day.get(date).cloned().unwrap_or_default();
+                times.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
+                let p50 = percentile(&times, 50.0);
+                let p90 = percentile(&times, 90.0);
+                let p100 = percentile(&times, 100.0);
+                day_data.push((date.format("%m-%d").to_string(), p50, p90, p100));
+            }
+
+            let max_hours = day_data
+                .iter()
+                .map(|(_, _, _, p100)| *p100)
+                .fold(1.0_f64, f64::max);
+
+            // Theme colors
+            let color_p50 = RGBColor(86, 156, 214); // Blue
+            let color_p90 = RGBColor(78, 154, 87); // Green
+            let color_p100 = RGBColor(224, 122, 74); // Orange/copper
+            let bg_color = RGBColor(30, 30, 30);
+            let text_color = RGBColor(220, 220, 220);
+            let grid_color = RGBColor(60, 60, 60);
+
             let root =
-                SVGBackend::with_string(&mut lead_time_chart_svg, (800, 320)).into_drawing_area();
+                SVGBackend::with_string(&mut lead_time_chart_svg, (700, 400)).into_drawing_area();
             root.fill(&bg_color).unwrap();
 
-            let num_dates = all_dates.len() as f64;
+            let num_days = day_data.len();
+
             let mut chart = ChartBuilder::on(&root)
-                .caption(
-                    "Lead Time Percentiles (Last 7 Days)",
-                    ("sans-serif", 18).into_font().color(&RGBColor(200, 200, 200)),
-                )
-                .margin(15)
-                .margin_right(25)
-                .x_label_area_size(35)
+                .x_label_area_size(40)
                 .y_label_area_size(50)
-                .build_cartesian_2d(0.0..num_dates, 0.0..max_hours * 1.15)
+                .margin(20)
+                .margin_bottom(60) // Extra space for legend
+                .build_cartesian_2d(
+                    (0u32..num_days as u32).into_segmented(),
+                    0f64..(max_hours * 1.1),
+                )
                 .unwrap();
 
             chart
                 .configure_mesh()
-                .x_labels(all_dates.len().min(10))
-                .x_label_formatter(&|x| {
-                    let idx = x.round() as usize;
-                    if idx < all_dates.len() {
-                        all_dates[idx].format("%m-%d").to_string()
-                    } else {
-                        String::new()
+                .disable_x_mesh()
+                .bold_line_style(grid_color)
+                .light_line_style(grid_color.mix(0.5))
+                .y_desc("Hours")
+                .y_label_formatter(&|v| format_hours(*v))
+                .x_labels(num_days)
+                .x_label_formatter(&|v| {
+                    if let SegmentValue::CenterOf(idx) = v {
+                        if (*idx as usize) < day_data.len() {
+                            return day_data[*idx as usize].0.clone();
+                        }
                     }
+                    String::new()
                 })
-                .y_label_formatter(&|h| format_hours(*h))
-                .axis_style(RGBColor(80, 80, 80))
-                .label_style(("sans-serif", 11).into_font().color(&RGBColor(150, 150, 150)))
-                .light_line_style(RGBColor(40, 40, 40))
-                .bold_line_style(RGBColor(60, 60, 60))
+                .axis_desc_style(("sans-serif", 14).into_font().color(&text_color))
+                .label_style(("sans-serif", 12).into_font().color(&text_color))
+                .axis_style(grid_color)
                 .draw()
                 .unwrap();
 
-            // Draw stacked bars for each day (narrow bars with gaps like the example)
-            let bar_padding = 0.3; // 30% padding on each side = 40% bar width
-            for (idx, date) in all_dates.iter().enumerate() {
-                let p50_val = *p50_map.get(date).unwrap_or(&0.0);
-                let p90_val = *p90_map.get(date).unwrap_or(&0.0);
-                let p100_val = *p100_map.get(date).unwrap_or(&0.0);
+            // Draw stacked bars using Histogram
+            // First layer: p50 (bottom)
+            chart
+                .draw_series(
+                    Histogram::vertical(&chart)
+                        .style(color_p50.filled())
+                        .margin(3)
+                        .data((0u32..).zip(day_data.iter()).map(|(idx, (_, p50, _, _))| (idx, *p50))),
+                )
+                .unwrap();
 
-                let x_left = idx as f64 + bar_padding;
-                let x_right = (idx + 1) as f64 - bar_padding;
+            // Second layer: p50 to p90 (stacked on top)
+            chart
+                .draw_series(
+                    Histogram::vertical(&chart)
+                        .style(color_p90.filled())
+                        .margin(3)
+                        .baseline(*day_data.iter().map(|(_, p50, _, _)| p50).min_by(|a, b| a.partial_cmp(b).unwrap()).unwrap_or(&0.0))
+                        .data((0u32..).zip(day_data.iter()).map(|(idx, (_, p50, p90, _))| (idx, *p90 - *p50))),
+                )
+                .unwrap();
 
-                // Stacked bar segments (bottom to top): p50, p50-p90, p90-p100
-                // p50 segment (bottom)
-                chart
-                    .draw_series(std::iter::once(Rectangle::new(
-                        [(x_left, 0.0), (x_right, p50_val)],
-                        color_p50.filled(),
-                    )))
-                    .unwrap();
+            // Third layer: p90 to p100 (top)
+            chart
+                .draw_series(
+                    Histogram::vertical(&chart)
+                        .style(color_p100.filled())
+                        .margin(3)
+                        .data((0u32..).zip(day_data.iter()).map(|(idx, (_, _, p90, p100))| (idx, *p100 - *p90))),
+                )
+                .unwrap();
 
-                // p90 segment (middle) - from p50 to p90
-                if p90_val > p50_val {
-                    chart
-                        .draw_series(std::iter::once(Rectangle::new(
-                            [(x_left, p50_val), (x_right, p90_val)],
-                            color_p90.filled(),
-                        )))
-                        .unwrap();
-                }
+            // Draw labels on each bar segment
+            for (idx, (_, p50, p90, p100)) in day_data.iter().enumerate() {
+                let x = SegmentValue::CenterOf(idx as u32);
+                let label_font = ("sans-serif", 11).into_font().color(&WHITE);
 
-                // p100 segment (top) - from p90 to p100
-                if p100_val > p90_val {
-                    chart
-                        .draw_series(std::iter::once(Rectangle::new(
-                            [(x_left, p90_val), (x_right, p100_val)],
-                            color_p100.filled(),
-                        )))
-                        .unwrap();
-                }
-
-                // Draw text labels on the bar
-                let bar_center = idx as f64 + 0.5;
-                let font = ("sans-serif", 9).into_font().color(&text_color);
-
-                // p50 label (in middle of p50 segment)
-                if p50_val > 0.0 {
-                    let y_pos = p50_val / 2.0;
+                // p50 label (center of bottom segment)
+                if *p50 > max_hours * 0.05 {
                     chart
                         .draw_series(std::iter::once(Text::new(
-                            format_hours(p50_val),
-                            (bar_center, y_pos),
-                            font.clone(),
+                            format_hours(*p50),
+                            (x.clone(), p50 / 2.0),
+                            label_font.clone(),
                         )))
                         .unwrap();
                 }
 
-                // p90 label (in middle of p90 segment)
-                if p90_val > p50_val {
-                    let y_pos = p50_val + (p90_val - p50_val) / 2.0;
+                // p90 label (center of middle segment)
+                if *p90 > *p50 && (*p90 - *p50) > max_hours * 0.05 {
                     chart
                         .draw_series(std::iter::once(Text::new(
-                            format_hours(p90_val),
-                            (bar_center, y_pos),
-                            font.clone(),
+                            format_hours(*p90),
+                            (x.clone(), *p50 + (*p90 - *p50) / 2.0),
+                            label_font.clone(),
                         )))
                         .unwrap();
                 }
 
-                // p100 label (in middle of p100 segment or above bar if thin)
-                if p100_val > p90_val {
-                    let segment_height = p100_val - p90_val;
-                    let y_pos = if segment_height > max_hours * 0.08 {
-                        p90_val + segment_height / 2.0
-                    } else {
-                        p100_val + max_hours * 0.02
-                    };
+                // p100 label (center of top segment)
+                if *p100 > *p90 && (*p100 - *p90) > max_hours * 0.05 {
                     chart
                         .draw_series(std::iter::once(Text::new(
-                            format_hours(p100_val),
-                            (bar_center, y_pos),
-                            font.clone(),
+                            format_hours(*p100),
+                            (x, *p90 + (*p100 - *p90) / 2.0),
+                            label_font.clone(),
                         )))
                         .unwrap();
                 }
             }
 
-            // Draw legend manually
-            let legend_x = num_dates - 1.0;
-            chart
-                .draw_series(std::iter::once(Rectangle::new(
-                    [(legend_x, max_hours * 1.08), (num_dates, max_hours * 1.12)],
-                    color_p50.filled(),
-                )))
+            // Draw legend at bottom center
+            let legend_items = [
+                (color_p50, "p50"),
+                (color_p90, "p90"),
+                (color_p100, "p100"),
+            ];
+            let legend_start_x = 250i32;
+            let legend_spacing = 80i32;
+
+            for (i, (color, label)) in legend_items.iter().enumerate() {
+                let x = legend_start_x + (i as i32) * legend_spacing;
+                // Draw colored rectangle
+                root.draw(&Rectangle::new(
+                    [(x, 370), (x + 20, 385)],
+                    color.filled(),
+                ))
                 .unwrap();
-            chart
-                .draw_series(std::iter::once(Rectangle::new(
-                    [(legend_x, max_hours * 1.02), (num_dates, max_hours * 1.06)],
-                    color_p90.filled(),
-                )))
+                // Draw label text
+                root.draw(&Text::new(
+                    *label,
+                    (x + 25, 373),
+                    ("sans-serif", 13).into_font().color(&text_color),
+                ))
                 .unwrap();
-            chart
-                .draw_series(std::iter::once(Rectangle::new(
-                    [(legend_x, max_hours * 0.96), (num_dates, max_hours * 1.0)],
-                    color_p100.filled(),
-                )))
-                .unwrap();
+            }
         }
     }
 
