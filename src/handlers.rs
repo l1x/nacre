@@ -244,7 +244,7 @@ pub async fn board(State(state): State<crate::AppState>) -> BoardTemplate {
         },
         BoardColumn {
             name: "In Progress".to_string(),
-            status: "in-progress".to_string(),
+            status: "in_progress".to_string(),
             issues: all_issues
                 .iter()
                 .filter(|i| i.status == beads::Status::InProgress)
