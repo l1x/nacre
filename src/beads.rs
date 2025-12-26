@@ -184,11 +184,13 @@ impl DependencyType {
 pub enum EventType {
     /// Issue was created
     #[default]
+    #[serde(rename = "create")]
     Created,
     /// General issue update
+    #[serde(rename = "update")]
     Updated,
     /// Issue status changed
-    #[serde(rename = "status_changed")]
+    #[serde(rename = "status")]
     StatusChanged,
     /// Comment was added
     Commented,
@@ -213,12 +215,12 @@ pub enum EventType {
 }
 
 impl EventType {
-    /// Returns the kebab-case string representation used by Beads CLI/API
+    /// Returns the string representation used by Beads CLI/API
     pub fn as_str(&self) -> &'static str {
         match self {
-            EventType::Created => "created",
-            EventType::Updated => "updated",
-            EventType::StatusChanged => "status_changed",
+            EventType::Created => "create",
+            EventType::Updated => "update",
+            EventType::StatusChanged => "status",
             EventType::Commented => "commented",
             EventType::Closed => "closed",
             EventType::Reopened => "reopened",
@@ -768,12 +770,12 @@ mod tests {
     fn test_event_type_serialization() {
         let event_type = EventType::StatusChanged;
         let serialized = serde_json::to_string(&event_type).unwrap();
-        assert_eq!(serialized, "\"status_changed\"");
+        assert_eq!(serialized, "\"status\"");
     }
 
     #[test]
     fn test_event_type_deserialization() {
-        let json = "\"status_changed\"";
+        let json = "\"status\"";
         let event_type: EventType = serde_json::from_str(json).unwrap();
         assert_eq!(event_type, EventType::StatusChanged);
     }
