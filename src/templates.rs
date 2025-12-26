@@ -98,6 +98,7 @@ pub struct GraphNode {
     pub priority: u8,
     pub parent_id: Option<String>,
     pub is_epic: bool,
+    pub has_children: bool,
     pub x: i32,
     pub y: i32,
 }
@@ -188,7 +189,10 @@ pub struct EditIssueTemplate {
 #[template(path = "graph.html")]
 pub struct GraphTemplate {
     pub project_name: String,
-    pub epics: Vec<EpicWithProgress>,
+    pub nodes: Vec<GraphNode>,
+    pub edges: Vec<GraphEdge>,
+    pub width: i32,
+    pub height: i32,
 }
 
 #[derive(Template)]

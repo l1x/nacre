@@ -20,378 +20,200 @@
             <a href="/metrics">Metrics</a>
         </nav>
         <div class="search-container"><input type="text" id="filter-input" placeholder="Search issues..."></div>
-        <div class="graph-type-controls">
-            <select id="epics-filter">
-                <option value="all">All Epics</option>
-                <option value="active">Active Epics</option>
-                <option value="closed">Closed Epics</option>
-            </select>
-        </div>
         <a href="/issues/new" class="create-btn">+ Create</a>
         <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme"></button>
     </header>
-    
-    <main id="content" class="graph-container">
-        <!-- Epic Cards Grid Section -->
-        <section class="epics-section">
-            <div class="section-header">
-                <h2>Epics</h2>
-                <span class="epic-count" id="epic-count">{{ epics.len() }}</span>
-            </div>
-            <div class="epics-grid" id="epics-grid">
-                {% for epic in epics %}
-                <div class="epic-card" 
-                     data-id="{{ epic.issue.id }}" 
-                     data-status="{{ epic.issue.status }}"
-                     data-children-count="{{ epic.children.len() }}"
-                     data-filter-text="{{ epic.issue.title|lower }} {{ epic.issue.id|lower }}">
-                    <div class="epic-card-header">
-                        <h3 class="epic-card-title">
-                            <a href="/issues/{{ epic.issue.id }}">{{ epic.issue.title }}</a>
-                        </h3>
-                        <span class="epic-type">epic</span>
-                    </div>
-                    <div class="epic-card-meta">
-                        <span class="epic-status status-{{ epic.issue.status }}">{{ epic.issue.status }}</span>
-                        <span class="epic-priority">P{{ epic.issue.priority.unwrap_or(0) }}</span>
-                        <span class="epic-children-count">{{ epic.children.len() }} children</span>
-                    </div>
-                    <div class="epic-card-progress">
-                        <div class="progress-container">
-                            <div class="progress-bar" style="width: {{ epic.percent }}%"></div>
-                        </div>
-                        <span class="progress-text">{{ epic.percent }}%</span>
-                    </div>
+    <main id="content">
+        <div class="graph-controls">
+            <div class="filter-group">
+                <label>Show Types:</label>
+                <div class="checkbox-group">
+                    <label><input type="checkbox" class="type-filter" value="epic" checked> Epics</label>
+                    <label><input type="checkbox" class="type-filter" value="feature" checked> Features</label>
+                    <label><input type="checkbox" class="type-filter" value="bug" checked> Bugs</label>
+                    <label><input type="checkbox" class="type-filter" value="task" checked> Tasks</label>
+                    <label><input type="checkbox" class="type-filter" value="chore" checked> Chores</label>
                 </div>
-                {% endfor %}
             </div>
-        </section>
+            <button id="expand-all" class="btn btn-secondary">Expand All</button>
+            <button id="collapse-all" class="btn btn-secondary">Collapse All</button>
+        </div>
 
-        <!-- Selected Epic Details Section -->
-        <section class="epic-details-section" id="epic-details" style="display: none;">
-            <div class="section-header">
-                <button class="back-btn" id="back-to-epics">← Back to Epics</button>
-                <h2 id="selected-epic-title">Select an Epic</h2>
-            </div>
-            
-            <div class="epic-details-content">
-                <!-- Epic Info -->
-                <div class="epic-info-card">
-                    <div class="epic-info-header">
-                        <h3 id="selected-epic-title-detail">Epic Title</h3>
-                        <div class="epic-info-meta">
-                            <span id="selected-epic-status" class="status-badge"></span>
-                            <span id="selected-epic-priority" class="meta-chip"></span>
-                            <span id="selected-epic-type" class="meta-chip"></span>
-                        </div>
-                    </div>
-                    <div class="epic-description" id="selected-epic-description">
-                        Select an epic to view details
-                    </div>
-                </div>
+        <div class="graph-wrapper">
+            <svg id="graph-svg" width="{{ width }}" height="{{ height }}" viewBox="0 0 {{ width }} {{ height }}">
+                <defs>
+                    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+                        <polygon points="0 0, 10 3.5, 0 7" class="arrow-marker" />
+                    </marker>
+                </defs>
 
-                <!-- Children List -->
-                <div class="children-section">
-                    <div class="children-header">
-                        <h3>Related Issues</h3>
-                        <div class="pagination-controls">
-                            <button class="pagination-btn" id="prev-page" disabled>←</button>
-                            <span class="page-info" id="page-info">Page 1 of 1</span>
-                            <button class="pagination-btn" id="next-page" disabled>→</button>
-                        </div>
-                    </div>
-                    
-                    <div class="children-list" id="children-list">
-                        <!-- Children will be populated by JavaScript -->
-                        <div class="empty-state">
-                            <h3>No Epic Selected</h3>
-                            <p>Select an epic from the grid above to view its related issues.</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
+                <!-- Edges -->
+                <g class="edges">
+                    {% for edge in edges %}
+                    <line
+                        x1="{{ edge.x1 }}"
+                        y1="{{ edge.y1 }}"
+                        x2="{{ edge.x2 }}"
+                        y2="{{ edge.y2 }}"
+                        class="edge"
+                        data-source="{{ edge.source_id }}"
+                        data-target="{{ edge.target_id }}"
+                        marker-end="url(#arrowhead)"
+                    />
+                    {% endfor %}
+                </g>
 
-        <!-- Dependencies Section -->
-        <section class="dependencies-section" id="dependencies-section" style="display: none;">
-            <div class="section-header">
-                <h3>Dependencies</h3>
-                <span class="dependency-count" id="dependency-count">0 dependencies</span>
+                <!-- Nodes -->
+                <g class="nodes">
+                    {% for node in nodes %}
+                    <g class="graph-node-container" 
+                       data-id="{{ node.id }}" 
+                       data-parent="{% if let Some(p) = node.parent_id %}{{ p }}{% endif %}"
+                       data-type="{{ node.issue_type }}"
+                       data-is-epic="{{ node.is_epic }}">
+                        <a href="/issues/{{ node.id }}" class="graph-node-link" data-filter-text="{{ node.title|lower }} {{ node.id|lower }}">
+                            <g class="graph-node node-{{ node.status }} type-{{ node.issue_type }}" transform="translate({{ node.x }}, {{ node.y }})">
+                                <rect
+                                    x="-80"
+                                    y="-30"
+                                    width="160"
+                                    height="60"
+                                    rx="6"
+                                    class="node-bg"
+                                />
+                                <text x="0" y="-8" class="node-title" text-anchor="middle">{{ node.title_short }}</text>
+                                <text x="0" y="10" class="node-id" text-anchor="middle">{{ node.id }}</text>
+                                <text x="0" y="22" class="node-meta" text-anchor="middle">{{ node.issue_type }} | P{{ node.priority }}</text>
+                            </g>
+                        </a>
+                        {% if node.is_epic && node.has_children %}
+                        <circle cx="{{ node.x + 70 }}" cy="{{ node.y + 20 }}" r="8" class="expand-btn" data-id="{{ node.id }}" />
+                        <text x="{{ node.x + 70 }}" y="{{ node.y + 23 }}" class="expand-icon" text-anchor="middle">+</text>
+                        {% endif %}
+                    </g>
+                    {% endfor %}
+                </g>
+            </svg>
+        </div>
+        <div class="graph-legend">
+            <h3>Legend</h3>
+            <div class="legend-items">
+                <div class="legend-item"><span class="legend-color status-open"></span> Ready</div>
+                <div class="legend-item"><span class="legend-color status-in_progress"></span> In Progress</div>
+                <div class="legend-item"><span class="legend-color status-blocked"></span> Blocked</div>
+                <div class="legend-item"><span class="legend-color status-closed"></span> Closed</div>
             </div>
-            <div class="dependencies-content">
-                <div class="dependency-flow" id="dependency-flow">
-                    <!-- Mini dependency visualization will be rendered here -->
-                    <div class="empty-state">
-                        <h3>No Dependencies</h3>
-                        <p>Dependencies between visible issues will appear here.</p>
-                    </div>
-                </div>
-            </div>
-        </section>
+        </div>
     </main>
-
     <script>
-        // Graph Explorer State
-        let selectedEpic = null;
-        let currentPage = 1;
-        const itemsPerPage = 8;
-        let allChildren = [];
-        let filteredChildren = [];
-        let allEpics = [];
+        const nodes = document.querySelectorAll('.graph-node-container');
+        const edges = document.querySelectorAll('.edge');
+        const typeFilters = document.querySelectorAll('.type-filter');
+        const expandBtns = document.querySelectorAll('.expand-btn');
+        
+        let expandedNodes = new Set();
 
-        // Initialize data from template
-        document.addEventListener('DOMContentLoaded', () => {
-            // Store epic data
-            allEpics = Array.from(document.querySelectorAll('.epic-card')).map(card => ({
-                id: card.getAttribute('data-id'),
-                title: card.querySelector('.epic-card-title a').textContent.trim(),
-                status: card.getAttribute('data-status'),
-                childrenCount: parseInt(card.getAttribute('data-children-count')),
-                element: card
-            }));
-
-            // Setup epic card clicks
-            document.querySelectorAll('.epic-card').forEach(card => {
-                card.addEventListener('click', () => selectEpic(card));
-            });
-
-            // Setup back button
-            document.getElementById('back-to-epics').addEventListener('click', backToEpics);
-
-            // Setup pagination
-            document.getElementById('prev-page').addEventListener('click', () => changePage(-1));
-            document.getElementById('next-page').addEventListener('click', () => changePage(1));
-
-            // Setup epics filter
-            document.getElementById('epics-filter').addEventListener('change', filterEpics);
-
-            // Initialize
-            filterEpics();
-        });
-
-        function selectEpic(card) {
-            const epicId = card.getAttribute('data-id');
+        function updateVisibility() {
+            const activeTypes = new Set(Array.from(typeFilters).filter(f => f.checked).map(f => f.value));
             
-            // Update selection UI
-            document.querySelectorAll('.epic-card').forEach(c => c.classList.remove('selected'));
-            card.classList.add('selected');
-            
-            // Show details section, hide epics
-            document.querySelector('.epics-section').style.display = 'none';
-            document.querySelector('.epic-details-section').style.display = 'block';
-            document.querySelector('.dependencies-section').style.display = 'block';
-            
-            // Update epic details
-            updateEpicDetails(card);
-            
-            // Load and display children
-            loadChildrenForEpic(epicId);
-            
-            selectedEpic = epicId;
-        }
-
-        function backToEpics() {
-            // Show epics, hide details
-            document.querySelector('.epics-section').style.display = 'block';
-            document.querySelector('.epic-details-section').style.display = 'none';
-            document.querySelector('.dependencies-section').style.display = 'none';
-            
-            // Clear selection
-            document.querySelectorAll('.epic-card').forEach(c => c.classList.remove('selected'));
-            selectedEpic = null;
-            currentPage = 1;
-        }
-
-        function updateEpicDetails(card) {
-            const title = card.querySelector('.epic-card-title a').textContent.trim();
-            const status = card.getAttribute('data-status');
-            const priority = card.querySelector('.epic-priority').textContent;
-            const childrenCount = card.getAttribute('data-children-count');
-            
-            // Update details header
-            document.getElementById('selected-epic-title').textContent = title;
-            document.getElementById('selected-epic-title-detail').textContent = title;
-            document.getElementById('selected-epic-status').textContent = status.charAt(0).toUpperCase() + status.slice(1);
-            document.getElementById('selected-epic-status').className = `status-badge status-${status}`;
-            document.getElementById('selected-epic-priority').textContent = priority;
-            document.getElementById('selected-epic-type').textContent = 'Epic';
-            
-            // Update description (would need to fetch full epic data)
-            document.getElementById('selected-epic-description').textContent = `This epic contains ${childrenCount} related issues.`;
-        }
-
-        async function loadChildrenForEpic(epicId) {
-            // In a real implementation, this would fetch from API
-            // For now, we'll simulate with placeholder data
-            const mockChildren = [
-                { id: 'task-1', title: 'Setup authentication system', type: 'feature', status: 'open', priority: 1 },
-                { id: 'task-2', title: 'Design user profile page', type: 'feature', status: 'in-progress', priority: 2 },
-                { id: 'task-3', title: 'Implement password reset', type: 'feature', status: 'open', priority: 2 },
-                { id: 'task-4', title: 'Fix login validation bug', type: 'bug', status: 'blocked', priority: 1 },
-                { id: 'task-5', title: 'Add user roles', type: 'feature', status: 'closed', priority: 3 },
-                { id: 'task-6', title: 'Create admin dashboard', type: 'task', status: 'open', priority: 2 },
-                { id: 'task-7', title: 'Write API documentation', type: 'task', status: 'open', priority: 3 },
-                { id: 'task-8', title: 'Security audit', type: 'task', status: 'in-progress', priority: 1 },
-            ];
-            
-            allChildren = mockChildren;
-            filteredChildren = [...allChildren];
-            currentPage = 1;
-            
-            renderChildren();
-            renderDependencies();
-        }
-
-        function renderChildren() {
-            const startIndex = (currentPage - 1) * itemsPerPage;
-            const endIndex = startIndex + itemsPerPage;
-            const pageChildren = filteredChildren.slice(startIndex, endIndex);
-            
-            const childrenList = document.getElementById('children-list');
-            
-            if (pageChildren.length === 0) {
-                childrenList.innerHTML = `
-                    <div class="empty-state">
-                        <h3>No Issues Found</h3>
-                        <p>No related issues match the current criteria.</p>
-                    </div>
-                `;
-                return;
-            }
-            
-            childrenList.innerHTML = pageChildren.map(child => `
-                <div class="child-item" data-id="${child.id}" data-filter-text="${child.title.toLowerCase()} ${child.id.toLowerCase()} ${child.type.toLowerCase()}">
-                    <div class="child-type type-${child.type}">${child.type}</div>
-                    <div class="child-info">
-                        <a href="/issues/${child.id}" class="child-title">${child.title}</a>
-                        <div class="child-meta">
-                            <span class="child-id">${child.id}</span>
-                            <span class="child-status status-${child.status}">${child.status}</span>
-                            <span class="child-priority">${child.priority}</span>
-                        </div>
-                    </div>
-                </div>
-            `).join('');
-            
-            updatePagination();
-        }
-
-        function updatePagination() {
-            const totalPages = Math.ceil(filteredChildren.length / itemsPerPage);
-            const prevBtn = document.getElementById('prev-page');
-            const nextBtn = document.getElementById('next-page');
-            const pageInfo = document.getElementById('page-info');
-            
-            prevBtn.disabled = currentPage <= 1;
-            nextBtn.disabled = currentPage >= totalPages;
-            pageInfo.textContent = `Page ${currentPage} of ${totalPages || 1}`;
-        }
-
-        function changePage(delta) {
-            const totalPages = Math.ceil(filteredChildren.length / itemsPerPage);
-            const newPage = currentPage + delta;
-            
-            if (newPage >= 1 && newPage <= totalPages) {
-                currentPage = newPage;
-                renderChildren();
-            }
-        }
-
-        function renderDependencies() {
-            const dependencyFlow = document.getElementById('dependency-flow');
-            const dependencyCount = document.getElementById('dependency-count');
-            
-            // Simple dependency visualization
-            const visibleChildren = filteredChildren.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
-            
-            if (visibleChildren.length < 2) {
-                dependencyFlow.innerHTML = `
-                    <div class="empty-state">
-                        <h3>No Dependencies</h3>
-                        <p>Dependencies between visible issues will appear here.</p>
-                    </div>
-                `;
-                dependencyCount.textContent = '0 dependencies';
-                return;
-            }
-            
-            // Create simple flow chart
-            let dependencyHtml = '<div class="dependency-chart">';
-            
-            visibleChildren.forEach((child, index) => {
-                dependencyHtml += `
-                    <div class="dependency-node type-${child.type}" data-id="${child.id}">
-                        <div class="dependency-node-header">
-                            <a href="/issues/${child.id}" class="dependency-node-title">${child.title}</a>
-                        </div>
-                        <div class="dependency-node-meta">
-                            <span class="dependency-type">${child.type}</span>
-                            <span class="dependency-status status-${child.status}">${child.status}</span>
-                        </div>
-                    </div>
-                `;
+            nodes.forEach(node => {
+                const id = node.getAttribute('data-id');
+                const parentId = node.getAttribute('data-parent');
+                const type = node.getAttribute('data-type');
                 
-                // Add simple connection arrow
-                if (index < visibleChildren.length - 1) {
-                    dependencyHtml += '<div class="dependency-arrow">↓</div>';
+                let visible = false;
+                
+                // Visible if it's a top-level node (no parent)
+                if (!parentId || parentId === "") {
+                    visible = true;
+                } else if (expandedNodes.has(parentId)) {
+                    // Visible if its parent is expanded
+                    visible = true;
+                }
+
+                // Also must match type filter
+                if (visible && !activeTypes.has(type)) {
+                    visible = false;
+                }
+
+                if (visible) {
+                    node.classList.remove('hidden');
+                } else {
+                    node.classList.add('hidden');
                 }
             });
-            
-            dependencyHtml += '</div>';
-            dependencyFlow.innerHTML = dependencyHtml;
-            dependencyCount.textContent = `${visibleChildren.length - 1} dependencies`;
-        }
 
-        function filterEpics() {
-            const filterValue = document.getElementById('epics-filter').value;
-            const epicsGrid = document.getElementById('epics-grid');
-            
-            let visibleEpics = allEpics;
-            
-            if (filterValue === 'active') {
-                visibleEpics = allEpics.filter(epic => 
-                    epic.status === 'open' || epic.status === 'in-progress' || epic.status === 'blocked'
-                );
-            } else if (filterValue === 'closed') {
-                visibleEpics = allEpics.filter(epic => epic.status === 'closed');
-            }
-            
-            // Update epic count
-            document.getElementById('epic-count').textContent = visibleEpics.length;
-            
-            // Show/hide epic cards
-            allEpics.forEach(epic => {
-                const card = epic.element;
-                const isVisible = visibleEpics.includes(epic);
-                card.style.display = isVisible ? 'block' : 'none';
+            edges.forEach(edge => {
+                const sourceId = edge.getAttribute('data-source');
+                const targetId = edge.getAttribute('data-target');
+                
+                const sourceNode = document.querySelector(`.graph-node-container[data-id="${sourceId}"]`);
+                const targetNode = document.querySelector(`.graph-node-container[data-id="${targetId}"]`);
+                
+                if (sourceNode && targetNode) {
+                    const sourceVisible = !sourceNode.classList.contains('hidden');
+                    const targetVisible = !targetNode.classList.contains('hidden');
+                    
+                    if (sourceVisible && targetVisible) {
+                        edge.classList.remove('hidden');
+                    } else {
+                        edge.classList.add('hidden');
+                    }
+                } else {
+                    edge.classList.add('hidden');
+                }
             });
         }
 
-        // Enhanced search for graph explorer
-        document.getElementById('filter-input').addEventListener('input', (e) => {
-            const query = e.target.value.toLowerCase();
-            
-            // Filter epic cards
-            allEpics.forEach(epic => {
-                const card = epic.element;
-                const text = card.getAttribute('data-filter-text');
-                const matches = !query || text.includes(query);
-                card.style.display = matches ? 'block' : 'none';
+        expandBtns.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                const id = btn.getAttribute('data-id');
+                if (expandedNodes.has(id)) {
+                    expandedNodes.delete(id);
+                    btn.nextElementSibling.textContent = '+';
+                } else {
+                    expandedNodes.add(id);
+                    btn.nextElementSibling.textContent = '-';
+                }
+                updateVisibility();
             });
-            
-            // Filter children if epic is selected
-            if (selectedEpic) {
-                const filtered = allChildren.filter(child => 
-                    child.title.toLowerCase().includes(query) || 
-                    child.id.toLowerCase().includes(query) ||
-                    child.type.toLowerCase().includes(query)
-                );
-                filteredChildren = filtered;
-                currentPage = 1;
-                renderChildren();
-                renderDependencies();
-            }
         });
+
+        typeFilters.forEach(f => f.addEventListener('change', updateVisibility));
+
+        document.getElementById('expand-all').addEventListener('click', () => {
+            nodes.forEach(n => {
+                if (n.getAttribute('data-is-epic') === 'true') {
+                    expandedNodes.add(n.getAttribute('data-id'));
+                }
+            });
+            document.querySelectorAll('.expand-icon').forEach(i => i.textContent = '-');
+            updateVisibility();
+        });
+
+        document.getElementById('collapse-all').addEventListener('click', () => {
+            expandedNodes.clear();
+            document.querySelectorAll('.expand-icon').forEach(i => i.textContent = '+');
+            updateVisibility();
+        });
+
+        // Initialize
+        updateVisibility();
+
+        // Graph node title/id filtering (existing search box)
+        const filterInput = document.getElementById('filter-input');
+        if (filterInput) {
+            filterInput.addEventListener('input', (e) => {
+                const query = e.target.value.toLowerCase();
+                document.querySelectorAll('.graph-node-link').forEach(link => {
+                    const text = link.getAttribute('data-filter-text');
+                    const matches = text && text.includes(query);
+                    link.style.opacity = matches || !query ? '1' : '0.2';
+                });
+            });
+        }
     </script>
 </body>
 </html>
