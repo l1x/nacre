@@ -78,11 +78,6 @@ impl EpicWithProgress {
     }
 }
 
-pub struct IssueGroup {
-    pub epic_title: String,
-    pub issues: Vec<beads::Issue>,
-}
-
 pub struct BoardColumn {
     pub name: String,
     pub status: String,
@@ -116,7 +111,7 @@ pub struct LandingTemplate {
 #[template(path = "index.html")]
 pub struct IndexTemplate {
     pub project_name: String,
-    pub groups: Vec<IssueGroup>,
+    pub nodes: Vec<TreeNode>,
 }
 
 #[derive(Template)]
@@ -179,7 +174,6 @@ pub struct EditIssueTemplate {
 #[template(path = "graph.html")]
 pub struct GraphTemplate {
     pub project_name: String,
-    pub nodes: Vec<TreeNode>,
 }
 
 #[derive(Template)]

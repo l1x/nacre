@@ -2122,3 +2122,36 @@ main:has(.board) {
 .tree-node-content {
     position: relative;
 }
+
+/* Graph Placeholder */
+.graph-placeholder {
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    padding: 40px;
+    text-align: center;
+}
+
+.graph-placeholder h2 {
+    font-family: 'Georgia', 'Times New Roman', serif;
+    font-size: 1.5rem;
+    font-style: italic;
+    color: var(--text-primary);
+    margin: 0 0 16px 0;
+}
+
+.placeholder-message {
+    color: var(--text-muted);
+    margin-bottom: 32px;
+}
+
+.graph-mockup {
+    display: flex;
+    justify-content: center;
+    overflow-x: auto;
+}
+
+.graph-mockup svg {
+    max-width: 100%;
+    height: auto;
+}

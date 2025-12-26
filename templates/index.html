@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ project_name }}</title>
+    <title>{{ project_name }} - Issues</title>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg">
     <link rel="stylesheet" href="/style.css">
     <script src="/app.js"></script>
@@ -13,6 +13,7 @@
         <a href="/" class="home-link"><h1>Nacre</h1></a>
         <nav>
             <a href="/">Dashboard</a>
+            <a href="/issues" class="active">Issues</a>
             <a href="/epics">Epics</a>
             <a href="/board">Board</a>
             <a href="/graph">Graph</a>
@@ -24,28 +25,64 @@
         <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme"></button>
     </header>
     <main id="content">
-        {% if groups.is_empty() %}
-            <div class="empty">No issues found</div>
-        {% else %}
-            {% for group in groups %}
-                <div class="issue-group">
-                    <h2 class="group-title">{{ group.epic_title }}</h2>
-                    <div class="issue-list">
-                        {% for issue in group.issues %}
-                        <div class="issue-item" data-id="{{ issue.id }}" data-filter-text="{{ issue.title|lower }} {{ issue.id|lower }} {{ issue.status|lower }}">
-                            <div class="issue-main">
-                                <div class="issue-title">{{ issue.title }}</div>
-                                <div class="issue-meta"><a href="/issues/{{ issue.id }}">{{ issue.id }}</a> • {{ issue.issue_type }} • P{{ issue.priority.unwrap_or(0) }}</div>
-                            </div>
-                            <div class="issue-status">
-                                <span class="status-badge">{{ issue.status }}</span>
-                            </div>
-                        </div>
-                        {% endfor %}
-                    </div>
+        <div class="graph-controls">
+            <div class="filter-group">
+                <label>Show Types:</label>
+                <div class="checkbox-group">
+                    <label><input type="checkbox" class="type-filter" value="epic" checked> Epics</label>
+                    <label><input type="checkbox" class="type-filter" value="feature" checked> Features</label>
+                    <label><input type="checkbox" class="type-filter" value="bug" checked> Bugs</label>
+                    <label><input type="checkbox" class="type-filter" value="task" checked> Tasks</label>
+                    <label><input type="checkbox" class="type-filter" value="chore" checked> Chores</label>
                 </div>
-            {% endfor %}
-        {% endif %}
+            </div>
+            <button id="expand-all" class="btn btn-secondary">Expand All</button>
+            <button id="collapse-all" class="btn btn-secondary">Collapse All</button>
+        </div>
+
+        <div class="tree-view">
+            <ul class="tree-list">
+                {% for node in nodes %}
+                <li class="tree-node depth-{{ node.depth }}"
+                    data-id="{{ node.id }}"
+                    data-type="{{ node.issue_type }}"
+                    data-parent="{% if let Some(p) = node.parent_id %}{{ p }}{% endif %}"
+                    data-has-children="{{ node.has_children }}"
+                    data-filter-text="{{ node.title|lower }} {{ node.id|lower }}"
+                    style="--depth: {{ node.depth }}">
+                    <div class="tree-node-content">
+                        {% if node.has_children %}
+                        <button class="tree-toggle" aria-label="Toggle children">
+                            <span class="toggle-icon">+</span>
+                        </button>
+                        {% else %}
+                        <span class="tree-toggle-placeholder"></span>
+                        {% endif %}
+                        <span class="tree-status status-{{ node.status }}"></span>
+                        <span class="tree-type type-{{ node.issue_type }}">{{ node.issue_type }}</span>
+                        <a href="/issues/{{ node.id }}" class="tree-title">{{ node.title }}</a>
+                        <span class="tree-id">{{ node.id }}</span>
+                        <span class="tree-priority">P{{ node.priority }}</span>
+                        {% if node.blocked_by_count > 0 %}
+                        <span class="tree-blocked" title="Blocked by {{ node.blocked_by_count }} issue(s)">
+                            blocked
+                        </span>
+                        {% endif %}
+                    </div>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <div class="graph-legend">
+            <h3>Legend</h3>
+            <div class="legend-items">
+                <div class="legend-item"><span class="legend-color status-open"></span> Open</div>
+                <div class="legend-item"><span class="legend-color status-in_progress"></span> In Progress</div>
+                <div class="legend-item"><span class="legend-color status-blocked"></span> Blocked</div>
+                <div class="legend-item"><span class="legend-color status-closed"></span> Closed</div>
+            </div>
+        </div>
     </main>
 </body>
 </html>

@@ -13,6 +13,7 @@
         <a href="/" class="home-link"><h1>Nacre</h1></a>
         <nav>
             <a href="/">Dashboard</a>
+            <a href="/issues">Issues</a>
             <a href="/epics">Epics</a>
             <a href="/board">Board</a>
             <a href="/graph" class="active">Graph</a>
@@ -24,62 +25,83 @@
         <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme"></button>
     </header>
     <main id="content">
-        <div class="graph-controls">
-            <div class="filter-group">
-                <label>Show Types:</label>
-                <div class="checkbox-group">
-                    <label><input type="checkbox" class="type-filter" value="epic" checked> Epics</label>
-                    <label><input type="checkbox" class="type-filter" value="feature" checked> Features</label>
-                    <label><input type="checkbox" class="type-filter" value="bug" checked> Bugs</label>
-                    <label><input type="checkbox" class="type-filter" value="task" checked> Tasks</label>
-                    <label><input type="checkbox" class="type-filter" value="chore" checked> Chores</label>
-                </div>
+        <div class="graph-placeholder">
+            <h2>Dependency Graph</h2>
+            <p class="placeholder-message">Graph visualization coming soon. Static mockup below:</p>
+
+            <div class="graph-mockup">
+                <svg width="800" height="400" viewBox="0 0 800 400">
+                    <defs>
+                        <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+                            <polygon points="0 0, 10 3.5, 0 7" fill="var(--text-muted)" />
+                        </marker>
+                    </defs>
+
+                    <!-- Level 0: Epic -->
+                    <g class="node epic" transform="translate(400, 60)">
+                        <rect x="-90" y="-30" width="180" height="60" rx="6" fill="var(--bg-secondary)" stroke="#9b59b6" stroke-width="2"/>
+                        <text x="0" y="-5" text-anchor="middle" fill="var(--text-primary)" font-size="12" font-weight="500">Release 1.0</text>
+                        <text x="0" y="12" text-anchor="middle" fill="var(--text-muted)" font-size="10">epic-001</text>
+                    </g>
+
+                    <!-- Level 1: Tasks -->
+                    <g class="node task" transform="translate(200, 180)">
+                        <rect x="-80" y="-25" width="160" height="50" rx="6" fill="var(--bg-secondary)" stroke="var(--accent)" stroke-width="2"/>
+                        <text x="0" y="-3" text-anchor="middle" fill="var(--text-primary)" font-size="11">Implement API</text>
+                        <text x="0" y="12" text-anchor="middle" fill="var(--text-muted)" font-size="9">task-001</text>
+                    </g>
+
+                    <g class="node task" transform="translate(400, 180)">
+                        <rect x="-80" y="-25" width="160" height="50" rx="6" fill="var(--bg-secondary)" stroke="#7eb8da" stroke-width="2"/>
+                        <text x="0" y="-3" text-anchor="middle" fill="var(--text-primary)" font-size="11">Design UI</text>
+                        <text x="0" y="12" text-anchor="middle" fill="var(--text-muted)" font-size="9">task-002 (in progress)</text>
+                    </g>
+
+                    <g class="node task" transform="translate(600, 180)">
+                        <rect x="-80" y="-25" width="160" height="50" rx="6" fill="var(--bg-secondary)" stroke="var(--text-muted)" stroke-width="1" opacity="0.6"/>
+                        <text x="0" y="-3" text-anchor="middle" fill="var(--text-muted)" font-size="11">Write Docs</text>
+                        <text x="0" y="12" text-anchor="middle" fill="var(--text-muted)" font-size="9">task-003 (closed)</text>
+                    </g>
+
+                    <!-- Level 2: Sub-tasks -->
+                    <g class="node subtask" transform="translate(150, 300)">
+                        <rect x="-70" y="-22" width="140" height="44" rx="4" fill="var(--bg-secondary)" stroke="var(--accent)" stroke-width="1"/>
+                        <text x="0" y="-2" text-anchor="middle" fill="var(--text-primary)" font-size="10">Auth endpoints</text>
+                        <text x="0" y="12" text-anchor="middle" fill="var(--text-muted)" font-size="8">task-001.1</text>
+                    </g>
+
+                    <g class="node subtask" transform="translate(300, 300)">
+                        <rect x="-70" y="-22" width="140" height="44" rx="4" fill="var(--bg-secondary)" stroke="#d48a8a" stroke-width="2"/>
+                        <text x="0" y="-2" text-anchor="middle" fill="var(--text-primary)" font-size="10">Data endpoints</text>
+                        <text x="0" y="12" text-anchor="middle" fill="#d48a8a" font-size="8">task-001.2 (blocked)</text>
+                    </g>
+
+                    <g class="node subtask" transform="translate(500, 300)">
+                        <rect x="-70" y="-22" width="140" height="44" rx="4" fill="var(--bg-secondary)" stroke="var(--text-muted)" stroke-width="1" opacity="0.6"/>
+                        <text x="0" y="-2" text-anchor="middle" fill="var(--text-muted)" font-size="10">Wireframes</text>
+                        <text x="0" y="12" text-anchor="middle" fill="var(--text-muted)" font-size="8">task-002.1 (closed)</text>
+                    </g>
+
+                    <!-- Edges: Epic to Tasks -->
+                    <line x1="400" y1="90" x2="200" y2="155" stroke="var(--border-color)" stroke-width="2" marker-end="url(#arrowhead)"/>
+                    <line x1="400" y1="90" x2="400" y2="155" stroke="var(--border-color)" stroke-width="2" marker-end="url(#arrowhead)"/>
+                    <line x1="400" y1="90" x2="600" y2="155" stroke="var(--border-color)" stroke-width="2" marker-end="url(#arrowhead)"/>
+
+                    <!-- Edges: Tasks to Sub-tasks -->
+                    <line x1="200" y1="205" x2="150" y2="278" stroke="var(--border-color)" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+                    <line x1="200" y1="205" x2="300" y2="278" stroke="var(--border-color)" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+                    <line x1="400" y1="205" x2="500" y2="278" stroke="var(--border-color)" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+                </svg>
             </div>
-            <button id="expand-all" class="btn btn-secondary">Expand All</button>
-            <button id="collapse-all" class="btn btn-secondary">Collapse All</button>
-        </div>
 
-        <div class="tree-view">
-            <ul class="tree-list">
-                {% for node in nodes %}
-                <li class="tree-node depth-{{ node.depth }}"
-                    data-id="{{ node.id }}"
-                    data-type="{{ node.issue_type }}"
-                    data-parent="{% if let Some(p) = node.parent_id %}{{ p }}{% endif %}"
-                    data-has-children="{{ node.has_children }}"
-                    data-filter-text="{{ node.title|lower }} {{ node.id|lower }}"
-                    style="--depth: {{ node.depth }}">
-                    <div class="tree-node-content">
-                        {% if node.has_children %}
-                        <button class="tree-toggle" aria-label="Toggle children">
-                            <span class="toggle-icon">+</span>
-                        </button>
-                        {% else %}
-                        <span class="tree-toggle-placeholder"></span>
-                        {% endif %}
-                        <span class="tree-status status-{{ node.status }}"></span>
-                        <span class="tree-type type-{{ node.issue_type }}">{{ node.issue_type }}</span>
-                        <a href="/issues/{{ node.id }}" class="tree-title">{{ node.title }}</a>
-                        <span class="tree-id">{{ node.id }}</span>
-                        <span class="tree-priority">P{{ node.priority }}</span>
-                        {% if node.blocked_by_count > 0 %}
-                        <span class="tree-blocked" title="Blocked by {{ node.blocked_by_count }} issue(s)">
-                            blocked
-                        </span>
-                        {% endif %}
-                    </div>
-                </li>
-                {% endfor %}
-            </ul>
-        </div>
-
-        <div class="graph-legend">
-            <h3>Legend</h3>
-            <div class="legend-items">
-                <div class="legend-item"><span class="legend-color status-open"></span> Open</div>
-                <div class="legend-item"><span class="legend-color status-in_progress"></span> In Progress</div>
-                <div class="legend-item"><span class="legend-color status-blocked"></span> Blocked</div>
-                <div class="legend-item"><span class="legend-color status-closed"></span> Closed</div>
+            <div class="graph-legend" style="margin-top: 24px;">
+                <h3>Legend</h3>
+                <div class="legend-items">
+                    <div class="legend-item"><span class="legend-color status-open"></span> Open</div>
+                    <div class="legend-item"><span class="legend-color status-in_progress"></span> In Progress</div>
+                    <div class="legend-item"><span class="legend-color status-blocked"></span> Blocked</div>
+                    <div class="legend-item"><span class="legend-color status-closed"></span> Closed</div>
+                </div>
             </div>
         </div>
     </main>

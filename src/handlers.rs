@@ -6,7 +6,7 @@ use axum::{
 };
 use plotters::prelude::*;
 use pulldown_cmark::{Parser, html};
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 
 use crate::beads;
 use crate::templates::*;
@@ -131,65 +131,11 @@ pub async fn landing(State(state): State<crate::AppState>) -> LandingTemplate {
 
 pub async fn index(State(state): State<crate::AppState>) -> IndexTemplate {
     let all_issues = state.client.list_issues().unwrap_or_default();
-
-    let mut epics: Vec<beads::Issue> = all_issues
-        .iter()
-        .filter(|i| i.issue_type == beads::IssueType::Epic)
-        .cloned()
-        .collect();
-
-    // Sort epics by most recently updated first
-    epics.sort_by(|a, b| b.updated_at.cmp(&a.updated_at));
-
-    let mut groups: Vec<IssueGroup> = Vec::new();
-
-    for epic in &epics {
-        let prefix = format!("{}.", epic.id);
-        let mut children: Vec<beads::Issue> = all_issues
-            .iter()
-            .filter(|i| {
-                i.dependencies.iter().any(|d| d.depends_on_id == epic.id)
-                    || i.id.starts_with(&prefix)
-            })
-            .cloned()
-            .collect();
-
-        // Sort by status priority
-        children.sort_by_key(|i| i.status.sort_order());
-
-        if !children.is_empty() {
-            groups.push(IssueGroup {
-                epic_title: epic.title.clone(),
-                issues: children,
-            });
-        }
-    }
-
-    // Un-grouped issues (excluding epics themselves and issues already in groups)
-    let grouped_ids: HashSet<String> = groups
-        .iter()
-        .flat_map(|g| g.issues.iter().map(|i| i.id.clone()))
-        .collect();
-
-    let mut un_grouped: Vec<beads::Issue> = all_issues
-        .iter()
-        .filter(|i| i.issue_type != beads::IssueType::Epic && !grouped_ids.contains(&i.id))
-        .cloned()
-        .collect();
-
-    // Sort by status priority
-    un_grouped.sort_by_key(|i| i.status.sort_order());
-
-    if !un_grouped.is_empty() {
-        groups.push(IssueGroup {
-            epic_title: "No Epic".to_string(),
-            issues: un_grouped,
-        });
-    }
+    let nodes = build_issue_tree(&all_issues);
 
     IndexTemplate {
         project_name: state.project_name.clone(),
-        groups,
+        nodes,
     }
 }
 
@@ -286,14 +232,13 @@ pub async fn board(State(state): State<crate::AppState>) -> BoardTemplate {
     }
 }
 
-pub async fn graph(State(state): State<crate::AppState>) -> GraphTemplate {
-    let all_issues = state.client.list_issues().unwrap_or_default();
-
+/// Build a hierarchical tree of issues for display
+fn build_issue_tree(all_issues: &[beads::Issue]) -> Vec<TreeNode> {
     // Build parent-child relationships
     let mut children_map: HashMap<String, Vec<String>> = HashMap::new();
     let mut parent_map: HashMap<String, String> = HashMap::new();
 
-    for issue in &all_issues {
+    for issue in all_issues {
         // Check explicit parent-child dependency
         for dep in &issue.dependencies {
             if dep.dep_type == beads::DependencyType::ParentChild {
@@ -322,7 +267,7 @@ pub async fn graph(State(state): State<crate::AppState>) -> GraphTemplate {
 
     // Count blocking dependencies (non-parent-child) for each issue
     let mut blocked_by_count: HashMap<String, usize> = HashMap::new();
-    for issue in &all_issues {
+    for issue in all_issues {
         let count = issue
             .dependencies
             .iter()
@@ -353,7 +298,6 @@ pub async fn graph(State(state): State<crate::AppState>) -> GraphTemplate {
 
         // Determine parent_id for this node
         let parent_id = if depth > 0 {
-            // Find parent from dot notation or will be passed contextually
             if let Some(dot_pos) = issue.id.rfind('.') {
                 Some(issue.id[..dot_pos].to_string())
             } else {
@@ -381,7 +325,6 @@ pub async fn graph(State(state): State<crate::AppState>) -> GraphTemplate {
                 .iter()
                 .filter_map(|id| issue_map.get(id).map(|i| (id, *i)))
                 .collect();
-            // Sort by status priority, then by id
             sorted_children.sort_by(|a, b| {
                 a.1.status
                     .sort_order()
@@ -431,9 +374,12 @@ pub async fn graph(State(state): State<crate::AppState>) -> GraphTemplate {
         );
     }
 
+    nodes
+}
+
+pub async fn graph(State(state): State<crate::AppState>) -> GraphTemplate {
     GraphTemplate {
         project_name: state.project_name.clone(),
-        nodes,
     }
 }
 
