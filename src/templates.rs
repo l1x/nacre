@@ -216,4 +216,7 @@ pub struct MetricsTemplate {
     pub blocked_count: usize,
     pub tickets_chart_svg: String,
     pub lead_time_chart_svg: String,
+    pub p50_lead_time_hours: f64,
+    pub p90_lead_time_hours: f64,
+    pub p100_lead_time_hours: f64,
 }

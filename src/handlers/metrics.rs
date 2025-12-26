@@ -60,6 +60,28 @@ pub async fn metrics_handler(State(state): State<crate::AppState>) -> MetricsTem
         .filter(|i| i.status == beads::Status::Blocked)
         .count();
 
+    // Calculate global percentiles for Lead Time
+    let mut all_lead_times: Vec<f64> = all_issues
+        .iter()
+        .filter_map(|i| {
+            i.closed_at
+                .map(|closed| (closed - i.created_at).num_minutes() as f64 / 60.0)
+        })
+        .collect();
+    all_lead_times.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
+
+    fn calculate_percentile(sorted: &[f64], p: f64) -> f64 {
+        if sorted.is_empty() {
+            return 0.0;
+        }
+        let idx = ((sorted.len() as f64 - 1.0) * p / 100.0).round() as usize;
+        sorted[idx.min(sorted.len() - 1)]
+    }
+
+    let p50_lead_time_hours = calculate_percentile(&all_lead_times, 50.0);
+    let p90_lead_time_hours = calculate_percentile(&all_lead_times, 90.0);
+    let p100_lead_time_hours = calculate_percentile(&all_lead_times, 100.0);
+
     // Generate Chart
     let mut tickets_chart_svg = String::new();
     {
@@ -404,5 +426,8 @@ pub async fn metrics_handler(State(state): State<crate::AppState>) -> MetricsTem
         blocked_count,
         tickets_chart_svg,
         lead_time_chart_svg,
+        p50_lead_time_hours,
+        p90_lead_time_hours,
+        p100_lead_time_hours,
     }
 }

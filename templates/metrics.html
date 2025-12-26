@@ -43,6 +43,24 @@
                 </div>
             </div>
 
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <h3>p50 Lead Time</h3>
+                    <div class="metric-value">{{ p50_lead_time_hours|format_hours }}</div>
+                    <div class="metric-label">Median lead time</div>
+                </div>
+                <div class="metric-card">
+                    <h3>p90 Lead Time</h3>
+                    <div class="metric-value">{{ p90_lead_time_hours|format_hours }}</div>
+                    <div class="metric-label">90th percentile</div>
+                </div>
+                <div class="metric-card">
+                    <h3>p100 Lead Time</h3>
+                    <div class="metric-value">{{ p100_lead_time_hours|format_hours }}</div>
+                    <div class="metric-label">Maximum lead time</div>
+                </div>
+            </div>
+
             <section class="metrics-section">
                 <h2>Ticket Activity</h2>
                 <div class="chart-container">
