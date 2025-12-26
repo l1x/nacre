@@ -122,6 +122,21 @@ cargo clippy
 
 ## Version History
 
+### 0.3.0 (2025-12-26)
+
+**Metrics & Activity**
+- Fixed Avg Cycle Time calculation (EventType serde alignment with bd activity JSON)
+- Display cycle time in minutes instead of hours for better precision
+- Added UTC timestamps to tracing logs
+
+**Board View**
+- Colored top borders per column status (Open=orange, In Progress=blue, Blocked=red, Deferred=purple, Closed=gray)
+- Matching count badge colors in column headers
+- Simplified issue type styling (left border only, removed gradient backgrounds)
+
+**Epics View**
+- Reduced epic card height with tighter padding and margins
+
 ### 0.2.0 (2025-12-26)
 
 **Template System**
