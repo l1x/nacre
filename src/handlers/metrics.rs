@@ -252,7 +252,7 @@ pub async fn metrics_handler(State(state): State<crate::AppState>) -> MetricsTem
                 .disable_x_mesh()
                 .bold_line_style(grid_color)
                 .light_line_style(grid_color.mix(0.5))
-                .y_desc("Hours")
+                .y_desc("Lead Time")
                 .y_label_formatter(&|v| format_hours(*v))
                 .x_labels(num_days)
                 .x_label_formatter(&|x| {
