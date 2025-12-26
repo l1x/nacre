@@ -418,6 +418,7 @@ pub async fn metrics_handler(State(state): State<crate::AppState>) -> MetricsTem
         project_name: state.project_name.clone(),
         page_title: "Metrics".to_string(),
         active_nav: "metrics",
+        app_version: state.app_version.clone(),
         avg_lead_time_hours,
         avg_cycle_time_mins,
         throughput_per_day,

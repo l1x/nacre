@@ -19,6 +19,7 @@ pub async fn epics(State(state): State<crate::AppState>) -> EpicsTemplate {
         project_name: state.project_name.clone(),
         page_title: "Epics".to_string(),
         active_nav: "epics",
+        app_version: state.app_version.clone(),
         epics,
     }
 }
@@ -39,6 +40,7 @@ pub async fn epic_detail(
         project_name: state.project_name.clone(),
         page_title: id.clone(),
         active_nav: "epics",
+        app_version: state.app_version.clone(),
         epic: EpicWithProgress::from_epic(epic, &all_issues, true),
     })
 }

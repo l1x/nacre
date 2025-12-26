@@ -16,6 +16,7 @@ pub async fn index(State(state): State<crate::AppState>) -> IndexTemplate {
         project_name: state.project_name.clone(),
         page_title: "Issues".to_string(),
         active_nav: "issues",
+        app_version: state.app_version.clone(),
         nodes,
     }
 }
@@ -29,6 +30,7 @@ pub async fn issue_detail(
         project_name: state.project_name.clone(),
         page_title: id,
         active_nav: "",
+        app_version: state.app_version.clone(),
         issue,
     })
 }
@@ -42,6 +44,7 @@ pub async fn edit_issue(
         project_name: state.project_name.clone(),
         page_title: format!("Edit {}", id),
         active_nav: "",
+        app_version: state.app_version.clone(),
         issue,
     })
 }
@@ -51,6 +54,7 @@ pub async fn new_issue_form(State(state): State<crate::AppState>) -> NewIssueTem
         project_name: state.project_name.clone(),
         page_title: "New Issue".to_string(),
         active_nav: "",
+        app_version: state.app_version.clone(),
     }
 }
 

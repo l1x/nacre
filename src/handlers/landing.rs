@@ -96,6 +96,7 @@ pub async fn landing(State(state): State<crate::AppState>) -> LandingTemplate {
         project_name: state.project_name.clone(),
         page_title: String::new(),
         active_nav: "dashboard",
+        app_version: state.app_version.clone(),
         stats,
         epics,
         blocked,

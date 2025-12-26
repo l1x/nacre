@@ -106,6 +106,7 @@ pub struct LandingTemplate {
     pub project_name: String,
     pub page_title: String,
     pub active_nav: &'static str,
+    pub app_version: String,
     pub stats: ProjectStats,
     pub epics: Vec<EpicWithProgress>,
     pub blocked: Vec<beads::Issue>,
@@ -118,6 +119,7 @@ pub struct IndexTemplate {
     pub project_name: String,
     pub page_title: String,
     pub active_nav: &'static str,
+    pub app_version: String,
     pub nodes: Vec<TreeNode>,
 }
 
@@ -127,6 +129,7 @@ pub struct EpicsTemplate {
     pub project_name: String,
     pub page_title: String,
     pub active_nav: &'static str,
+    pub app_version: String,
     pub epics: Vec<EpicWithProgress>,
 }
 
@@ -136,6 +139,7 @@ pub struct BoardTemplate {
     pub project_name: String,
     pub page_title: String,
     pub active_nav: &'static str,
+    pub app_version: String,
     pub columns: Vec<BoardColumn>,
 }
 
@@ -145,6 +149,7 @@ pub struct IssueDetailTemplate {
     pub project_name: String,
     pub page_title: String,
     pub active_nav: &'static str,
+    pub app_version: String,
     pub issue: beads::Issue,
 }
 
@@ -154,6 +159,7 @@ pub struct NewIssueTemplate {
     pub project_name: String,
     pub page_title: String,
     pub active_nav: &'static str,
+    pub app_version: String,
 }
 
 #[derive(Template)]
@@ -162,6 +168,7 @@ pub struct PrdsListTemplate {
     pub project_name: String,
     pub page_title: String,
     pub active_nav: &'static str,
+    pub app_version: String,
     pub files: Vec<String>,
 }
 
@@ -171,6 +178,7 @@ pub struct PrdViewTemplate {
     pub project_name: String,
     pub page_title: String,
     pub active_nav: &'static str,
+    pub app_version: String,
     #[allow(dead_code)]
     pub filename: String,
     pub content: String,
@@ -182,6 +190,7 @@ pub struct EpicDetailTemplate {
     pub project_name: String,
     pub page_title: String,
     pub active_nav: &'static str,
+    pub app_version: String,
     pub epic: EpicWithProgress,
 }
 
@@ -191,6 +200,7 @@ pub struct EditIssueTemplate {
     pub project_name: String,
     pub page_title: String,
     pub active_nav: &'static str,
+    pub app_version: String,
     pub issue: beads::Issue,
 }
 
@@ -200,6 +210,7 @@ pub struct GraphTemplate {
     pub project_name: String,
     pub page_title: String,
     pub active_nav: &'static str,
+    pub app_version: String,
 }
 
 #[derive(Template)]
@@ -208,6 +219,7 @@ pub struct MetricsTemplate {
     pub project_name: String,
     pub page_title: String,
     pub active_nav: &'static str,
+    pub app_version: String,
     pub avg_lead_time_hours: f64,
     pub avg_cycle_time_mins: f64,
     pub throughput_per_day: f64,

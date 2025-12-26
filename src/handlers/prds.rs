@@ -25,6 +25,7 @@ pub async fn prds_list(State(state): State<crate::AppState>) -> PrdsListTemplate
         project_name: state.project_name.clone(),
         page_title: "PRDs".to_string(),
         active_nav: "prds",
+        app_version: state.app_version.clone(),
         files,
     }
 }
@@ -49,6 +50,7 @@ pub async fn prd_view(
         project_name: state.project_name.clone(),
         page_title: filename.clone(),
         active_nav: "prds",
+        app_version: state.app_version.clone(),
         filename,
         content: html_output,
     })

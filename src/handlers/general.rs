@@ -32,5 +32,6 @@ pub async fn graph(State(state): State<crate::AppState>) -> GraphTemplate {
         project_name: state.project_name.clone(),
         page_title: "Graph".to_string(),
         active_nav: "graph",
+        app_version: state.app_version.clone(),
     }
 }

@@ -18,6 +18,7 @@ use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 pub struct AppState {
     pub client: beads::Client,
     pub project_name: String,
+    pub app_version: String,
 }
 
 impl AppState {
@@ -30,6 +31,7 @@ impl AppState {
         Self {
             client: beads::Client::new(),
             project_name,
+            app_version: env!("CARGO_PKG_VERSION").to_string(),
         }
     }
 }

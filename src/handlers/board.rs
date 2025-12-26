@@ -57,6 +57,7 @@ pub async fn board(State(state): State<crate::AppState>) -> BoardTemplate {
         project_name: state.project_name.clone(),
         page_title: "Board".to_string(),
         active_nav: "board",
+        app_version: state.app_version.clone(),
         columns,
     }
 }
