@@ -45,7 +45,7 @@
                 <div class="column-content" data-status="{{ col.status }}">
                     {% for issue in col.issues %}
                     <div class="issue-card issue-type-{{ issue.issue_type.as_css_class() }}" data-id="{{ issue.id }}" data-filter-text="{{ issue.title|lower }} {{ issue.id|lower }} {{ issue.issue_type|lower }}" draggable="true">
-                        <div class="issue-title">{{ issue.title }}</div>
+                        <div class="issue-title"><a href="/issues/{{ issue.id }}" draggable="false">{{ issue.title }}</a></div>
                         <div class="issue-meta">
                             <span><a href="/issues/{{ issue.id }}">{{ issue.id }}</a> • P{{ issue.priority.unwrap_or(0) }}</span>
                             <span class="issue-type-badge">{{ issue.issue_type }}</span>

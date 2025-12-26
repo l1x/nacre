@@ -1918,3 +1918,12 @@ main:has(.board) {
     z-index: 10;
     position: relative;
 }
+
+.issue-title a {
+    text-decoration: none;
+    color: inherit;
+}
+
+.issue-title a:hover {
+    color: var(--accent);
+}

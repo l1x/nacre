@@ -75,7 +75,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Inline Editing Logic
     document.addEventListener('click', (e) => {
-        if (e.target.classList.contains('issue-title')) {
+        // Only allow inline editing for titles in the list view (issue-item)
+        if (e.target.classList.contains('issue-title') && e.target.closest('.issue-item')) {
             handleTitleEdit(e.target);
         }
     });
