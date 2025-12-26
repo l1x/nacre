@@ -303,8 +303,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const isBoard = document.querySelector('.board') !== null;
         const isList = document.querySelector('.issue-list') !== null;
         
-        if (!isBoard && !isList) return;
-
         // Initial selection if in board mode
         if (isBoard) {
             updateBoardSelection();
@@ -314,13 +312,14 @@ document.addEventListener('DOMContentLoaded', () => {
             // Ignore if input is focused
             if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
 
-            // Backspace navigation
+            // Backspace navigation (Global)
             if (e.key === 'Backspace') {
                 e.preventDefault();
                 window.history.back();
                 return;
             }
 
+            // View-specific navigation
             if (isList) {
                 handleListNavigation(e);
             } else if (isBoard) {
