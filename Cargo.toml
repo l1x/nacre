@@ -3,33 +3,34 @@ name = "nacre"
 version = "0.2.0"
 edition = "2024"
 
+[[bench]]
+harness = false
+name = "markdown_comparison"
+
+[[bench]]
+harness = false
+name = "template_comparison"
+
 [dependencies]
-axum = "0.7"
-tokio = { version = "1", features = ["rt-multi-thread", "net", "macros"] }
-serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0"
-tower-http = { version = "0.5", features = ["trace"] }
-tower = { version = "0.5", features = ["util"] }
-tracing = "0.1"
-tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 argh = "0.1"
-open = "5.0"
 askama = { version = "0.12", features = ["markdown"] }
 askama_axum = "0.4"
-pulldown-cmark = "0.10"
+axum = "0.7"
 chrono = { version = "0.4.42", features = ["serde"] }
+kiters = { git = "https://github.com/l1x/kiters.git", tag = "v0.1.0" }
+open = "5.0"
 plotters = "0.3"
+pulldown-cmark = "0.10"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
 thiserror = "2"
+tokio = { version = "1", features = ["macros", "net", "rt-multi-thread"] }
+tower = { version = "0.5", features = ["util"] }
+tower-http = { version = "0.5", features = ["trace"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "time"] }
 
 [dev-dependencies]
 criterion = "0.5"
 markdown = "1.0"
 minijinja = "2.0"
-
-[[bench]]
-name = "markdown_comparison"
-harness = false
-
-[[bench]]
-name = "template_comparison"
-harness = false

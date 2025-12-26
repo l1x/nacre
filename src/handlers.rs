@@ -57,11 +57,11 @@ pub async fn landing(State(state): State<crate::AppState>) -> LandingTemplate {
             && let Some(started_at) = started_times.get(&issue.id)
         {
             let duration = closed_at - *started_at;
-            cycle_times.push(duration.num_minutes() as f64 / 60.0);
+            cycle_times.push(duration.num_minutes() as f64);
         }
     }
 
-    let avg_cycle_time_hours = if !cycle_times.is_empty() {
+    let avg_cycle_time_mins = if !cycle_times.is_empty() {
         cycle_times.iter().sum::<f64>() / cycle_times.len() as f64
     } else {
         0.0
@@ -87,7 +87,7 @@ pub async fn landing(State(state): State<crate::AppState>) -> LandingTemplate {
             .filter(|i| i.status == beads::Status::Closed)
             .count(),
         avg_lead_time_hours,
-        avg_cycle_time_hours,
+        avg_cycle_time_mins,
     };
 
     // Get epics with progress
@@ -519,12 +519,12 @@ pub async fn metrics_handler(State(state): State<crate::AppState>) -> MetricsTem
 
             if let Some(started_at) = started_times.get(&issue.id) {
                 let duration = closed_at - *started_at;
-                cycle_times.push(duration.num_minutes() as f64 / 60.0);
+                cycle_times.push(duration.num_minutes() as f64);
             }
         }
     }
 
-    let avg_cycle_time_hours = if !cycle_times.is_empty() {
+    let avg_cycle_time_mins = if !cycle_times.is_empty() {
         cycle_times.iter().sum::<f64>() / cycle_times.len() as f64
     } else {
         0.0
@@ -646,7 +646,7 @@ pub async fn metrics_handler(State(state): State<crate::AppState>) -> MetricsTem
         page_title: "Metrics".to_string(),
         active_nav: "metrics",
         avg_lead_time_hours,
-        avg_cycle_time_hours,
+        avg_cycle_time_mins,
         throughput_per_day,
         closed_last_7_days,
         wip_count,

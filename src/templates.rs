@@ -6,6 +6,9 @@ pub mod filters {
     pub fn format_hours(hours: &f64) -> askama::Result<String> {
         Ok(format!("{:.1}h", hours))
     }
+    pub fn format_minutes(mins: &f64) -> askama::Result<String> {
+        Ok(format!("{:.0}m", mins))
+    }
     pub fn format_decimal(val: &f64) -> askama::Result<String> {
         Ok(format!("{:.2}", val))
     }
@@ -21,7 +24,7 @@ pub struct ProjectStats {
     pub blocked: usize,
     pub closed: usize,
     pub avg_lead_time_hours: f64,
-    pub avg_cycle_time_hours: f64,
+    pub avg_cycle_time_mins: f64,
 }
 
 pub struct EpicWithProgress {
@@ -206,7 +209,7 @@ pub struct MetricsTemplate {
     pub page_title: String,
     pub active_nav: &'static str,
     pub avg_lead_time_hours: f64,
-    pub avg_cycle_time_hours: f64,
+    pub avg_cycle_time_mins: f64,
     pub throughput_per_day: f64,
     pub closed_last_7_days: usize,
     pub wip_count: usize,
