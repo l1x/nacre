@@ -692,40 +692,14 @@ main:has(.board) {
     color: var(--text-secondary);
 }
 
-/* Issue type card backgrounds */
-.issue-card.issue-type-epic {
-    border-left: 3px solid #9b59b6;
-    background: linear-gradient(90deg, rgba(155, 89, 182, 0.08) 0%, var(--bg-card) 100%);
-}
-
-.issue-card.issue-type-feature {
-    border-left: 3px solid #3498db;
-    background: linear-gradient(90deg, rgba(52, 152, 219, 0.08) 0%, var(--bg-card) 100%);
-}
-
-.issue-card.issue-type-bug {
-    border-left: 3px solid #e74c3c;
-    background: linear-gradient(90deg, rgba(231, 76, 60, 0.08) 0%, var(--bg-card) 100%);
-}
-
-.issue-card.issue-type-task {
-    border-left: 3px solid var(--text-muted);
-}
-
-.issue-card.issue-type-chore {
-    border-left: 3px solid #95a5a6;
-    background: linear-gradient(90deg, rgba(149, 165, 166, 0.05) 0%, var(--bg-card) 100%);
-}
-
-.issue-card.issue-type-merge-request {
-    border-left: 3px solid #1abc9c;
-    background: linear-gradient(90deg, rgba(26, 188, 156, 0.08) 0%, var(--bg-card) 100%);
-}
-
-.issue-card.issue-type-molecule {
-    border-left: 3px solid #f39c12;
-    background: linear-gradient(90deg, rgba(243, 156, 18, 0.08) 0%, var(--bg-card) 100%);
-}
+/* Issue type left border colors */
+.issue-card.issue-type-epic { border-left: 3px solid #9b59b6; }
+.issue-card.issue-type-feature { border-left: 3px solid #3498db; }
+.issue-card.issue-type-bug { border-left: 3px solid #e74c3c; }
+.issue-card.issue-type-task { border-left: 3px solid var(--text-muted); }
+.issue-card.issue-type-chore { border-left: 3px solid #95a5a6; }
+.issue-card.issue-type-merge-request { border-left: 3px solid #1abc9c; }
+.issue-card.issue-type-molecule { border-left: 3px solid #f39c12; }
 
 /* Issue Detail View - Scandinavian/Minimal Style */
 .issue-detail {
