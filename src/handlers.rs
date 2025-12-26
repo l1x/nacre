@@ -653,7 +653,7 @@ pub async fn metrics_handler(State(state): State<crate::AppState>) -> MetricsTem
             if let Some(closed_at) = issue.closed_at {
                 let close_date = closed_at.date_naive();
                 if close_date >= start_dt.date_naive() {
-                    let lead_time_hours = (closed_at - issue.created_at).num_hours() as f64;
+                    let lead_time_hours = (closed_at - issue.created_at).num_minutes() as f64 / 60.0;
                     lead_times_by_day
                         .entry(close_date)
                         .or_default()
@@ -772,7 +772,7 @@ pub async fn metrics_handler(State(state): State<crate::AppState>) -> MetricsTem
                 })
                 .axis_desc_style(("sans-serif", 14).into_font().color(&text_color))
                 .label_style(("sans-serif", 12).into_font().color(&text_color))
-                .axis_style(grid_color)
+                .axis_style(text_color)
                 .draw()
                 .unwrap();
 
