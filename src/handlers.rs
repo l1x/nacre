@@ -714,16 +714,14 @@ pub async fn metrics_handler(State(state): State<crate::AppState>) -> MetricsTem
             root.fill(&bg_color).unwrap();
 
             let num_days = day_data.len();
+            let bar_padding = 0.15; // Gap between bars (15% on each side = 70% bar width)
 
             let mut chart = ChartBuilder::on(&root)
                 .x_label_area_size(40)
                 .y_label_area_size(50)
                 .margin(20)
                 .margin_bottom(60) // Extra space for legend
-                .build_cartesian_2d(
-                    (0u32..num_days as u32).into_segmented(),
-                    0f64..(max_hours * 1.1),
-                )
+                .build_cartesian_2d(0f64..(num_days as f64), 0f64..(max_hours * 1.1))
                 .unwrap();
 
             chart
@@ -734,13 +732,13 @@ pub async fn metrics_handler(State(state): State<crate::AppState>) -> MetricsTem
                 .y_desc("Hours")
                 .y_label_formatter(&|v| format_hours(*v))
                 .x_labels(num_days)
-                .x_label_formatter(&|v| {
-                    if let SegmentValue::CenterOf(idx) = v {
-                        if (*idx as usize) < day_data.len() {
-                            return day_data[*idx as usize].0.clone();
-                        }
+                .x_label_formatter(&|x| {
+                    let idx = x.round() as usize;
+                    if idx < day_data.len() && (*x - idx as f64).abs() < 0.3 {
+                        day_data[idx].0.clone()
+                    } else {
+                        String::new()
                     }
-                    String::new()
                 })
                 .axis_desc_style(("sans-serif", 14).into_font().color(&text_color))
                 .label_style(("sans-serif", 12).into_font().color(&text_color))
@@ -748,50 +746,47 @@ pub async fn metrics_handler(State(state): State<crate::AppState>) -> MetricsTem
                 .draw()
                 .unwrap();
 
-            // Draw stacked bars manually with proper layering
-            // Order matters: draw from bottom to top (p50, then p90, then p100)
+            // Draw stacked bars with gaps between days
             for (idx, (_, p50, p90, p100)) in day_data.iter().enumerate() {
-                let x_left = SegmentValue::Exact(idx as u32);
-                let x_right = SegmentValue::Exact(idx as u32 + 1);
-                let x_center = SegmentValue::CenterOf(idx as u32);
+                let x_left = idx as f64 + bar_padding;
+                let x_right = (idx + 1) as f64 - bar_padding;
+                let x_center = idx as f64 + 0.5;
                 let label_font = ("sans-serif", 12).into_font().color(&WHITE);
 
                 // p50 segment (bottom): 0 to p50 - BLUE
-                if *p50 > 0.0 {
+                chart
+                    .draw_series(std::iter::once(Rectangle::new(
+                        [(x_left, 0.0), (x_right, *p50)],
+                        color_p50.filled(),
+                    )))
+                    .unwrap();
+
+                // p50 label (always show if segment is tall enough)
+                if *p50 > max_hours * 0.06 {
                     chart
-                        .draw_series(std::iter::once(Rectangle::new(
-                            [(x_left.clone(), 0.0), (x_right.clone(), *p50)],
-                            color_p50.filled(),
+                        .draw_series(std::iter::once(Text::new(
+                            format_hours(*p50),
+                            (x_center, *p50 / 2.0),
+                            label_font.clone(),
                         )))
                         .unwrap();
-
-                    // p50 label
-                    if *p50 > max_hours * 0.08 {
-                        chart
-                            .draw_series(std::iter::once(Text::new(
-                                format_hours(*p50),
-                                (x_center.clone(), *p50 / 2.0),
-                                label_font.clone(),
-                            )))
-                            .unwrap();
-                    }
                 }
 
                 // p90 segment (middle): p50 to p90 - GREEN
                 if *p90 > *p50 {
                     chart
                         .draw_series(std::iter::once(Rectangle::new(
-                            [(x_left.clone(), *p50), (x_right.clone(), *p90)],
+                            [(x_left, *p50), (x_right, *p90)],
                             color_p90.filled(),
                         )))
                         .unwrap();
 
                     // p90 label
-                    if (*p90 - *p50) > max_hours * 0.08 {
+                    if (*p90 - *p50) > max_hours * 0.06 {
                         chart
                             .draw_series(std::iter::once(Text::new(
                                 format_hours(*p90),
-                                (x_center.clone(), *p50 + (*p90 - *p50) / 2.0),
+                                (x_center, *p50 + (*p90 - *p50) / 2.0),
                                 label_font.clone(),
                             )))
                             .unwrap();
@@ -808,7 +803,7 @@ pub async fn metrics_handler(State(state): State<crate::AppState>) -> MetricsTem
                         .unwrap();
 
                     // p100 label
-                    if (*p100 - *p90) > max_hours * 0.08 {
+                    if (*p100 - *p90) > max_hours * 0.06 {
                         chart
                             .draw_series(std::iter::once(Text::new(
                                 format_hours(*p100),
