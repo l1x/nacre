@@ -597,6 +597,20 @@ main:has(.board) {
     border: 1px solid var(--border-subtle);
 }
 
+/* Column status colors */
+.board-column[data-status="open"] { border-top: 3px solid var(--accent); }
+.board-column[data-status="in_progress"] { border-top: 3px solid #7eb8da; }
+.board-column[data-status="blocked"] { border-top: 3px solid #d48a8a; }
+.board-column[data-status="deferred"] { border-top: 3px solid #b8a9c9; }
+.board-column[data-status="closed"] { border-top: 3px solid var(--text-muted); }
+
+/* Column count badge colors */
+.board-column[data-status="open"] .count { color: var(--accent); }
+.board-column[data-status="in_progress"] .count { color: #7eb8da; }
+.board-column[data-status="blocked"] .count { color: #d48a8a; }
+.board-column[data-status="deferred"] .count { color: #b8a9c9; }
+.board-column[data-status="closed"] .count { color: var(--text-muted); }
+
 .column-header {
     padding: 16px 18px;
     border-bottom: 1px solid var(--border-subtle);
