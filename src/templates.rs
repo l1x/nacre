@@ -188,10 +188,7 @@ pub struct EditIssueTemplate {
 #[template(path = "graph.html")]
 pub struct GraphTemplate {
     pub project_name: String,
-    pub nodes: Vec<GraphNode>,
-    pub edges: Vec<GraphEdge>,
-    pub width: i32,
-    pub height: i32,
+    pub epics: Vec<EpicWithProgress>,
 }
 
 #[derive(Template)]

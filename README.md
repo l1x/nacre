@@ -71,9 +71,31 @@ nacre/
 │   └── beads.rs     # Beads CLI integration
 ├── templates/       # Askama HTML templates
 ├── frontend/
+│   ├── src/         # TypeScript source code
+│   │   ├── modules/ # Modular frontend logic
+│   │   └── main.ts  # Entry point
 │   └── public/      # Static assets (CSS, JS)
 └── docs/
     └── prds/        # Product requirement documents
+```
+
+### Prerequisites
+
+- **Rust 1.75+**
+- **Bun** (for building frontend assets)
+
+### Frontend Development
+
+The frontend logic is written in modular TypeScript (`frontend/src/`) and bundled into a single file (`frontend/public/app.js`) which is then embedded into the Rust binary.
+
+To build the frontend:
+
+```bash
+# Build TypeScript to app.js
+mise run build-js-prod
+
+# Build TypeScript to test.js (for verification)
+mise run build-js-test
 ```
 
 ### Running in development

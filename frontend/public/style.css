@@ -1919,6 +1919,8 @@ main:has(.board) {
     position: relative;
 }
 
+/* Graph Explorer - Focus-Explorer Layout */
+
 .issue-title a {
     text-decoration: none;
     color: inherit;
