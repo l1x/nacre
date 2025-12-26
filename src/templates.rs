@@ -215,4 +215,5 @@ pub struct MetricsTemplate {
     pub wip_count: usize,
     pub blocked_count: usize,
     pub tickets_chart_svg: String,
+    pub lead_time_chart_svg: String,
 }

@@ -1843,18 +1843,15 @@ main:has(.board) {
 }
 
 .chart-container {
-    background-color: white; /* Plotters graph has white background by default in my code */
-    padding: 20px;
+    background-color: transparent;
     border-radius: var(--radius);
-    border: 1px solid var(--border-color);
     overflow-x: auto;
-    display: flex;
-    justify-content: center;
 }
 
 .chart-container svg {
-    max-width: 100%;
+    width: 100%;
     height: auto;
+    display: block;
 }
 
 .type-distribution {

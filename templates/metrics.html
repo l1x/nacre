@@ -49,6 +49,15 @@
                     {{ tickets_chart_svg|safe }}
                 </div>
             </section>
+
+            {% if !lead_time_chart_svg.is_empty() %}
+            <section class="metrics-section">
+                <h2>Lead Time Distribution</h2>
+                <div class="chart-container">
+                    {{ lead_time_chart_svg|safe }}
+                </div>
+            </section>
+            {% endif %}
         </div>
     </main>
 </body>
