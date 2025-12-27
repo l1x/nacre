@@ -1935,6 +1935,18 @@ main:has(.board) {
     position: relative;
 }
 
+.html-chart__grid-line::before {
+    content: attr(data-value);
+    position: absolute;
+    left: -45px; /* Slightly more space */
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 11px;
+    color: var(--text-muted);
+    width: 40px;
+    text-align: right;
+}
+
 /* Chart Axes */
 .html-chart__axis-layer {
     position: absolute;
