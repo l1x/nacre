@@ -367,12 +367,11 @@ pub async fn metrics_handler(State(state): State<crate::AppState>) -> MetricsTem
         }
     };
 
-    // Generate Throughput Chart (Date-based)
-    let mut throughput_distribution_svg = String::new();
-    {
+    // Generate Throughput Chart (Date-based) using charts-rs
+    let throughput_distribution_svg = {
         let now_dt = chrono::Utc::now().with_timezone(&chrono::FixedOffset::east_opt(0).unwrap());
         let start_dt = now_dt - chrono::Duration::days(30);
-        
+
         let mut throughput_by_day: HashMap<chrono::NaiveDate, usize> = HashMap::new();
         // Fill in all days with 0 first
         let mut curr = start_dt.date_naive();
@@ -394,68 +393,26 @@ pub async fn metrics_handler(State(state): State<crate::AppState>) -> MetricsTem
         let mut all_dates: Vec<chrono::NaiveDate> = throughput_by_day.keys().cloned().collect();
         all_dates.sort();
 
-        let mut day_data: Vec<(String, usize)> = Vec::new();
+        let mut throughput_data: Vec<f32> = Vec::new();
+        let mut x_labels: Vec<String> = Vec::new();
         for date in &all_dates {
             let count = *throughput_by_day.get(date).unwrap_or(&0);
-            day_data.push((date.format("%m-%d").to_string(), count));
+            throughput_data.push(count as f32);
+            x_labels.push(date.format("%m-%d").to_string());
         }
 
-        let max_val = *throughput_by_day.values().max().unwrap_or(&0);
+        let mut chart = BarChart::new_with_theme(
+            vec![Series::new("Closed".to_string(), throughput_data)],
+            x_labels,
+            THEME_DARK,
+        );
 
-        // Theme colors
-        let bg_color = RGBColor(35, 31, 29);
-        let text_color = RGBColor(154, 149, 144);
-        let grid_color = RGBColor(34, 32, 32);
-        let color_throughput = RGBColor(155, 187, 89); // Green matching p90/Resolved
+        chart.width = 700.0;
+        chart.height = 400.0;
+        chart.series_list[0].label_show = true;
 
-        let root = SVGBackend::with_string(&mut throughput_distribution_svg, (700, 400)).into_drawing_area();
-        root.fill(&bg_color).unwrap();
-
-        let num_days = day_data.len();
-        let bar_padding = 0.10;
-
-        let mut chart = ChartBuilder::on(&root)
-            .x_label_area_size(40)
-            .y_label_area_size(50)
-            .margin(20)
-            .margin_bottom(60)
-            .build_cartesian_2d(0f64..(num_days as f64), 0usize..(max_val + 1))
-            .unwrap();
-
-        chart
-            .configure_mesh()
-            .disable_x_mesh()
-            .bold_line_style(grid_color)
-            .light_line_style(grid_color.mix(0.5))
-            .y_desc("Issues Closed")
-            .x_labels(num_days)
-            .x_label_formatter(&|x| {
-                let idx = x.round() as usize;
-                if idx < day_data.len() && (*x - idx as f64).abs() < 0.3 {
-                    day_data[idx].0.clone()
-                } else {
-                    String::new()
-                }
-            })
-            .axis_desc_style(("sans-serif", 14).into_font().color(&text_color))
-            .label_style(("sans-serif", 12).into_font().color(&text_color))
-            .axis_style(text_color)
-            .draw()
-            .unwrap();
-
-        // Draw bars
-        for (idx, (_, count)) in day_data.iter().enumerate() {
-            let x_left = idx as f64 + bar_padding;
-            let x_right = (idx + 1) as f64 - bar_padding;
-            
-            chart
-                .draw_series(std::iter::once(Rectangle::new(
-                    [(x_left, 0), (x_right, *count)],
-                    color_throughput.filled(),
-                )))
-                .unwrap();
-        }
-    }
+        chart.svg().unwrap_or_default()
+    };
 
     MetricsTemplate {
         project_name: state.project_name.clone(),
