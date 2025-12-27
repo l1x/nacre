@@ -243,14 +243,26 @@ pub async fn metrics_handler(State(state): State<crate::AppState>) -> MetricsTem
             (a, b, c)
         });
     let cycle_max = cycle_p100.iter().fold(0.0_f64, |a, &b| a.max(b));
+    
+    let (cycle_unit, cycle_divisor) = if cycle_max > 60.0 {
+        ("h", 60.0)
+    } else {
+        ("m", 1.0)
+    };
+
+    let cycle_p50_scaled: Vec<f64> = cycle_p50.iter().map(|v| v / cycle_divisor).collect();
+    let cycle_p90_scaled: Vec<f64> = cycle_p90.iter().map(|v| v / cycle_divisor).collect();
+    let cycle_p100_scaled: Vec<f64> = cycle_p100.iter().map(|v| v / cycle_divisor).collect();
+    let cycle_max_scaled = cycle_max / cycle_divisor;
+
     let cycle_time_chart = create_chart(
         labels.clone(),
         vec![
-            create_series("p50", "blue", &cycle_p50, cycle_max, "m"),
-            create_series("p90", "green", &cycle_p90, cycle_max, "m"),
-            create_series("p100", "orange", &cycle_p100, cycle_max, "m"),
+            create_series("p50", "blue", &cycle_p50_scaled, cycle_max_scaled, cycle_unit),
+            create_series("p90", "green", &cycle_p90_scaled, cycle_max_scaled, cycle_unit),
+            create_series("p100", "orange", &cycle_p100_scaled, cycle_max_scaled, cycle_unit),
         ],
-        "m",
+        cycle_unit,
     );
 
     // --- Throughput Chart ---
