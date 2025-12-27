@@ -2,6 +2,9 @@ use axum::extract::State;
 use charts_rs::{BarChart, Color, Series, THEME_DARK};
 use std::collections::HashMap;
 
+use crate::beads;
+use crate::templates::*;
+
 /// Nacre dark theme background color (#231f1d)
 const NACRE_BG: Color = Color {
     r: 35,
@@ -10,8 +13,29 @@ const NACRE_BG: Color = Color {
     a: 255,
 };
 
-use crate::beads;
-use crate::templates::*;
+/// Nacre accent blue (#4f81bd)
+const NACRE_BLUE: Color = Color {
+    r: 79,
+    g: 129,
+    b: 189,
+    a: 255,
+};
+
+/// Nacre accent green (#9bbb59)
+const NACRE_GREEN: Color = Color {
+    r: 155,
+    g: 187,
+    b: 89,
+    a: 255,
+};
+
+/// Nacre accent orange (#f79646)
+const NACRE_ORANGE: Color = Color {
+    r: 247,
+    g: 150,
+    b: 70,
+    a: 255,
+};
 
 pub async fn metrics_handler(State(state): State<crate::AppState>) -> MetricsTemplate {
     let all_issues = state.client.list_issues().unwrap_or_default();
@@ -154,9 +178,10 @@ pub async fn metrics_handler(State(state): State<crate::AppState>) -> MetricsTem
         chart.width = 800.0;
         chart.height = 400.0;
         chart.background_color = NACRE_BG;
-        chart.title_text = "Tickets Activity (Last 30 Days)".to_string();
-        chart.series_list[0].label_show = true;
-        chart.series_list[1].label_show = true;
+        chart.series_colors = vec![NACRE_BLUE, NACRE_GREEN];
+        // Don't show labels (too many zeros cluttering the chart)
+        chart.series_list[0].label_show = false;
+        chart.series_list[1].label_show = false;
 
         chart.svg().unwrap_or_default()
     };
@@ -217,7 +242,8 @@ pub async fn metrics_handler(State(state): State<crate::AppState>) -> MetricsTem
             chart.width = 700.0;
             chart.height = 400.0;
             chart.background_color = NACRE_BG;
-            chart.y_axis_configs[0].axis_formatter = Some("{c:.1}h".to_string());
+            chart.series_colors = vec![NACRE_BLUE, NACRE_GREEN, NACRE_ORANGE];
+            chart.y_axis_configs[0].axis_formatter = Some("{c}h".to_string());
             chart.series_list[0].label_show = true;
             chart.series_list[1].label_show = true;
             chart.series_list[2].label_show = true;
@@ -286,7 +312,8 @@ pub async fn metrics_handler(State(state): State<crate::AppState>) -> MetricsTem
             chart.width = 700.0;
             chart.height = 400.0;
             chart.background_color = NACRE_BG;
-            chart.y_axis_configs[0].axis_formatter = Some("{c:.0}m".to_string());
+            chart.series_colors = vec![NACRE_BLUE, NACRE_GREEN, NACRE_ORANGE];
+            chart.y_axis_configs[0].axis_formatter = Some("{c}m".to_string());
             chart.series_list[0].label_show = true;
             chart.series_list[1].label_show = true;
             chart.series_list[2].label_show = true;
@@ -340,7 +367,9 @@ pub async fn metrics_handler(State(state): State<crate::AppState>) -> MetricsTem
         chart.width = 700.0;
         chart.height = 400.0;
         chart.background_color = NACRE_BG;
-        chart.series_list[0].label_show = true;
+        chart.series_colors = vec![NACRE_BLUE];
+        // Don't show labels (too many zeros cluttering the chart)
+        chart.series_list[0].label_show = false;
 
         chart.svg().unwrap_or_default()
     };
