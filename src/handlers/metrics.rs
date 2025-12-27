@@ -1,6 +1,14 @@
 use axum::extract::State;
-use charts_rs::{BarChart, Series, THEME_DARK};
+use charts_rs::{BarChart, Color, Series, THEME_DARK};
 use std::collections::HashMap;
+
+/// Nacre dark theme background color (#231f1d)
+const NACRE_BG: Color = Color {
+    r: 35,
+    g: 31,
+    b: 29,
+    a: 255,
+};
 
 use crate::beads;
 use crate::templates::*;
@@ -145,6 +153,7 @@ pub async fn metrics_handler(State(state): State<crate::AppState>) -> MetricsTem
 
         chart.width = 800.0;
         chart.height = 400.0;
+        chart.background_color = NACRE_BG;
         chart.title_text = "Tickets Activity (Last 30 Days)".to_string();
         chart.series_list[0].label_show = true;
         chart.series_list[1].label_show = true;
@@ -207,6 +216,7 @@ pub async fn metrics_handler(State(state): State<crate::AppState>) -> MetricsTem
 
             chart.width = 700.0;
             chart.height = 400.0;
+            chart.background_color = NACRE_BG;
             chart.y_axis_configs[0].axis_formatter = Some("{c:.1}h".to_string());
             chart.series_list[0].label_show = true;
             chart.series_list[1].label_show = true;
@@ -275,6 +285,7 @@ pub async fn metrics_handler(State(state): State<crate::AppState>) -> MetricsTem
 
             chart.width = 700.0;
             chart.height = 400.0;
+            chart.background_color = NACRE_BG;
             chart.y_axis_configs[0].axis_formatter = Some("{c:.0}m".to_string());
             chart.series_list[0].label_show = true;
             chart.series_list[1].label_show = true;
@@ -328,6 +339,7 @@ pub async fn metrics_handler(State(state): State<crate::AppState>) -> MetricsTem
 
         chart.width = 700.0;
         chart.height = 400.0;
+        chart.background_color = NACRE_BG;
         chart.series_list[0].label_show = true;
 
         chart.svg().unwrap_or_default()
