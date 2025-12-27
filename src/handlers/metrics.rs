@@ -124,7 +124,7 @@ pub async fn metrics_handler(State(state): State<crate::AppState>) -> MetricsTem
     // Generate Tickets Activity Chart using charts-rs
     let tickets_chart_svg = {
         let now_dt = chrono::Utc::now().with_timezone(&chrono::FixedOffset::east_opt(0).unwrap());
-        let start_dt = now_dt - chrono::Duration::days(30);
+        let start_dt = now_dt - chrono::Duration::days(7);
 
         let mut created_by_day: HashMap<chrono::NaiveDate, usize> = HashMap::new();
         let mut resolved_by_day: HashMap<chrono::NaiveDate, usize> = HashMap::new();
@@ -163,7 +163,7 @@ pub async fn metrics_handler(State(state): State<crate::AppState>) -> MetricsTem
             let resolved = *resolved_by_day.get(date).unwrap_or(&0);
             created_data.push(created as f32);
             resolved_data.push(resolved as f32);
-            x_labels.push(date.format("%m-%d").to_string());
+            x_labels.push(date.format("%a").to_string());
         }
 
         let mut chart = BarChart::new_with_theme(
@@ -175,13 +175,12 @@ pub async fn metrics_handler(State(state): State<crate::AppState>) -> MetricsTem
             THEME_DARK,
         );
 
-        chart.width = 800.0;
+        chart.width = 700.0;
         chart.height = 400.0;
         chart.background_color = NACRE_BG;
         chart.series_colors = vec![NACRE_BLUE, NACRE_GREEN];
-        // Don't show labels (too many zeros cluttering the chart)
-        chart.series_list[0].label_show = false;
-        chart.series_list[1].label_show = false;
+        chart.series_list[0].label_show = true;
+        chart.series_list[1].label_show = true;
 
         chart.svg().unwrap_or_default()
     };
@@ -327,7 +326,7 @@ pub async fn metrics_handler(State(state): State<crate::AppState>) -> MetricsTem
     // Generate Throughput Chart (Date-based) using charts-rs
     let throughput_distribution_svg = {
         let now_dt = chrono::Utc::now().with_timezone(&chrono::FixedOffset::east_opt(0).unwrap());
-        let start_dt = now_dt - chrono::Duration::days(30);
+        let start_dt = now_dt - chrono::Duration::days(7);
 
         let mut throughput_by_day: HashMap<chrono::NaiveDate, usize> = HashMap::new();
         // Fill in all days with 0 first
@@ -355,7 +354,7 @@ pub async fn metrics_handler(State(state): State<crate::AppState>) -> MetricsTem
         for date in &all_dates {
             let count = *throughput_by_day.get(date).unwrap_or(&0);
             throughput_data.push(count as f32);
-            x_labels.push(date.format("%m-%d").to_string());
+            x_labels.push(date.format("%a").to_string());
         }
 
         let mut chart = BarChart::new_with_theme(
@@ -368,8 +367,7 @@ pub async fn metrics_handler(State(state): State<crate::AppState>) -> MetricsTem
         chart.height = 400.0;
         chart.background_color = NACRE_BG;
         chart.series_colors = vec![NACRE_BLUE];
-        // Don't show labels (too many zeros cluttering the chart)
-        chart.series_list[0].label_show = false;
+        chart.series_list[0].label_show = true;
 
         chart.svg().unwrap_or_default()
     };
