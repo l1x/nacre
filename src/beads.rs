@@ -244,6 +244,8 @@ pub struct Dependency {
     pub depends_on_id: String,
     #[serde(rename = "type")]
     pub dep_type: DependencyType,
+    pub created_at: Option<DateTime<FixedOffset>>,
+    pub created_by: Option<String>,
 }
 
 /// Represents the current state of an issue in the workflow.
@@ -854,11 +856,15 @@ mod tests {
             issue_id: "child-123".to_string(),
             depends_on_id: "parent-456".to_string(),
             dep_type: DependencyType::Blocks,
+            created_at: Some(chrono::DateTime::parse_from_rfc3339("2023-01-01T12:00:00Z").unwrap()),
+            created_by: Some("test-user".to_string()),
         };
 
         let serialized = serde_json::to_string(&dependency).unwrap();
         let deserialized: Dependency = serde_json::from_str(&serialized).unwrap();
 
         assert_eq!(dependency.dep_type, deserialized.dep_type);
+        assert_eq!(dependency.created_by, deserialized.created_by);
+        assert_eq!(dependency.created_at, deserialized.created_at);
     }
 }
