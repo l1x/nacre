@@ -90,20 +90,8 @@ pub async fn metrics_handler(State(state): State<crate::AppState>) -> MetricsTem
     let p90_cycle_time_mins = calculate_percentile(&sorted_cycle_times, 90.0);
     let p100_cycle_time_mins = calculate_percentile(&sorted_cycle_times, 100.0);
 
-    // Generate Chart
-    let mut tickets_chart_svg = String::new();
-    {
-        // Theme colors matching others
-        let color_created = RGBColor(79, 129, 189); // Blue
-        let color_resolved = RGBColor(155, 187, 89); // Green
-        
-        let bg_color = RGBColor(35, 31, 29);
-        let text_color = RGBColor(154, 149, 144);
-        let grid_color = RGBColor(34, 32, 32);
-
-        let root = SVGBackend::with_string(&mut tickets_chart_svg, (800, 400)).into_drawing_area();
-        root.fill(&bg_color).unwrap();
-
+    // Generate Tickets Activity Chart using charts-rs
+    let tickets_chart_svg = {
         let now_dt = chrono::Utc::now().with_timezone(&chrono::FixedOffset::east_opt(0).unwrap());
         let start_dt = now_dt - chrono::Duration::days(30);
 
@@ -135,103 +123,35 @@ pub async fn metrics_handler(State(state): State<crate::AppState>) -> MetricsTem
         let mut all_dates: Vec<chrono::NaiveDate> = created_by_day.keys().cloned().collect();
         all_dates.sort();
 
-        let mut day_data: Vec<(String, usize, usize)> = Vec::new(); // (label, created, resolved)
-        let mut max_v = 0;
+        let mut created_data: Vec<f32> = Vec::new();
+        let mut resolved_data: Vec<f32> = Vec::new();
+        let mut x_labels: Vec<String> = Vec::new();
 
         for date in &all_dates {
             let created = *created_by_day.get(date).unwrap_or(&0);
             let resolved = *resolved_by_day.get(date).unwrap_or(&0);
-            day_data.push((date.format("%m-%d").to_string(), created, resolved));
-            if created + resolved > max_v {
-                max_v = created + resolved;
-            }
+            created_data.push(created as f32);
+            resolved_data.push(resolved as f32);
+            x_labels.push(date.format("%m-%d").to_string());
         }
 
-        // Ensure Y axis has some height
-        if max_v == 0 { max_v = 5; }
+        let mut chart = BarChart::new_with_theme(
+            vec![
+                Series::new("Created".to_string(), created_data),
+                Series::new("Resolved".to_string(), resolved_data),
+            ],
+            x_labels,
+            THEME_DARK,
+        );
 
-        let num_days = day_data.len();
-        let bar_padding = 0.10;
+        chart.width = 800.0;
+        chart.height = 400.0;
+        chart.title_text = "Tickets Activity (Last 30 Days)".to_string();
+        chart.series_list[0].label_show = true;
+        chart.series_list[1].label_show = true;
 
-        let mut chart = ChartBuilder::on(&root)
-            .caption(
-                "Tickets Activity (Last 30 Days)",
-                ("sans-serif", 20).into_font().color(&text_color),
-            )
-            .margin(10)
-            .x_label_area_size(40)
-            .y_label_area_size(40)
-            .build_cartesian_2d(0f64..(num_days as f64), 0usize..(max_v + 1))
-            .unwrap();
-
-        chart
-            .configure_mesh()
-            .bold_line_style(grid_color)
-            .light_line_style(grid_color.mix(0.5))
-            .x_labels(num_days)
-            .x_label_formatter(&|x| {
-                let idx = x.round() as usize;
-                if idx < day_data.len() && (*x - idx as f64).abs() < 0.3 {
-                    day_data[idx].0.clone()
-                } else {
-                    String::new()
-                }
-            })
-            .y_labels(5)
-            .axis_style(text_color)
-            .label_style(("sans-serif", 12).into_font().color(&text_color))
-            .draw()
-            .unwrap();
-
-        // Draw stacked bars
-        for (idx, (_, created, resolved)) in day_data.iter().enumerate() {
-            let x_left = idx as f64 + bar_padding;
-            let x_right = (idx + 1) as f64 - bar_padding;
-            
-            // Created bar (bottom)
-            if *created > 0 {
-                chart
-                    .draw_series(std::iter::once(Rectangle::new(
-                        [(x_left, 0), (x_right, *created)],
-                        color_created.filled(),
-                    )))
-                    .unwrap();
-            }
-
-            // Resolved bar (stacked on top of created)
-            if *resolved > 0 {
-                chart
-                    .draw_series(std::iter::once(Rectangle::new(
-                        [(x_left, *created), (x_right, *created + *resolved)],
-                        color_resolved.filled(),
-                    )))
-                    .unwrap();
-            }
-        }
-
-        // Legend
-        let legend_items = [
-            (color_created, "Created"),
-            (color_resolved, "Resolved"),
-        ];
-        let legend_start_x = 300i32;
-        let legend_spacing = 100i32;
-
-        for (i, (color, label)) in legend_items.iter().enumerate() {
-            let x = legend_start_x + (i as i32) * legend_spacing;
-            root.draw(&Rectangle::new(
-                [(x, 370), (x + 20, 385)],
-                color.filled(),
-            ))
-            .unwrap();
-            root.draw(&Text::new(
-                *label,
-                (x + 25, 373),
-                ("sans-serif", 13).into_font().color(&text_color),
-            ))
-            .unwrap();
-        }
-    }
+        chart.svg().unwrap_or_default()
+    };
 
     // Generate Lead Time Percentiles Chart (p50, p90, p100 over time) using charts-rs
     let lead_time_chart_svg = {
