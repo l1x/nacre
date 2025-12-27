@@ -299,9 +299,8 @@ pub async fn metrics_handler(State(state): State<crate::AppState>) -> MetricsTem
         }
     };
 
-    // Generate Cycle Time Percentiles Chart (p50, p90, p100 over time)
-    let mut cycle_time_distribution_svg = String::new();
-    {
+    // Generate Cycle Time Percentiles Chart (p50, p90, p100 over time) using charts-rs
+    let cycle_time_distribution_svg = {
         let now_dt = chrono::Utc::now().with_timezone(&chrono::FixedOffset::east_opt(0).unwrap());
         let start_dt = now_dt - chrono::Duration::days(7);
 
@@ -328,158 +327,45 @@ pub async fn metrics_handler(State(state): State<crate::AppState>) -> MetricsTem
             all_dates.sort();
 
             // Calculate percentiles per day
-            let mut day_data: Vec<(String, f64, f64, f64)> = Vec::new(); // (label, p50, p90, p100)
+            let mut p50_data: Vec<f32> = Vec::new();
+            let mut p90_data: Vec<f32> = Vec::new();
+            let mut p100_data: Vec<f32> = Vec::new();
+            let mut x_labels: Vec<String> = Vec::new();
+
             for date in &all_dates {
                 let mut times = cycle_times_by_day.get(date).cloned().unwrap_or_default();
                 times.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
-                let p50 = calculate_percentile(&times, 50.0);
-                let p90 = calculate_percentile(&times, 90.0);
-                let p100 = calculate_percentile(&times, 100.0);
-                day_data.push((date.format("%a").to_string(), p50, p90, p100));
+                let p50 = calculate_percentile(&times, 50.0) as f32;
+                let p90 = calculate_percentile(&times, 90.0) as f32;
+                let p100 = calculate_percentile(&times, 100.0) as f32;
+                p50_data.push(p50);
+                p90_data.push(p90);
+                p100_data.push(p100);
+                x_labels.push(date.format("%a").to_string());
             }
 
-            let max_mins = day_data
-                .iter()
-                .map(|(_, _, _, p100)| *p100)
-                .fold(1.0_f64, f64::max);
+            let mut chart = BarChart::new_with_theme(
+                vec![
+                    Series::new("p50".to_string(), p50_data),
+                    Series::new("p90".to_string(), p90_data),
+                    Series::new("p100".to_string(), p100_data),
+                ],
+                x_labels,
+                THEME_DARK,
+            );
 
-            // Theme colors
-            let color_p50 = RGBColor(79, 129, 189); // Blue
-            let color_p90 = RGBColor(155, 187, 89); // Green
-            let color_p100 = RGBColor(247, 150, 70); // Orange
-            
-            let bg_color = RGBColor(35, 31, 29);
-            let text_color = RGBColor(154, 149, 144);
-            let grid_color = RGBColor(34, 32, 32);
+            chart.width = 700.0;
+            chart.height = 400.0;
+            chart.y_axis_configs[0].axis_formatter = Some("{c:.0}m".to_string());
+            chart.series_list[0].label_show = true;
+            chart.series_list[1].label_show = true;
+            chart.series_list[2].label_show = true;
 
-            let root =
-                SVGBackend::with_string(&mut cycle_time_distribution_svg, (700, 400)).into_drawing_area();
-            root.fill(&bg_color).unwrap();
-
-            let num_days = day_data.len();
-            let bar_padding = 0.10;
-
-            let mut chart = ChartBuilder::on(&root)
-                .x_label_area_size(40)
-                .y_label_area_size(50)
-                .margin(20)
-                .margin_bottom(60)
-                .build_cartesian_2d(0f64..(num_days as f64), 0f64..(max_mins * 1.1))
-                .unwrap();
-
-            chart
-                .configure_mesh()
-                .disable_x_mesh()
-                .bold_line_style(grid_color)
-                .light_line_style(grid_color.mix(0.5))
-                .y_desc("Cycle Time (min)")
-                .y_label_formatter(&|v| format!("{:.0}m", v))
-                .x_labels(num_days)
-                .x_label_formatter(&|x| {
-                    let idx = x.round() as usize;
-                    if idx < day_data.len() && (*x - idx as f64).abs() < 0.3 {
-                        day_data[idx].0.clone()
-                    } else {
-                        String::new()
-                    }
-                })
-                .axis_desc_style(("sans-serif", 14).into_font().color(&text_color))
-                .label_style(("sans-serif", 12).into_font().color(&text_color))
-                .axis_style(text_color)
-                .draw()
-                .unwrap();
-
-            // Draw stacked bars
-            for (idx, (_, p50, p90, p100)) in day_data.iter().enumerate() {
-                let x_left = idx as f64 + bar_padding;
-                let x_right = (idx + 1) as f64 - bar_padding;
-                let x_center = idx as f64 + 0.5;
-                let label_font = ("sans-serif", 12).into_font().color(&WHITE);
-
-                // p50 segment
-                chart
-                    .draw_series(std::iter::once(Rectangle::new(
-                        [(x_left, 0.0), (x_right, *p50)],
-                        color_p50.filled(),
-                    )))
-                    .unwrap();
-
-                if *p50 > max_mins * 0.06 {
-                    chart
-                        .draw_series(std::iter::once(Text::new(
-                            format!("{:.0}", p50),
-                            (x_center, *p50 / 2.0),
-                            label_font.clone(),
-                        )))
-                        .unwrap();
-                }
-
-                // p90 segment
-                if *p90 > *p50 {
-                    chart
-                        .draw_series(std::iter::once(Rectangle::new(
-                            [(x_left, *p50), (x_right, *p90)],
-                            color_p90.filled(),
-                        )))
-                        .unwrap();
-
-                    if (*p90 - *p50) > max_mins * 0.06 {
-                        chart
-                            .draw_series(std::iter::once(Text::new(
-                                format!("{:.0}", p90),
-                                (x_center, *p50 + (*p90 - *p50) / 2.0),
-                                label_font.clone(),
-                            )))
-                            .unwrap();
-                    }
-                }
-
-                // p100 segment
-                if *p100 > *p90 {
-                    chart
-                        .draw_series(std::iter::once(Rectangle::new(
-                            [(x_left, *p90), (x_right, *p100)],
-                            color_p100.filled(),
-                        )))
-                        .unwrap();
-
-                    if (*p100 - *p90) > max_mins * 0.06 {
-                        chart
-                            .draw_series(std::iter::once(Text::new(
-                                format!("{:.0}", p100),
-                                (x_center, *p90 + (*p100 - *p90) / 2.0),
-                                label_font.clone(),
-                            )))
-                            .unwrap();
-                    }
-                }
-            }
-
-            // Draw legend
-            let legend_items = [
-                (color_p50, "p50"),
-                (color_p90, "p90"),
-                (color_p100, "p100"),
-            ];
-            let legend_start_x = 250i32;
-            let legend_spacing = 80i32;
-
-            for (i, (color, label)) in legend_items.iter().enumerate() {
-                let x = legend_start_x + (i as i32) * legend_spacing;
-                root.draw(&Rectangle::new(
-                    [(x, 370), (x + 20, 385)],
-                    color.filled(),
-                ))
-                .unwrap();
-                root.draw(&Text::new(
-                    *label,
-                    (x + 25, 373),
-                    ("sans-serif", 13).into_font().color(&text_color),
-                ))
-                .unwrap();
-            }
+            chart.svg().unwrap_or_default()
+        } else {
+            String::new()
         }
-    }
+    };
 
     // Generate Throughput Chart (Date-based)
     let mut throughput_distribution_svg = String::new();
