@@ -2010,6 +2010,11 @@ main:has(.board) {
     position: relative;
     min-width: 0;
     height: 100%;
+    border-right: 1px solid var(--chart-grid-color);
+}
+
+.html-chart__bar-group:last-child {
+    border-right: none;
 }
 
 /* Individual bar */
