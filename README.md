@@ -121,6 +121,20 @@ cargo clippy
 
 ## Version History
 
+### 0.5.1 (2025-12-28)
+
+**Charts & Dashboard**
+- Replaced static SVG charts with pure HTML/CSS implementation for better performance and theming
+- Added Ticket Activity chart to Dashboard
+- Implemented dynamic axes, arrowheads, and grid lines for all charts
+- Fixed dark mode visibility for chart grids
+- Removed legacy metrics cards from Dashboard
+
+**Fixes**
+- Fixed `Dependency` deserialization (missing `created_at`/`created_by` fields)
+- Fixed chart rendering issues (invisible bars, alignment)
+- Removed pointer cursors from non-clickable charts
+
 ### 0.4.0 (2025-12-27)
 
 **Metrics & Charts**
