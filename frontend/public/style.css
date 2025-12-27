@@ -1872,6 +1872,7 @@ main:has(.board) {
     height: 320px;
     display: flex;
     flex-direction: column;
+    padding-left: 20px;
 }
 
 /* Chart title */
