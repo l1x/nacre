@@ -1,6 +1,5 @@
 use axum::extract::State;
 use charts_rs::{BarChart, Series, THEME_DARK};
-use plotters::prelude::*;
 use std::collections::HashMap;
 
 use crate::beads;
