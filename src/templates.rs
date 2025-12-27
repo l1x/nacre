@@ -112,6 +112,7 @@ pub struct LandingTemplate {
     pub epics: Vec<EpicWithProgress>,
     pub blocked: Vec<beads::Issue>,
     pub in_progress: Vec<beads::Issue>,
+    pub tickets_chart: ChartData,
 }
 
 #[derive(Template)]

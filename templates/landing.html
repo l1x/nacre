@@ -30,6 +30,49 @@
                 </div>
             </section>
 
+            <!-- Ticket Activity Chart -->
+            <section class="dashboard-section" style="margin-bottom: 32px;">
+                <h2>Ticket Activity <span class="chart-desc">Opened and Resolved tickets over time</span></h2>
+                <div class="html-chart html-chart--show-values">
+                    <div class="html-chart__legend">
+                        {% for series in tickets_chart.series %}
+                        <div class="html-chart__legend-item">
+                            <span class="html-chart__legend-dot html-chart__legend-dot--{{ series.color }}"></span>
+                            {{ series.name }}
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <div class="html-chart__area">
+                        <div class="html-chart__axis-layer">
+                            <div class="html-chart__axis-y"></div>
+                            <div class="html-chart__axis-x"></div>
+                        </div>
+                        <div class="html-chart__grid">
+                            <div class="html-chart__grid-line" data-value="{{ tickets_chart.max_value|round }}"></div>
+                            <div class="html-chart__grid-line" data-value="{{ (tickets_chart.max_value / 2.0)|round }}"></div>
+                            <div class="html-chart__grid-line" data-value="0"></div>
+                        </div>
+                        <div class="html-chart__bars">
+                            {% for i in 0..tickets_chart.labels.len() %}
+                            <div class="html-chart__bar-group">
+                                {% for series in tickets_chart.series %}
+                                <div class="html-chart__bar html-chart__bar--{{ series.color }}"
+                                     style="height: {{ series.bars[i].percent }}%;">
+                                    <span class="html-chart__bar-value">{{ series.bars[i].display }}</span>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            {% endfor %}
+                            <div class="html-chart__x-axis">
+                                {% for label in tickets_chart.labels %}
+                                <span class="html-chart__x-label">{{ label }}</span>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
             <div class="dashboard-columns">
                 <section class="dashboard-section">
                     <h2>Epic Progress</h2>
