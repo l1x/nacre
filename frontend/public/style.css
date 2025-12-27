@@ -1995,7 +1995,7 @@ main:has(.board) {
     align-items: flex-end;
     gap: 4px;
     padding-left: 45px;
-    padding-bottom: 28px;
+    padding-bottom: 30px;
     position: relative;
 }
 
