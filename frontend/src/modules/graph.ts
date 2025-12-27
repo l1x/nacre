@@ -49,6 +49,7 @@ export function initGraph() {
         const toggleBtn = node.querySelector('.tree-toggle') as HTMLButtonElement | null;
         if (toggleBtn) {
             toggleBtn.addEventListener('click', (e) => {
+                debugger;
                 e.preventDefault();
                 e.stopPropagation();
 
