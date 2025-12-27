@@ -79,36 +79,172 @@
                 </div>
             </div>
 
+            <!-- Ticket Activity Chart -->
             <section class="metrics-section" id="ticket-activity">
                 <h2>Ticket Activity</h2>
                 <div class="chart-container">
-                    {{ tickets_chart_svg|safe }}
+                    <div class="html-chart html-chart--show-values">
+                        <div class="html-chart__legend">
+                            {% for series in tickets_chart.series %}
+                            <div class="html-chart__legend-item">
+                                <span class="html-chart__legend-dot html-chart__legend-dot--{{ series.color }}"></span>
+                                {{ series.name }}
+                            </div>
+                            {% endfor %}
+                        </div>
+                        <div class="html-chart__area">
+                            <div class="html-chart__grid">
+                                <div class="html-chart__grid-line" data-value="{{ tickets_chart.max_value|round }}"></div>
+                                <div class="html-chart__grid-line" data-value="{{ (tickets_chart.max_value / 2.0)|round }}"></div>
+                                <div class="html-chart__grid-line" data-value="0"></div>
+                            </div>
+                            <div class="html-chart__bars">
+                                {% for i in 0..tickets_chart.labels.len() %}
+                                <div class="html-chart__bar-group">
+                                    {% for series in tickets_chart.series %}
+                                    <div class="html-chart__bar html-chart__bar--{{ series.color }}"
+                                         style="height: {{ series.bars[i].percent }}%;">
+                                        <span class="html-chart__bar-value">{{ series.bars[i].display }}</span>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                                {% endfor %}
+                                <div class="html-chart__x-axis">
+                                    {% for label in tickets_chart.labels %}
+                                    <span class="html-chart__x-label">{{ label }}</span>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </section>
 
-            {% if !lead_time_chart_svg.is_empty() %}
+            <!-- Lead Time Chart -->
+            {% if lead_time_chart.has_data() %}
             <section class="metrics-section" id="lead-time">
                 <h2>Lead Time</h2>
                 <div class="chart-container">
-                    {{ lead_time_chart_svg|safe }}
+                    <div class="html-chart html-chart--show-values">
+                        <div class="html-chart__legend">
+                            {% for series in lead_time_chart.series %}
+                            <div class="html-chart__legend-item">
+                                <span class="html-chart__legend-dot html-chart__legend-dot--{{ series.color }}"></span>
+                                {{ series.name }}
+                            </div>
+                            {% endfor %}
+                        </div>
+                        <div class="html-chart__area">
+                            <div class="html-chart__grid">
+                                <div class="html-chart__grid-line" data-value="{{ lead_time_chart.max_value|round }}{{ lead_time_chart.unit }}"></div>
+                                <div class="html-chart__grid-line" data-value="{{ (lead_time_chart.max_value / 2.0)|round }}{{ lead_time_chart.unit }}"></div>
+                                <div class="html-chart__grid-line" data-value="0"></div>
+                            </div>
+                            <div class="html-chart__bars">
+                                {% for i in 0..lead_time_chart.labels.len() %}
+                                <div class="html-chart__bar-group">
+                                    {% for series in lead_time_chart.series %}
+                                    <div class="html-chart__bar html-chart__bar--{{ series.color }}"
+                                         style="height: {{ series.bars[i].percent }}%;">
+                                        <span class="html-chart__bar-value">{{ series.bars[i].display }}</span>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                                {% endfor %}
+                                <div class="html-chart__x-axis">
+                                    {% for label in lead_time_chart.labels %}
+                                    <span class="html-chart__x-label">{{ label }}</span>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </section>
             {% endif %}
 
-            {% if !cycle_time_distribution_svg.is_empty() %}
+            <!-- Cycle Time Chart -->
+            {% if cycle_time_chart.has_data() %}
             <section class="metrics-section" id="cycle-time">
                 <h2>Cycle Time</h2>
                 <div class="chart-container">
-                    {{ cycle_time_distribution_svg|safe }}
+                    <div class="html-chart html-chart--show-values">
+                        <div class="html-chart__legend">
+                            {% for series in cycle_time_chart.series %}
+                            <div class="html-chart__legend-item">
+                                <span class="html-chart__legend-dot html-chart__legend-dot--{{ series.color }}"></span>
+                                {{ series.name }}
+                            </div>
+                            {% endfor %}
+                        </div>
+                        <div class="html-chart__area">
+                            <div class="html-chart__grid">
+                                <div class="html-chart__grid-line" data-value="{{ cycle_time_chart.max_value|round }}{{ cycle_time_chart.unit }}"></div>
+                                <div class="html-chart__grid-line" data-value="{{ (cycle_time_chart.max_value / 2.0)|round }}{{ cycle_time_chart.unit }}"></div>
+                                <div class="html-chart__grid-line" data-value="0"></div>
+                            </div>
+                            <div class="html-chart__bars">
+                                {% for i in 0..cycle_time_chart.labels.len() %}
+                                <div class="html-chart__bar-group">
+                                    {% for series in cycle_time_chart.series %}
+                                    <div class="html-chart__bar html-chart__bar--{{ series.color }}"
+                                         style="height: {{ series.bars[i].percent }}%;">
+                                        <span class="html-chart__bar-value">{{ series.bars[i].display }}</span>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                                {% endfor %}
+                                <div class="html-chart__x-axis">
+                                    {% for label in cycle_time_chart.labels %}
+                                    <span class="html-chart__x-label">{{ label }}</span>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </section>
             {% endif %}
 
-            {% if !throughput_distribution_svg.is_empty() %}
+            <!-- Throughput Chart -->
+            {% if throughput_chart.has_data() %}
             <section class="metrics-section" id="throughput">
                 <h2>Throughput</h2>
                 <div class="chart-container">
-                    {{ throughput_distribution_svg|safe }}
+                    <div class="html-chart html-chart--show-values">
+                        <div class="html-chart__legend">
+                            {% for series in throughput_chart.series %}
+                            <div class="html-chart__legend-item">
+                                <span class="html-chart__legend-dot html-chart__legend-dot--{{ series.color }}"></span>
+                                {{ series.name }}
+                            </div>
+                            {% endfor %}
+                        </div>
+                        <div class="html-chart__area">
+                            <div class="html-chart__grid">
+                                <div class="html-chart__grid-line" data-value="{{ throughput_chart.max_value|round }}"></div>
+                                <div class="html-chart__grid-line" data-value="{{ (throughput_chart.max_value / 2.0)|round }}"></div>
+                                <div class="html-chart__grid-line" data-value="0"></div>
+                            </div>
+                            <div class="html-chart__bars">
+                                {% for i in 0..throughput_chart.labels.len() %}
+                                <div class="html-chart__bar-group">
+                                    {% for series in throughput_chart.series %}
+                                    <div class="html-chart__bar html-chart__bar--{{ series.color }}"
+                                         style="height: {{ series.bars[i].percent }}%;">
+                                        <span class="html-chart__bar-value">{{ series.bars[i].display }}</span>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                                {% endfor %}
+                                <div class="html-chart__x-axis">
+                                    {% for label in throughput_chart.labels %}
+                                    <span class="html-chart__x-label">{{ label }}</span>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </section>
             {% endif %}

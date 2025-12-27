@@ -15,6 +15,9 @@ pub mod filters {
     pub fn format_date(date: &chrono::DateTime<chrono::FixedOffset>) -> askama::Result<String> {
         Ok(date.format("%Y-%m-%d %H:%M").to_string())
     }
+    pub fn round(val: &f64) -> askama::Result<i64> {
+        Ok(val.round() as i64)
+    }
 }
 
 pub struct ProjectStats {
@@ -214,6 +217,48 @@ pub struct GraphTemplate {
     pub app_version: String,
 }
 
+/// A single bar in a chart series
+#[derive(Clone)]
+pub struct ChartBar {
+    /// The raw value
+    pub value: f64,
+    /// The value as a percentage of the max (0-100)
+    pub percent: f64,
+    /// Formatted display value (e.g., "42", "3.5h", "120m")
+    pub display: String,
+}
+
+/// A series of bars with a name and color
+#[derive(Clone)]
+pub struct ChartSeries {
+    /// Series name for legend
+    pub name: String,
+    /// CSS color class suffix (blue, green, orange)
+    pub color: &'static str,
+    /// The bars in this series
+    pub bars: Vec<ChartBar>,
+}
+
+/// Chart data for HTML template rendering
+#[derive(Clone)]
+pub struct ChartData {
+    /// X-axis labels (e.g., dates)
+    pub labels: Vec<String>,
+    /// Data series
+    pub series: Vec<ChartSeries>,
+    /// Y-axis unit suffix (e.g., "h", "m", "")
+    pub unit: &'static str,
+    /// Maximum value for Y-axis grid
+    pub max_value: f64,
+}
+
+impl ChartData {
+    /// Check if chart has any non-zero data
+    pub fn has_data(&self) -> bool {
+        self.series.iter().any(|s| s.bars.iter().any(|b| b.value > 0.0))
+    }
+}
+
 #[derive(Template)]
 #[template(path = "metrics.html")]
 pub struct MetricsTemplate {
@@ -227,10 +272,10 @@ pub struct MetricsTemplate {
     pub closed_last_7_days: usize,
     pub wip_count: usize,
     pub blocked_count: usize,
-    pub tickets_chart_svg: String,
-    pub lead_time_chart_svg: String,
-    pub cycle_time_distribution_svg: String,
-    pub throughput_distribution_svg: String,
+    pub tickets_chart: ChartData,
+    pub lead_time_chart: ChartData,
+    pub cycle_time_chart: ChartData,
+    pub throughput_chart: ChartData,
     pub p50_lead_time_hours: f64,
     pub p90_lead_time_hours: f64,
     pub p100_lead_time_hours: f64,
