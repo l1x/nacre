@@ -408,7 +408,6 @@ function initGraph() {
     const toggleBtn = node.querySelector(".tree-toggle");
     if (toggleBtn) {
       toggleBtn.addEventListener("click", (e) => {
-        debugger;
         e.preventDefault();
         e.stopPropagation();
         const id = node.getAttribute("data-id");
