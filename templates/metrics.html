@@ -93,6 +93,10 @@
                             {% endfor %}
                         </div>
                         <div class="html-chart__area">
+                            <div class="html-chart__axis-layer">
+                                <div class="html-chart__axis-y"></div>
+                                <div class="html-chart__axis-x"></div>
+                            </div>
                             <div class="html-chart__grid">
                                 <div class="html-chart__grid-line" data-value="{{ tickets_chart.max_value|round }}"></div>
                                 <div class="html-chart__grid-line" data-value="{{ (tickets_chart.max_value / 2.0)|round }}"></div>
@@ -135,6 +139,10 @@
                             {% endfor %}
                         </div>
                         <div class="html-chart__area">
+                            <div class="html-chart__axis-layer">
+                                <div class="html-chart__axis-y"></div>
+                                <div class="html-chart__axis-x"></div>
+                            </div>
                             <div class="html-chart__grid">
                                 <div class="html-chart__grid-line" data-value="{{ lead_time_chart.max_value|round }}{{ lead_time_chart.unit }}"></div>
                                 <div class="html-chart__grid-line" data-value="{{ (lead_time_chart.max_value / 2.0)|round }}{{ lead_time_chart.unit }}"></div>
@@ -178,6 +186,10 @@
                             {% endfor %}
                         </div>
                         <div class="html-chart__area">
+                            <div class="html-chart__axis-layer">
+                                <div class="html-chart__axis-y"></div>
+                                <div class="html-chart__axis-x"></div>
+                            </div>
                             <div class="html-chart__grid">
                                 <div class="html-chart__grid-line" data-value="{{ cycle_time_chart.max_value|round }}{{ cycle_time_chart.unit }}"></div>
                                 <div class="html-chart__grid-line" data-value="{{ (cycle_time_chart.max_value / 2.0)|round }}{{ cycle_time_chart.unit }}"></div>
@@ -221,6 +233,10 @@
                             {% endfor %}
                         </div>
                         <div class="html-chart__area">
+                            <div class="html-chart__axis-layer">
+                                <div class="html-chart__axis-y"></div>
+                                <div class="html-chart__axis-x"></div>
+                            </div>
                             <div class="html-chart__grid">
                                 <div class="html-chart__grid-line" data-value="{{ throughput_chart.max_value|round }}"></div>
                                 <div class="html-chart__grid-line" data-value="{{ (throughput_chart.max_value / 2.0)|round }}"></div>
