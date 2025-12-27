@@ -32,6 +32,9 @@
     /* Shadows */
     --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
     --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
+
+    /* Chart Grid */
+    --chart-grid-color: rgba(255, 255, 255, 0.08);
 }
 
 /* Light Theme */
@@ -59,6 +62,9 @@
     /* Shadows */
     --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.08);
     --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.1);
+
+    /* Chart Grid */
+    --chart-grid-color: rgba(0, 0, 0, 0.08);
 }
 
 /* Theme transition */
@@ -1842,16 +1848,325 @@ main:has(.board) {
     border-bottom: 1px solid var(--border-subtle);
 }
 
+/* ===========================================
+   HTML Bar Charts - JS-library-quality styling
+   =========================================== */
+
 .chart-container {
-    background-color: transparent;
+    background-color: var(--bg-card);
     border-radius: var(--radius);
-    overflow-x: auto;
+    padding: 24px;
+    overflow: hidden;
 }
 
+/* Legacy SVG support */
 .chart-container svg {
     width: 100%;
     height: auto;
     display: block;
+}
+
+/* Chart wrapper */
+.html-chart {
+    position: relative;
+    height: 320px;
+    display: flex;
+    flex-direction: column;
+    padding-left: 20px;
+}
+
+/* Chart title */
+.html-chart__title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 16px;
+}
+
+/* Legend */
+.html-chart__legend {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 16px;
+    font-size: 12px;
+}
+
+.html-chart__legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--text-secondary);
+}
+
+.html-chart__legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+}
+
+.html-chart__legend-dot--blue { background: var(--chart-blue); }
+.html-chart__legend-dot--green { background: var(--chart-green); }
+.html-chart__legend-dot--orange { background: var(--chart-orange); }
+
+/* Chart area with grid */
+.html-chart__area {
+    flex: 1;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Y-axis grid lines */
+.html-chart__grid {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 30px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    pointer-events: none;
+}
+
+.html-chart__grid-line {
+    height: 1px;
+    background: var(--chart-grid-color);
+    position: relative;
+}
+
+.html-chart__grid-line::before {
+    content: attr(data-value);
+    position: absolute;
+    left: -45px; /* Slightly more space */
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 11px;
+    color: var(--text-muted);
+    width: 40px;
+    text-align: right;
+}
+
+/* Chart Axes */
+.html-chart__axis-layer {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.html-chart__axis-y {
+    position: absolute;
+    top: 0;
+    bottom: 30px;
+    left: 44px;
+    width: 2px;
+    background-color: var(--text-muted);
+}
+
+.html-chart__axis-y::after {
+    content: '';
+    position: absolute;
+    top: -6px;
+    left: -4px;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-bottom: 8px solid var(--text-muted);
+}
+
+.html-chart__axis-x {
+    position: absolute;
+    bottom: 30px;
+    left: 44px;
+    right: 0;
+    height: 2px;
+    background-color: var(--text-muted);
+}
+
+.html-chart__axis-x::after {
+    content: '';
+    position: absolute;
+    right: -6px;
+    top: -3px;
+    border-top: 5px solid transparent;
+    border-bottom: 5px solid transparent;
+    border-left: 8px solid var(--text-muted);
+}
+
+/* Bars container */
+.html-chart__bars {
+    flex: 1;
+    display: flex;
+    align-items: flex-end;
+    gap: 4px;
+    padding-left: 45px;
+    padding-bottom: 33px;
+    position: relative;
+}
+
+/* Bar group (for multi-series) */
+.html-chart__bar-group {
+    flex: 1;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    gap: 3px;
+    position: relative;
+    min-width: 0;
+    height: 100%;
+}
+
+.html-chart__bar-group::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: -2px; /* Center in the gap (gap is 4px) */
+    bottom: 33px;
+    width: 1px;
+    background-color: var(--chart-grid-color);
+}
+
+.html-chart__bar-group:last-child::after {
+    display: none;
+}
+
+/* Individual bar */
+.html-chart__bar {
+    flex: 1;
+    max-width: 32px;
+    min-width: 8px;
+    border-radius: 3px 3px 0 0;
+    position: relative;
+    cursor: default;
+    transform-origin: bottom;
+    animation: bar-grow 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    animation-delay: var(--bar-delay, 0ms);
+    transform: scaleY(0);
+    transition: filter 0.2s ease, transform 0.2s ease;
+}
+
+.html-chart__bar:hover {
+    filter: brightness(1.15);
+    transform: scaleY(1.02);
+}
+
+/* Bar colors - Mapped to Theme */
+.html-chart__bar--blue { background: #7eb8da; } /* Using In Progress Blue */
+.html-chart__bar--green { background: #9b59b6; } /* Using Epic Purple for contrast */
+.html-chart__bar--orange { background: var(--accent); } /* Using Theme Accent (Orange) */
+
+/* Legend Dots */
+.html-chart__legend-dot--blue { background: #7eb8da; }
+.html-chart__legend-dot--green { background: #9b59b6; }
+.html-chart__legend-dot--orange { background: var(--accent); }
+.html-chart__bar-value {
+    position: absolute;
+    top: -20px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    white-space: nowrap;
+}
+
+.html-chart__bar:hover .html-chart__bar-value,
+.html-chart__bar-group:hover .html-chart__bar-value {
+    opacity: 1;
+}
+
+/* Always show values option */
+.html-chart--show-values .html-chart__bar-value {
+    opacity: 1;
+}
+
+/* Tooltip */
+.html-chart__tooltip {
+    position: absolute;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    padding: 8px 12px;
+    font-size: 12px;
+    color: var(--text-primary);
+    pointer-events: none;
+    opacity: 0;
+    transform: translateY(4px);
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    z-index: 10;
+    box-shadow: var(--shadow-md);
+}
+
+.html-chart__bar-group:hover .html-chart__tooltip {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* X-axis labels */
+.html-chart__x-axis {
+    position: absolute;
+    bottom: 0;
+    left: 45px;
+    right: 0;
+    display: flex;
+}
+
+.html-chart__x-label {
+    flex: 1;
+    text-align: center;
+    font-size: 11px;
+    color: var(--text-muted);
+    padding-top: 8px;
+}
+
+/* Bar grow animation */
+@keyframes bar-grow {
+    from {
+        transform: scaleY(0);
+    }
+    to {
+        transform: scaleY(1);
+    }
+}
+
+/* Staggered animation delays */
+.html-chart__bar-group:nth-child(1) .html-chart__bar { --bar-delay: 0ms; }
+.html-chart__bar-group:nth-child(2) .html-chart__bar { --bar-delay: 50ms; }
+.html-chart__bar-group:nth-child(3) .html-chart__bar { --bar-delay: 100ms; }
+.html-chart__bar-group:nth-child(4) .html-chart__bar { --bar-delay: 150ms; }
+.html-chart__bar-group:nth-child(5) .html-chart__bar { --bar-delay: 200ms; }
+.html-chart__bar-group:nth-child(6) .html-chart__bar { --bar-delay: 250ms; }
+.html-chart__bar-group:nth-child(7) .html-chart__bar { --bar-delay: 300ms; }
+.html-chart__bar-group:nth-child(8) .html-chart__bar { --bar-delay: 350ms; }
+
+/* Chart color variables */
+:root, [data-theme="dark"] {
+    --chart-blue: #4f81bd;
+    --chart-green: #9bbb59;
+    --chart-orange: #f79646;
+}
+
+[data-theme="light"] {
+    --chart-blue: #3a6ea5;
+    --chart-green: #7a9a45;
+    --chart-orange: #e07a30;
+}
+
+/* Legacy SVG theme support */
+[data-theme="light"] .chart-container svg rect[fill="#1e1e1e"],
+[data-theme="light"] .chart-container svg rect[fill="#231f1d"],
+[data-theme="light"] .chart-container svg rect[fill="rgb(35, 31, 29)"] {
+    fill: var(--bg-card) !important;
+}
+
+[data-theme="light"] .chart-container svg text {
+    fill: var(--text-secondary) !important;
+}
+
+[data-theme="light"] .chart-container svg line {
+    stroke: var(--border-color) !important;
 }
 
 .type-distribution {
@@ -2139,4 +2454,12 @@ main:has(.board) {
 .graph-mockup svg {
     max-width: 100%;
     height: auto;
+}
+
+.chart-desc {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    font-weight: 400;
+    font-style: normal;
+    margin-left: 12px;
 }
