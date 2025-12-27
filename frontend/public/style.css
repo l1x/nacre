@@ -2002,11 +2002,20 @@ main:has(.board) {
     position: relative;
     min-width: 0;
     height: 100%;
-    border-right: 1px solid var(--chart-grid-color);
 }
 
-.html-chart__bar-group:last-child {
-    border-right: none;
+.html-chart__bar-group::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: -2px; /* Center in the gap (gap is 4px) */
+    bottom: 33px;
+    width: 1px;
+    background-color: var(--chart-grid-color);
+}
+
+.html-chart__bar-group:last-child::after {
+    display: none;
 }
 
 /* Individual bar */
