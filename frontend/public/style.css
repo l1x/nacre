@@ -2436,3 +2436,11 @@ main:has(.board) {
     max-width: 100%;
     height: auto;
 }
+
+.chart-desc {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    font-weight: 400;
+    font-style: normal;
+    margin-left: 12px;
+}

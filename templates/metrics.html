@@ -81,7 +81,7 @@
 
             <!-- Ticket Activity Chart -->
             <section class="metrics-section" id="ticket-activity">
-                <h2>Ticket Activity</h2>
+                <h2>Ticket Activity <span class="chart-desc">Opened and Resolved tickets over time</span></h2>
                 <div class="chart-container">
                     <div class="html-chart html-chart--show-values">
                         <div class="html-chart__legend">
@@ -127,7 +127,7 @@
             <!-- Lead Time Chart -->
             {% if lead_time_chart.has_data() %}
             <section class="metrics-section" id="lead-time">
-                <h2>Lead Time</h2>
+                <h2>Lead Time <span class="chart-desc">Time from creation to close</span></h2>
                 <div class="chart-container">
                     <div class="html-chart html-chart--show-values">
                         <div class="html-chart__legend">
@@ -174,7 +174,7 @@
             <!-- Cycle Time Chart -->
             {% if cycle_time_chart.has_data() %}
             <section class="metrics-section" id="cycle-time">
-                <h2>Cycle Time</h2>
+                <h2>Cycle Time <span class="chart-desc">Time spent in progress</span></h2>
                 <div class="chart-container">
                     <div class="html-chart html-chart--show-values">
                         <div class="html-chart__legend">
@@ -221,7 +221,7 @@
             <!-- Throughput Chart -->
             {% if throughput_chart.has_data() %}
             <section class="metrics-section" id="throughput">
-                <h2>Throughput</h2>
+                <h2>Throughput <span class="chart-desc">Issues closed per day</span></h2>
                 <div class="chart-container">
                     <div class="html-chart html-chart--show-values">
                         <div class="html-chart__legend">
