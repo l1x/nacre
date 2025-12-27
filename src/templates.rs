@@ -26,8 +26,6 @@ pub struct ProjectStats {
     pub in_progress: usize,
     pub blocked: usize,
     pub closed: usize,
-    pub avg_lead_time_hours: f64,
-    pub avg_cycle_time_mins: f64,
 }
 
 pub struct EpicWithProgress {
