@@ -14,7 +14,9 @@ fn create_series(name: &str, color: &'static str, values: &[f64], max: f64, unit
             .map(|&v| ChartBar {
                 value: v,
                 percent: if max > 0.0 { (v / max) * 100.0 } else { 0.0 },
-                display: if unit.is_empty() {
+                display: if v.abs() < 0.001 {
+                    String::new()
+                } else if unit.is_empty() {
                     format!("{}", v as i64)
                 } else {
                     format!("{:.1}{}", v, unit)
