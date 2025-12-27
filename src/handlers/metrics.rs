@@ -1,4 +1,5 @@
 use axum::extract::State;
+use charts_rs::{BarChart, Series, THEME_DARK};
 use plotters::prelude::*;
 use std::collections::HashMap;
 
@@ -232,9 +233,8 @@ pub async fn metrics_handler(State(state): State<crate::AppState>) -> MetricsTem
         }
     }
 
-    // Generate Lead Time Percentiles Chart (p50, p90, p100 over time)
-    let mut lead_time_chart_svg = String::new();
-    {
+    // Generate Lead Time Percentiles Chart (p50, p90, p100 over time) using charts-rs
+    let lead_time_chart_svg = {
         let now_dt = chrono::Utc::now().with_timezone(&chrono::FixedOffset::east_opt(0).unwrap());
         let start_dt = now_dt - chrono::Duration::days(7);
 
@@ -254,215 +254,50 @@ pub async fn metrics_handler(State(state): State<crate::AppState>) -> MetricsTem
         }
 
         if !lead_times_by_day.is_empty() {
-            // Calculate percentiles for each day
-            fn percentile(sorted: &[f64], p: f64) -> f64 {
-                if sorted.is_empty() {
-                    return 0.0;
-                }
-                let idx = ((sorted.len() as f64 - 1.0) * p / 100.0).round() as usize;
-                sorted[idx.min(sorted.len() - 1)]
-            }
-
-            // Format hours for display
-            fn format_hours(h: f64) -> String {
-                if h >= 24.0 {
-                    format!("{:.1}d", h / 24.0)
-                } else {
-                    format!("{:.1}h", h)
-                }
-            }
-
             // Collect and sort dates
             let mut all_dates: Vec<chrono::NaiveDate> = lead_times_by_day.keys().cloned().collect();
             all_dates.sort();
 
             // Calculate percentiles per day
-            let mut day_data: Vec<(String, f64, f64, f64)> = Vec::new(); // (label, p50, p90, p100)
+            let mut p50_data: Vec<f32> = Vec::new();
+            let mut p90_data: Vec<f32> = Vec::new();
+            let mut p100_data: Vec<f32> = Vec::new();
+            let mut x_labels: Vec<String> = Vec::new();
+
             for date in &all_dates {
                 let mut times = lead_times_by_day.get(date).cloned().unwrap_or_default();
                 times.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
-                let p50 = percentile(&times, 50.0);
-                let p90 = percentile(&times, 90.0);
-                let p100 = percentile(&times, 100.0);
-                day_data.push((date.format("%a").to_string(), p50, p90, p100));
+                let p50 = calculate_percentile(&times, 50.0) as f32;
+                let p90 = calculate_percentile(&times, 90.0) as f32;
+                let p100 = calculate_percentile(&times, 100.0) as f32;
+                p50_data.push(p50);
+                p90_data.push(p90);
+                p100_data.push(p100);
+                x_labels.push(date.format("%a").to_string());
             }
 
-            let max_hours = day_data
-                .iter()
-                .map(|(_, _, _, p100)| *p100)
-                .fold(1.0_f64, f64::max);
+            let mut chart = BarChart::new_with_theme(
+                vec![
+                    Series::new("p50".to_string(), p50_data),
+                    Series::new("p90".to_string(), p90_data),
+                    Series::new("p100".to_string(), p100_data),
+                ],
+                x_labels,
+                THEME_DARK,
+            );
 
-            // Theme colors matching the "good example" but adapted for dark mode
-            let color_p50 = RGBColor(79, 129, 189); // Direct (Blue)
-            let color_p90 = RGBColor(155, 187, 89); // Mail Ad (Green)
-            let color_p100 = RGBColor(247, 150, 70); // Video Ad (Orange)
-            
-            // Match CSS --bg-card: #231f1d
-            let bg_color = RGBColor(35, 31, 29);
-            // Match CSS --text-secondary: #9a9590
-            let text_color = RGBColor(154, 149, 144);
-            // Match CSS --border-subtle: #222020
-            let grid_color = RGBColor(34, 32, 32);
+            chart.width = 700.0;
+            chart.height = 400.0;
+            chart.y_axis_configs[0].axis_formatter = Some("{c:.1}h".to_string());
+            chart.series_list[0].label_show = true;
+            chart.series_list[1].label_show = true;
+            chart.series_list[2].label_show = true;
 
-            let root =
-                SVGBackend::with_string(&mut lead_time_chart_svg, (700, 400)).into_drawing_area();
-            root.fill(&bg_color).unwrap();
-
-            let num_days = day_data.len();
-            let bar_padding = 0.10; // Gap between bars (10% on each side = 80% bar width)
-
-            let mut chart = ChartBuilder::on(&root)
-                .x_label_area_size(40)
-                .y_label_area_size(50)
-                .margin(20)
-                .margin_bottom(60) // Extra space for legend
-                .build_cartesian_2d(0f64..(num_days as f64), 0f64..(max_hours * 1.1))
-                .unwrap();
-
-            chart
-                .configure_mesh()
-                .disable_x_mesh()
-                .bold_line_style(grid_color)
-                .light_line_style(grid_color.mix(0.5))
-                .y_desc("Lead Time")
-                .y_label_formatter(&|v| format_hours(*v))
-                .x_labels(num_days)
-                .x_label_formatter(&|x| {
-                    let idx = x.round() as usize;
-                    if idx < day_data.len() && (*x - idx as f64).abs() < 0.3 {
-                        // Parse date string (MM-DD) back to date object to get weekday
-                        // Or just modify day_data generation to include weekday
-                        // For now, we'll try to parse the MM-DD if possible, or just use what we have.
-                        // Actually, day_data only has MM-DD string. 
-                        // Let's modify the day_data generation above to include the weekday.
-                        // But since I can't easily modify the code above in this replace block without replacing huge chunk...
-                        // I will rely on the fact that I can't easily change day_data type here.
-                        // Wait, I can't change the day_data type in this scope?
-                        // I am replacing the drawing part. The day_data generation is ABOVE this block.
-                        // So I must stick to using the string in day_data.0
-                        // However, I can try to append weekday if I modify the generation logic.
-                        // But the `replace` tool requires EXACT match. 
-                        // I am replacing the block starting from `// Theme colors` to the end of the legend loop.
-                        
-                        // I will change the day_data generation in a separate call if needed.
-                        // For now, let's just stick to the MM-DD label but use the new colors/style.
-                        // Or I can parse the MM-DD relative to current year?
-                        // It's safer to just leave MM-DD for now or do a separate refactor.
-                        // BUT the requirement was "Mon", "Tue".
-                        
-                        // Let's look at day_data generation. It is OUTSIDE the block I am replacing?
-                        // No, the `replace` block I selected starts at `// Theme colors`.
-                        // The day_data generation is ABOVE it.
-                        // "let mut day_data: Vec<(String, f64, f64, f64)> = Vec::new();"
-                        // I need to include day_data generation in the replacement to change the label.
-                        
-                        day_data[idx].0.clone()
-                    } else {
-                        String::new()
-                    }
-                })
-                .axis_desc_style(("sans-serif", 14).into_font().color(&text_color))
-                .label_style(("sans-serif", 12).into_font().color(&text_color))
-                .axis_style(text_color)
-                .draw()
-                .unwrap();
-
-            // Draw stacked bars with gaps between days
-            for (idx, (_, p50, p90, p100)) in day_data.iter().enumerate() {
-                let x_left = idx as f64 + bar_padding;
-                let x_right = (idx + 1) as f64 - bar_padding;
-                let x_center = idx as f64 + 0.5;
-                let label_font = ("sans-serif", 12).into_font().color(&WHITE);
-
-                // p50 segment (bottom): 0 to p50 - BLUE
-                chart
-                    .draw_series(std::iter::once(Rectangle::new(
-                        [(x_left, 0.0), (x_right, *p50)],
-                        color_p50.filled(),
-                    )))
-                    .unwrap();
-
-                // p50 label (always show if segment is tall enough)
-                if *p50 > max_hours * 0.06 {
-                    chart
-                        .draw_series(std::iter::once(Text::new(
-                            format_hours(*p50),
-                            (x_center, *p50 / 2.0),
-                            label_font.clone(),
-                        )))
-                        .unwrap();
-                }
-
-                // p90 segment (middle): p50 to p90 - GREEN
-                if *p90 > *p50 {
-                    chart
-                        .draw_series(std::iter::once(Rectangle::new(
-                            [(x_left, *p50), (x_right, *p90)],
-                            color_p90.filled(),
-                        )))
-                        .unwrap();
-
-                    // p90 label
-                    if (*p90 - *p50) > max_hours * 0.06 {
-                        chart
-                            .draw_series(std::iter::once(Text::new(
-                                format_hours(*p90),
-                                (x_center, *p50 + (*p90 - *p50) / 2.0),
-                                label_font.clone(),
-                            )))
-                            .unwrap();
-                    }
-                }
-
-                // p100 segment (top): p90 to p100 - ORANGE
-                if *p100 > *p90 {
-                    chart
-                        .draw_series(std::iter::once(Rectangle::new(
-                            [(x_left, *p90), (x_right, *p100)],
-                            color_p100.filled(),
-                        )))
-                        .unwrap();
-
-                    // p100 label
-                    if (*p100 - *p90) > max_hours * 0.06 {
-                        chart
-                            .draw_series(std::iter::once(Text::new(
-                                format_hours(*p100),
-                                (x_center, *p90 + (*p100 - *p90) / 2.0),
-                                label_font.clone(),
-                            )))
-                            .unwrap();
-                    }
-                }
-            }
-
-            // Draw legend at bottom center
-            let legend_items = [
-                (color_p50, "p50"),
-                (color_p90, "p90"),
-                (color_p100, "p100"),
-            ];
-            let legend_start_x = 250i32;
-            let legend_spacing = 80i32;
-
-            for (i, (color, label)) in legend_items.iter().enumerate() {
-                let x = legend_start_x + (i as i32) * legend_spacing;
-                // Draw colored rectangle
-                root.draw(&Rectangle::new(
-                    [(x, 370), (x + 20, 385)],
-                    color.filled(),
-                ))
-                .unwrap();
-                // Draw label text
-                root.draw(&Text::new(
-                    *label,
-                    (x + 25, 373),
-                    ("sans-serif", 13).into_font().color(&text_color),
-                ))
-                .unwrap();
-            }
+            chart.svg().unwrap_or_default()
+        } else {
+            String::new()
         }
-    }
+    };
 
     // Generate Cycle Time Percentiles Chart (p50, p90, p100 over time)
     let mut cycle_time_distribution_svg = String::new();
