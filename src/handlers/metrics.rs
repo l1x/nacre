@@ -163,7 +163,7 @@ pub async fn metrics_handler(State(state): State<crate::AppState>) -> MetricsTem
             let resolved = *resolved_by_day.get(date).unwrap_or(&0);
             created_data.push(created as f32);
             resolved_data.push(resolved as f32);
-            x_labels.push(date.format("%a").to_string());
+            x_labels.push(date.format("%m.%d").to_string());
         }
 
         let mut chart = BarChart::new_with_theme(
@@ -190,12 +190,19 @@ pub async fn metrics_handler(State(state): State<crate::AppState>) -> MetricsTem
         let now_dt = chrono::Utc::now().with_timezone(&chrono::FixedOffset::east_opt(0).unwrap());
         let start_dt = now_dt - chrono::Duration::days(7);
 
-        // Group closed issues by close date and calculate lead times
+        // Initialize all days first
         let mut lead_times_by_day: HashMap<chrono::NaiveDate, Vec<f64>> = HashMap::new();
+        let mut curr = start_dt.date_naive();
+        while curr <= now_dt.date_naive() {
+            lead_times_by_day.insert(curr, Vec::new());
+            curr = curr.succ_opt().unwrap();
+        }
+
+        // Group closed issues by close date and calculate lead times
         for issue in &all_issues {
             if let Some(closed_at) = issue.closed_at {
                 let close_date = closed_at.date_naive();
-                if close_date >= start_dt.date_naive() {
+                if close_date >= start_dt.date_naive() && close_date <= now_dt.date_naive() {
                     let lead_time_hours = (closed_at - issue.created_at).num_minutes() as f64 / 60.0;
                     lead_times_by_day
                         .entry(close_date)
@@ -205,52 +212,48 @@ pub async fn metrics_handler(State(state): State<crate::AppState>) -> MetricsTem
             }
         }
 
-        if !lead_times_by_day.is_empty() {
-            // Collect and sort dates
-            let mut all_dates: Vec<chrono::NaiveDate> = lead_times_by_day.keys().cloned().collect();
-            all_dates.sort();
+        // Collect and sort dates
+        let mut all_dates: Vec<chrono::NaiveDate> = lead_times_by_day.keys().cloned().collect();
+        all_dates.sort();
 
-            // Calculate percentiles per day
-            let mut p50_data: Vec<f32> = Vec::new();
-            let mut p90_data: Vec<f32> = Vec::new();
-            let mut p100_data: Vec<f32> = Vec::new();
-            let mut x_labels: Vec<String> = Vec::new();
+        // Calculate percentiles per day
+        let mut p50_data: Vec<f32> = Vec::new();
+        let mut p90_data: Vec<f32> = Vec::new();
+        let mut p100_data: Vec<f32> = Vec::new();
+        let mut x_labels: Vec<String> = Vec::new();
 
-            for date in &all_dates {
-                let mut times = lead_times_by_day.get(date).cloned().unwrap_or_default();
-                times.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
-                let p50 = calculate_percentile(&times, 50.0) as f32;
-                let p90 = calculate_percentile(&times, 90.0) as f32;
-                let p100 = calculate_percentile(&times, 100.0) as f32;
-                p50_data.push(p50);
-                p90_data.push(p90);
-                p100_data.push(p100);
-                x_labels.push(date.format("%a").to_string());
-            }
-
-            let mut chart = BarChart::new_with_theme(
-                vec![
-                    Series::new("p50".to_string(), p50_data),
-                    Series::new("p90".to_string(), p90_data),
-                    Series::new("p100".to_string(), p100_data),
-                ],
-                x_labels,
-                THEME_DARK,
-            );
-
-            chart.width = 700.0;
-            chart.height = 400.0;
-            chart.background_color = NACRE_BG;
-            chart.series_colors = vec![NACRE_BLUE, NACRE_GREEN, NACRE_ORANGE];
-            chart.y_axis_configs[0].axis_formatter = Some("{c}h".to_string());
-            chart.series_list[0].label_show = true;
-            chart.series_list[1].label_show = true;
-            chart.series_list[2].label_show = true;
-
-            chart.svg().unwrap_or_default()
-        } else {
-            String::new()
+        for date in &all_dates {
+            let mut times = lead_times_by_day.get(date).cloned().unwrap_or_default();
+            times.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
+            let p50 = calculate_percentile(&times, 50.0) as f32;
+            let p90 = calculate_percentile(&times, 90.0) as f32;
+            let p100 = calculate_percentile(&times, 100.0) as f32;
+            p50_data.push(p50);
+            p90_data.push(p90);
+            p100_data.push(p100);
+            x_labels.push(date.format("%m.%d").to_string());
         }
+
+        let mut chart = BarChart::new_with_theme(
+            vec![
+                Series::new("p50".to_string(), p50_data),
+                Series::new("p90".to_string(), p90_data),
+                Series::new("p100".to_string(), p100_data),
+            ],
+            x_labels,
+            THEME_DARK,
+        );
+
+        chart.width = 700.0;
+        chart.height = 400.0;
+        chart.background_color = NACRE_BG;
+        chart.series_colors = vec![NACRE_BLUE, NACRE_GREEN, NACRE_ORANGE];
+        chart.y_axis_configs[0].axis_formatter = Some("{c}h".to_string());
+        chart.series_list[0].label_show = true;
+        chart.series_list[1].label_show = true;
+        chart.series_list[2].label_show = true;
+
+        chart.svg().unwrap_or_default()
     };
 
     // Generate Cycle Time Percentiles Chart (p50, p90, p100 over time) using charts-rs
@@ -258,12 +261,19 @@ pub async fn metrics_handler(State(state): State<crate::AppState>) -> MetricsTem
         let now_dt = chrono::Utc::now().with_timezone(&chrono::FixedOffset::east_opt(0).unwrap());
         let start_dt = now_dt - chrono::Duration::days(7);
 
-        // Group closed issues by close date and calculate cycle times
+        // Initialize all days first
         let mut cycle_times_by_day: HashMap<chrono::NaiveDate, Vec<f64>> = HashMap::new();
+        let mut curr = start_dt.date_naive();
+        while curr <= now_dt.date_naive() {
+            cycle_times_by_day.insert(curr, Vec::new());
+            curr = curr.succ_opt().unwrap();
+        }
+
+        // Group closed issues by close date and calculate cycle times
         for issue in &all_issues {
             if let Some(closed_at) = issue.closed_at {
                 let close_date = closed_at.date_naive();
-                if close_date >= start_dt.date_naive() {
+                if close_date >= start_dt.date_naive() && close_date <= now_dt.date_naive() {
                     if let Some(started_at) = started_times.get(&issue.id) {
                         let duration_mins = (closed_at - *started_at).num_minutes() as f64;
                         cycle_times_by_day
@@ -275,52 +285,48 @@ pub async fn metrics_handler(State(state): State<crate::AppState>) -> MetricsTem
             }
         }
 
-        if !cycle_times_by_day.is_empty() {
-            // Collect and sort dates
-            let mut all_dates: Vec<chrono::NaiveDate> = cycle_times_by_day.keys().cloned().collect();
-            all_dates.sort();
+        // Collect and sort dates
+        let mut all_dates: Vec<chrono::NaiveDate> = cycle_times_by_day.keys().cloned().collect();
+        all_dates.sort();
 
-            // Calculate percentiles per day
-            let mut p50_data: Vec<f32> = Vec::new();
-            let mut p90_data: Vec<f32> = Vec::new();
-            let mut p100_data: Vec<f32> = Vec::new();
-            let mut x_labels: Vec<String> = Vec::new();
+        // Calculate percentiles per day
+        let mut p50_data: Vec<f32> = Vec::new();
+        let mut p90_data: Vec<f32> = Vec::new();
+        let mut p100_data: Vec<f32> = Vec::new();
+        let mut x_labels: Vec<String> = Vec::new();
 
-            for date in &all_dates {
-                let mut times = cycle_times_by_day.get(date).cloned().unwrap_or_default();
-                times.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
-                let p50 = calculate_percentile(&times, 50.0) as f32;
-                let p90 = calculate_percentile(&times, 90.0) as f32;
-                let p100 = calculate_percentile(&times, 100.0) as f32;
-                p50_data.push(p50);
-                p90_data.push(p90);
-                p100_data.push(p100);
-                x_labels.push(date.format("%a").to_string());
-            }
-
-            let mut chart = BarChart::new_with_theme(
-                vec![
-                    Series::new("p50".to_string(), p50_data),
-                    Series::new("p90".to_string(), p90_data),
-                    Series::new("p100".to_string(), p100_data),
-                ],
-                x_labels,
-                THEME_DARK,
-            );
-
-            chart.width = 700.0;
-            chart.height = 400.0;
-            chart.background_color = NACRE_BG;
-            chart.series_colors = vec![NACRE_BLUE, NACRE_GREEN, NACRE_ORANGE];
-            chart.y_axis_configs[0].axis_formatter = Some("{c}m".to_string());
-            chart.series_list[0].label_show = true;
-            chart.series_list[1].label_show = true;
-            chart.series_list[2].label_show = true;
-
-            chart.svg().unwrap_or_default()
-        } else {
-            String::new()
+        for date in &all_dates {
+            let mut times = cycle_times_by_day.get(date).cloned().unwrap_or_default();
+            times.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
+            let p50 = calculate_percentile(&times, 50.0) as f32;
+            let p90 = calculate_percentile(&times, 90.0) as f32;
+            let p100 = calculate_percentile(&times, 100.0) as f32;
+            p50_data.push(p50);
+            p90_data.push(p90);
+            p100_data.push(p100);
+            x_labels.push(date.format("%m.%d").to_string());
         }
+
+        let mut chart = BarChart::new_with_theme(
+            vec![
+                Series::new("p50".to_string(), p50_data),
+                Series::new("p90".to_string(), p90_data),
+                Series::new("p100".to_string(), p100_data),
+            ],
+            x_labels,
+            THEME_DARK,
+        );
+
+        chart.width = 700.0;
+        chart.height = 400.0;
+        chart.background_color = NACRE_BG;
+        chart.series_colors = vec![NACRE_BLUE, NACRE_GREEN, NACRE_ORANGE];
+        chart.y_axis_configs[0].axis_formatter = Some("{c}m".to_string());
+        chart.series_list[0].label_show = true;
+        chart.series_list[1].label_show = true;
+        chart.series_list[2].label_show = true;
+
+        chart.svg().unwrap_or_default()
     };
 
     // Generate Throughput Chart (Date-based) using charts-rs
@@ -354,7 +360,7 @@ pub async fn metrics_handler(State(state): State<crate::AppState>) -> MetricsTem
         for date in &all_dates {
             let count = *throughput_by_day.get(date).unwrap_or(&0);
             throughput_data.push(count as f32);
-            x_labels.push(date.format("%a").to_string());
+            x_labels.push(date.format("%m.%d").to_string());
         }
 
         let mut chart = BarChart::new_with_theme(
