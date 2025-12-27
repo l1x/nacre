@@ -1919,7 +1919,10 @@ main:has(.board) {
 /* Y-axis grid lines */
 .html-chart__grid {
     position: absolute;
-    inset: 0;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 30px;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -1943,7 +1946,7 @@ main:has(.board) {
 .html-chart__axis-y {
     position: absolute;
     top: 0;
-    bottom: 28px;
+    bottom: 30px;
     left: 44px;
     width: 2px;
     background-color: var(--text-muted);
@@ -1961,7 +1964,7 @@ main:has(.board) {
 
 .html-chart__axis-x {
     position: absolute;
-    bottom: 28px;
+    bottom: 30px;
     left: 44px;
     right: 0;
     height: 2px;
@@ -1978,17 +1981,6 @@ main:has(.board) {
     border-left: 8px solid var(--text-muted);
 }
 
-.html-chart__grid-line::before {
-    content: attr(data-value);
-    position: absolute;
-    left: -40px;
-    top: -8px;
-    font-size: 11px;
-    color: var(--text-muted);
-    width: 35px;
-    text-align: right;
-}
-
 /* Bars container */
 .html-chart__bars {
     flex: 1;
@@ -1996,7 +1988,7 @@ main:has(.board) {
     align-items: flex-end;
     gap: 4px;
     padding-left: 45px;
-    padding-bottom: 30px;
+    padding-bottom: 33px;
     position: relative;
 }
 
