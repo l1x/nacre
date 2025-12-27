@@ -1854,6 +1854,27 @@ main:has(.board) {
     display: block;
 }
 
+/* Chart legend marker size reduction */
+.chart-container svg circle[r="7"],
+.chart-container svg circle[r="8"] {
+    r: 4;
+}
+
+/* Chart theme support - Light theme overrides */
+[data-theme="light"] .chart-container svg rect[fill="#1e1e1e"],
+[data-theme="light"] .chart-container svg rect[fill="#231f1d"],
+[data-theme="light"] .chart-container svg rect[fill="rgb(35, 31, 29)"] {
+    fill: var(--bg-card) !important;
+}
+
+[data-theme="light"] .chart-container svg text {
+    fill: var(--text-secondary) !important;
+}
+
+[data-theme="light"] .chart-container svg line {
+    stroke: var(--border-color) !important;
+}
+
 .type-distribution {
     display: flex;
     flex-direction: column;
