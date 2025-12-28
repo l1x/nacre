@@ -1751,17 +1751,16 @@ main:has(.board) {
 }
 
 .legend-color {
-    width: 16px;
-    height: 16px;
-    border-radius: 3px;
-    background-color: var(--bg-secondary);
-    border: 2px solid var(--border-color);
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
 }
 
-.legend-color.status-open { border-color: var(--status-open); }
-.legend-color.status-in_progress { border-color: var(--status-in-progress); }
-.legend-color.status-blocked { border-color: var(--status-blocked); }
-.legend-color.status-closed { border-color: var(--status-closed); opacity: 0.6; }
+.legend-color.status-open { background-color: var(--status-open); }
+.legend-color.status-in_progress { background-color: var(--status-in-progress); }
+.legend-color.status-blocked { background-color: var(--status-blocked); }
+.legend-color.status-closed { background-color: var(--status-closed); opacity: 0.5; }
 
 /* Metrics View */
 .metrics-container {
