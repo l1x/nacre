@@ -35,6 +35,18 @@
 
     /* Chart Grid */
     --chart-grid-color: rgba(255, 255, 255, 0.08);
+
+    /* Status Colors */
+    --status-open: #e07a4a;
+    --status-in-progress: #7eb8da;
+    --status-blocked: #d48a8a;
+    --status-deferred: #b8a9c9;
+    --status-closed: #6a6560;
+
+    /* Type Colors */
+    --type-epic: #9b59b6;
+    --type-feature: #3498db;
+    --type-bug: #e74c3c;
 }
 
 /* Light Theme */
@@ -65,6 +77,18 @@
 
     /* Chart Grid */
     --chart-grid-color: rgba(0, 0, 0, 0.08);
+
+    /* Status Colors */
+    --status-open: #e07a4a;
+    --status-in-progress: #7eb8da;
+    --status-blocked: #d48a8a;
+    --status-deferred: #b8a9c9;
+    --status-closed: #8a8580;
+
+    /* Type Colors */
+    --type-epic: #9b59b6;
+    --type-feature: #3498db;
+    --type-bug: #e74c3c;
 }
 
 /* Theme transition */
@@ -291,10 +315,10 @@ main > h2 {
     color: var(--text-secondary);
 }
 
-.status-badge.open { color: var(--accent); }
-.status-badge.in-progress { color: #7eb8da; }
-.status-badge.closed { color: var(--text-muted); }
-.status-badge.blocked { color: #d48a8a; }
+.status-badge.open { color: var(--status-open); }
+.status-badge.in-progress { color: var(--status-in-progress); }
+.status-badge.closed { color: var(--status-closed); }
+.status-badge.blocked { color: var(--status-blocked); }
 
 .edit-input {
     background: var(--bg-secondary);
@@ -395,10 +419,10 @@ main > h2 {
     text-align: center;
 }
 
-.child-status.status-open { color: var(--accent); }
-.child-status.status-in_progress { color: #7eb8da; }
-.child-status.status-closed { color: var(--text-muted); }
-.child-status.status-blocked { color: #d48a8a; }
+.child-status.status-open { color: var(--status-open); }
+.child-status.status-in_progress { color: var(--status-in-progress); }
+.child-status.status-closed { color: var(--status-closed); }
+.child-status.status-blocked { color: var(--status-blocked); }
 
 .child-title {
     flex: 1;
@@ -536,11 +560,11 @@ main:has(.board) {
 .board-column[data-status="closed"] { border-top: 3px solid var(--text-muted); }
 
 /* Column count badge colors */
-.board-column[data-status="open"] .count { color: var(--accent); }
-.board-column[data-status="in_progress"] .count { color: #7eb8da; }
-.board-column[data-status="blocked"] .count { color: #d48a8a; }
-.board-column[data-status="deferred"] .count { color: #b8a9c9; }
-.board-column[data-status="closed"] .count { color: var(--text-muted); }
+.board-column[data-status="open"] .count { color: var(--status-open); }
+.board-column[data-status="in_progress"] .count { color: var(--status-in-progress); }
+.board-column[data-status="blocked"] .count { color: var(--status-blocked); }
+.board-column[data-status="deferred"] .count { color: var(--status-deferred); }
+.board-column[data-status="closed"] .count { color: var(--status-closed); }
 
 .column-header {
     padding: 16px 18px;
@@ -716,10 +740,10 @@ main:has(.board) {
     color: var(--text-primary);
 }
 
-.meta-chip.status-open { color: var(--accent); background-color: rgba(224, 122, 74, 0.05); border-color: rgba(224, 122, 74, 0.2); }
-.meta-chip.status-in-progress { color: #5dade2; background-color: rgba(93, 173, 226, 0.05); border-color: rgba(93, 173, 226, 0.2); }
-.meta-chip.status-blocked { color: #ec7063; background-color: rgba(236, 112, 99, 0.05); border-color: rgba(236, 112, 99, 0.2); }
-.meta-chip.status-closed { color: var(--text-muted); }
+.meta-chip.status-open { color: var(--status-open); background-color: rgba(224, 122, 74, 0.05); border-color: rgba(224, 122, 74, 0.2); }
+.meta-chip.status-in-progress { color: var(--status-in-progress); background-color: rgba(126, 184, 218, 0.05); border-color: rgba(126, 184, 218, 0.2); }
+.meta-chip.status-blocked { color: var(--status-blocked); background-color: rgba(212, 138, 138, 0.05); border-color: rgba(212, 138, 138, 0.2); }
+.meta-chip.status-closed { color: var(--status-closed); }
 
 .meta-label {
     color: var(--text-muted);
@@ -806,9 +830,7 @@ main:has(.board) {
     background-color: var(--border-color);
 }
 
-/* Original styles to remove or override if conflicting */
-.detail-header { display: none; } 
-.vectorian-header { display: none; }
+
 
 /* PRDs View */
 .prd-list {
@@ -1303,10 +1325,10 @@ main:has(.board) {
     color: var(--text-muted);
 }
 
-.stat-card.stat-open .stat-value { color: var(--accent); }
-.stat-card.stat-in-progress .stat-value { color: #7eb8da; }
-.stat-card.stat-blocked .stat-value { color: #d48a8a; }
-.stat-card.stat-closed .stat-value { color: var(--text-muted); }
+.stat-card.stat-open .stat-value { color: var(--status-open); }
+.stat-card.stat-in-progress .stat-value { color: var(--status-in-progress); }
+.stat-card.stat-blocked .stat-value { color: var(--status-blocked); }
+.stat-card.stat-closed .stat-value { color: var(--status-closed); }
 
 .dashboard-columns {
     display: grid;
@@ -1711,10 +1733,10 @@ main:has(.board) {
     border: 2px solid var(--border-color);
 }
 
-.legend-color.status-open { border-color: var(--accent); }
-.legend-color.status-in_progress { border-color: #7eb8da; }
-.legend-color.status-blocked { border-color: #d48a8a; }
-.legend-color.status-closed { border-color: var(--text-muted); opacity: 0.6; }
+.legend-color.status-open { border-color: var(--status-open); }
+.legend-color.status-in_progress { border-color: var(--status-in-progress); }
+.legend-color.status-blocked { border-color: var(--status-blocked); }
+.legend-color.status-closed { border-color: var(--status-closed); opacity: 0.6; }
 
 /* Metrics View */
 .metrics-container {
@@ -2267,15 +2289,15 @@ main:has(.board) {
 }
 
 .tree-status.status-in_progress {
-    background-color: #7eb8da;
+    background-color: var(--status-in-progress);
 }
 
 .tree-status.status-blocked {
-    background-color: #d48a8a;
+    background-color: var(--status-blocked);
 }
 
 .tree-status.status-closed {
-    background-color: var(--text-muted);
+    background-color: var(--status-closed);
     opacity: 0.5;
 }
 
@@ -2293,18 +2315,18 @@ main:has(.board) {
 }
 
 .tree-type.type-epic {
-    border-left: 2px solid #9b59b6;
-    color: #9b59b6;
+    border-left: 2px solid var(--type-epic);
+    color: var(--type-epic);
 }
 
 .tree-type.type-feature {
-    border-left: 2px solid #3498db;
-    color: #3498db;
+    border-left: 2px solid var(--type-feature);
+    color: var(--type-feature);
 }
 
 .tree-type.type-bug {
-    border-left: 2px solid #e74c3c;
-    color: #e74c3c;
+    border-left: 2px solid var(--type-bug);
+    color: var(--type-bug);
 }
 
 .tree-type.type-task {
@@ -2352,7 +2374,7 @@ main:has(.board) {
     padding: 2px 8px;
     border-radius: 10px;
     background-color: rgba(212, 138, 138, 0.15);
-    color: #d48a8a;
+    color: var(--status-blocked);
     flex-shrink: 0;
 }
 
