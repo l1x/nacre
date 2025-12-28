@@ -1,7 +1,6 @@
 use chrono::{DateTime, FixedOffset};
 use serde::{Deserialize, Serialize};
 use std::fmt;
-use std::io::BufRead;
 use std::process::Command;
 use thiserror::Error;
 
@@ -456,23 +455,16 @@ impl Client {
     }
 
     pub fn list_issues(&self) -> Result<Vec<Issue>> {
-        let output = Command::new(&self.bin_path).arg("export").output()?;
+        let output = Command::new(&self.bin_path)
+            .args(&["list", "--json"])
+            .output()?;
 
         if !output.status.success() {
             let error_msg = String::from_utf8_lossy(&output.stderr);
             return Err(BeadsError::CommandError(error_msg.to_string()));
         }
 
-        let mut issues = Vec::new();
-        for line in output.stdout.lines() {
-            let line = line?;
-            if line.trim().is_empty() {
-                continue;
-            }
-            let issue: Issue = serde_json::from_str(&line)?;
-            issues.push(issue);
-        }
-
+        let issues: Vec<Issue> = serde_json::from_slice(&output.stdout)?;
         Ok(issues)
     }
 
