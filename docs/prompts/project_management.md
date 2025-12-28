@@ -40,8 +40,7 @@ bd create --id="nacre-xyz.3" --title="Update security docs" --type=task
 - Always use description field
 - Try to use labels (backend, frontend, docs, infra, etc.)
 - When breaking a task into sub-tasks use these:
-  - creating a clarifying sub-task (when necessary)
-  - creating a pull request
+  - implementation, creating a pull request
   - reviewing the pull request
 - Make these items depend on each other
 

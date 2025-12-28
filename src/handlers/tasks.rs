@@ -33,12 +33,50 @@ pub async fn task_detail(
         .find(|i| i.id == id)
         .ok_or_else(|| crate::AppError::NotFound(format!("Task {}", id)))?;
 
+    // Build tree for just this task and its descendants
+    let prefix = format!("{}.", id);
+    let descendants: Vec<beads::Issue> = all_issues
+        .iter()
+        .filter(|i| {
+            i.id == id || // Include self to root the tree
+            i.dependencies.iter().any(|d| d.depends_on_id == id) || // Direct dependencies
+            i.id.starts_with(&prefix) // Dot-notation descendants
+        })
+        .cloned()
+        .collect();
+
+    // build_issue_tree returns a list starting with roots.
+    // Since we included 'id', it should be the first root.
+    // We want to skip it and take the rest (which are its children/descendants).
+    let mut tree_nodes = build_issue_tree(&descendants);
+    
+    // Remove the root node (the task itself) if present
+    if !tree_nodes.is_empty() && tree_nodes[0].id == id {
+        tree_nodes.remove(0);
+    }
+    
+    // Adjust depths and parents for the detail view context
+    for node in &mut tree_nodes {
+        if node.depth > 0 {
+            node.depth -= 1;
+        }
+        
+        // If the parent is the current task, treat it as a root in this view
+        if node.parent_id.as_deref() == Some(&id) {
+            node.parent_id = None;
+        }
+    }
+
+    let can_expand = tree_nodes.iter().any(|n| n.has_children);
+
     Ok(TaskDetailTemplate {
         project_name: state.project_name.clone(),
         page_title: id.clone(),
         active_nav: "tasks",
         app_version: state.app_version.clone(),
-        task: EpicWithProgress::from_epic(issue, &all_issues, true),
+        task: EpicWithProgress::from_epic(issue, &all_issues, false),
+        children_tree: tree_nodes,
+        can_expand,
     })
 }
 

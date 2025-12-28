@@ -19,8 +19,8 @@
             </div>
             <button id="expand-all" class="btn btn-secondary">Expand All</button>
             <button id="collapse-all" class="btn btn-secondary">Collapse All</button>
-            <button id="expand-one-level" class="btn btn-tertiary">Expand One Level</button>
-            <button id="collapse-one-level" class="btn btn-tertiary">Collapse One Level</button>
+            <button id="expand-one-level" class="btn btn-secondary">Expand One Level</button>
+            <button id="collapse-one-level" class="btn btn-secondary">Collapse One Level</button>
         </div>
 
         <div class="tree-view">
@@ -28,6 +28,7 @@
                 {% for node in nodes %}
                 <li class="tree-node depth-{{ node.depth }}"
                     data-id="{{ node.id }}"
+                    data-depth="{{ node.depth }}"
                     data-type="{{ node.issue_type }}"
                     data-parent="{% if let Some(p) = node.parent_id %}{{ p }}{% endif %}"
                     data-has-children="{{ node.has_children }}"

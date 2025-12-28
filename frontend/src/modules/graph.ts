@@ -4,19 +4,37 @@ export function initGraph() {
 
     const nodes = document.querySelectorAll('.tree-node') as NodeListOf<HTMLElement>;
     const typeFilters = document.querySelectorAll('.type-filter') as NodeListOf<HTMLInputElement>;
-    const expandAllBtn = document.getElementById('expand-all');
-    const collapseAllBtn = document.getElementById('collapse-all');
+    const expandAllBtn = document.getElementById('expand-all') || document.getElementById('detail-expand');
+    const collapseAllBtn = document.getElementById('collapse-all') || document.getElementById('detail-collapse');
     const expandOneLevelBtn = document.getElementById('expand-one-level');
     const collapseOneLevelBtn = document.getElementById('collapse-one-level');
 
     const expandedNodes = new Set<string>();
 
+    // Initial expansion for task view
+    const issueType = treeView.getAttribute('data-issue-type');
+    if (issueType === 'task') {
+        nodes.forEach(node => {
+            const hasChildren = node.getAttribute('data-has-children') === 'true';
+            if (hasChildren) {
+                const id = node.getAttribute('data-id');
+                if (id) {
+                    expandedNodes.add(id);
+                    const toggleBtn = node.querySelector('.tree-toggle');
+                    if (toggleBtn) {
+                        toggleBtn.classList.add('expanded');
+                        const icon = toggleBtn.querySelector('.toggle-icon');
+                        if (icon) icon.textContent = '−';
+                    }
+                }
+            }
+        });
+    }
+
     function updateVisibility() {
-        const activeTypes = new Set(
-            Array.from(typeFilters)
-                .filter(f => f.checked)
-                .map(f => f.value)
-        );
+        const activeTypes = typeFilters.length > 0 
+            ? new Set(Array.from(typeFilters).filter(f => f.checked).map(f => f.value))
+            : null;
 
         nodes.forEach(node => {
             const id = node.getAttribute('data-id') || '';
@@ -25,7 +43,7 @@ export function initGraph() {
 
             let visible = false;
 
-            // Top-level nodes (no parent) are always visible if type matches
+            // Top-level nodes (no parent) are always visible
             if (!parentId) {
                 visible = true;
             } else if (expandedNodes.has(parentId)) {
@@ -33,8 +51,8 @@ export function initGraph() {
                 visible = true;
             }
 
-            // Must also match type filter
-            if (visible && !activeTypes.has(type)) {
+            // Must also match type filter if filters exist
+            if (visible && activeTypes && !activeTypes.has(type)) {
                 visible = false;
             }
 
@@ -132,38 +150,51 @@ export function initGraph() {
     }
 
     function expandOneLevel() {
+        // 1. Calculate the current maximum depth of expanded nodes.
+        let currentMaxExpandedDepth = -1;
         nodes.forEach(node => {
-            const depth = parseInt(node.getAttribute('data-depth') || '0');
             const id = node.getAttribute('data-id');
-            const hasChildren = node.getAttribute('data-has-children') === 'true';
-            const parentId = node.getAttribute('data-parent');
-            
-            // Find all expanded nodes at the previous level to determine current max depth
-            let maxDepth = -1;
-            nodes.forEach(n => {
-                if (n.getAttribute('data-parent') === '0') { // Root nodes
-                    maxDepth = Math.max(maxDepth, 0);
-                } else if (expandedNodes.has(n.getAttribute('data-parent'))) {
-                    const nodeDepth = parseInt(n.getAttribute('data-depth') || '0');
-                    maxDepth = Math.max(maxDepth, nodeDepth - 1);
-                }
-            });
-            
-            // Expand nodes at the next level if their parents are visible
-            if (id && hasChildren && depth === maxDepth + 1) {
-                // Check if parent is visible (either root or expanded)
-                const parentVisible = !parentId || expandedNodes.has(parentId);
-                if (parentVisible) {
-                    expandedNodes.add(id);
-                    const toggleBtn = node.querySelector('.tree-toggle');
-                    if (toggleBtn) {
-                        toggleBtn.classList.add('expanded');
-                        const icon = toggleBtn.querySelector('.toggle-icon');
-                        if (icon) icon.textContent = '−';
-                    }
-                }
+            if (id && expandedNodes.has(id)) {
+                 const depth = parseInt(node.getAttribute('data-depth') || '0');
+                 if (depth > currentMaxExpandedDepth) {
+                     currentMaxExpandedDepth = depth;
+                 }
             }
         });
+
+        // 2. The target depth to expand is one level deeper.
+        const targetDepth = currentMaxExpandedDepth + 1;
+        const nodesToExpand: {id: string, element: Element}[] = [];
+
+        // 3. Identify nodes to expand
+        nodes.forEach(node => {
+             const depth = parseInt(node.getAttribute('data-depth') || '0');
+             const id = node.getAttribute('data-id');
+             const hasChildren = node.getAttribute('data-has-children') === 'true';
+             const parentId = node.getAttribute('data-parent');
+
+             if (id && hasChildren && !expandedNodes.has(id)) {
+                 if (depth <= targetDepth) {
+                     // Check if parent is visible (either root or expanded)
+                     const parentExpanded = !parentId || expandedNodes.has(parentId);
+                     if (parentExpanded) {
+                         nodesToExpand.push({id, element: node});
+                     }
+                 }
+             }
+        });
+
+        // 4. Batch update
+        nodesToExpand.forEach(({id, element}) => {
+            expandedNodes.add(id);
+            const toggleBtn = element.querySelector('.tree-toggle');
+            if (toggleBtn) {
+                toggleBtn.classList.add('expanded');
+                const icon = toggleBtn.querySelector('.toggle-icon');
+                if (icon) icon.textContent = '−';
+            }
+        });
+
         updateVisibility();
     }
 

@@ -44,44 +44,74 @@
                 <div class="description-content">{{ task.issue.description.as_ref().unwrap()|markdown|safe }}</div>
             </div>
             {% endif %}
+        </div>
 
-            {% if !task.children.is_empty() %}
-            <div style="margin-top: 32px; padding-top: 24px; border-top: 1px solid var(--border-subtle);">
-                <div class="detail-section">
-                    <h3>Child Issues ({{ task.total }})</h3>
-                    <div class="task-children-list">
-                        {% for child in task.children %}
-                        <div class="task-child-row" data-filter-text="{{ child.title|lower }} {{ child.id|lower }} {{ child.status|lower }}">
-                            <span class="child-status status-{{ child.status.as_str() }}">{{ child.status }}</span>
-                            <span class="child-type type-{{ child.issue_type.as_css_class() }}">{{ child.issue_type }}</span>
-                            <a href="/tasks/{{ child.id }}" class="child-title">{{ child.title }}</a>
-                            <span class="child-id">{{ child.id }}</span>
-                            <span class="child-priority">P{{ child.priority.unwrap_or(0) }}</span>
-                        </div>
-                        {% endfor %}
-                    </div>
-                </div>
-            </div>
-            {% endif %}
-
-            <div class="timestamps-grid" style="margin-top: 32px;">
-                <div class="timestamp-item">
-                    <span class="timestamp-value">{{ task.issue.created_at|format_date }}</span>
-                    <span class="timestamp-label">Created</span>
-                </div>
-                <div class="separator"></div>
-                <div class="timestamp-item">
-                    <span class="timestamp-value">{{ task.issue.updated_at|format_date }}</span>
-                    <span class="timestamp-label">Updated</span>
-                </div>
-                {% if task.issue.closed_at.is_some() %}
-                <div class="separator"></div>
-                <div class="timestamp-item">
-                    <span class="timestamp-value">{{ task.issue.closed_at.as_ref().unwrap()|format_date }}</span>
-                    <span class="timestamp-label">Closed</span>
+        {% if !children_tree.is_empty() %}
+        <div style="margin-top: 40px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding: 0 4px;">
+                <h3 style="margin: 0; color: var(--text-muted); font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px;">Child Issues ({{ task.total }})</h3>
+                {% if can_expand %}
+                <div style="display: flex; gap: 8px;">
+                    <button id="detail-expand" class="btn btn-secondary" style="padding: 4px 12px; font-size: 0.75rem;">Expand</button>
+                    <button id="detail-collapse" class="btn btn-secondary" style="padding: 4px 12px; font-size: 0.75rem;">Collapse</button>
                 </div>
                 {% endif %}
             </div>
+            
+            <div class="tree-view" data-issue-type="{{ task.issue.issue_type }}">
+                <ul class="tree-list">
+                    {% for node in children_tree %}
+                    <li class="tree-node depth-{{ node.depth }}"
+                        data-id="{{ node.id }}"
+                        data-depth="{{ node.depth }}"
+                        data-type="{{ node.issue_type }}"
+                        data-parent="{% if let Some(p) = node.parent_id %}{{ p }}{% endif %}"
+                        data-has-children="{{ node.has_children }}"
+                        data-filter-text="{{ node.title|lower }} {{ node.id|lower }}"
+                        style="--depth: {{ node.depth }}">
+                        <div class="tree-node-content">
+                            {% if node.has_children %}
+                            <button class="tree-toggle" aria-label="Toggle children">
+                                <span class="toggle-icon">+</span>
+                            </button>
+                            {% else %}
+                            <span class="tree-toggle-placeholder"></span>
+                            {% endif %}
+                            <span class="tree-status status-{{ node.status }}"></span>
+                            <span class="tree-type type-{{ node.issue_type }}">{{ node.issue_type }}</span>
+                            <a href="/tasks/{{ node.id }}" class="tree-title">{{ node.title }}</a>
+                            <span class="tree-id">{{ node.id }}</span>
+                            <span class="tree-priority">P{{ node.priority }}</span>
+                            {% if node.blocked_by_count > 0 %}
+                            <span class="tree-blocked" title="Blocked by {{ node.blocked_by_count }} issue(s)">
+                                blocked
+                            </span>
+                            {% endif %}
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="timestamps-grid" style="margin-top: 48px; margin-bottom: 24px;">
+            <div class="timestamp-item">
+                <span class="timestamp-value">{{ task.issue.created_at|format_date }}</span>
+                <span class="timestamp-label">Created</span>
+            </div>
+            <div class="separator"></div>
+            <div class="timestamp-item">
+                <span class="timestamp-value">{{ task.issue.updated_at|format_date }}</span>
+                <span class="timestamp-label">Updated</span>
+            </div>
+            {% if task.issue.closed_at.is_some() %}
+            <div class="separator"></div>
+            <div class="timestamp-item">
+                <span class="timestamp-value">{{ task.issue.closed_at.as_ref().unwrap()|format_date }}</span>
+                <span class="timestamp-label">Closed</span>
+            </div>
+            {% endif %}
         </div>
     </main>
 {% include "_footer.html" %}

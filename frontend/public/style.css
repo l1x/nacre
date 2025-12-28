@@ -446,7 +446,7 @@ main > h2 {
     border: 1px solid var(--border-color);
     padding: 40px 48px;
     border-radius: var(--radius);
-    max-width: 900px;
+    width: 100%;
     margin: 0 auto;
 }
 
@@ -1088,9 +1088,9 @@ main:has(.board) {
 }
 
 .btn {
-    padding: 12px 24px;
+    padding: 8px 16px;
     border-radius: var(--radius);
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     font-weight: 500;
     cursor: pointer;
     transition: all 0.2s ease;
@@ -1129,8 +1129,8 @@ main:has(.board) {
     background-color: var(--bg-secondary);
     color: var(--text-secondary);
     border: 1px solid var(--border-color);
-    padding: 4px 12px;
-    font-size: 0.75rem;
+    padding: 6px 14px;
+    font-size: 0.8rem;
     cursor: pointer;
     transition: all 0.2s ease;
     text-decoration: none;

@@ -25,12 +25,17 @@ run = "cargo bench --bench markdown_comparison"
 description = "Building the development version"
 run = "cargo build"
 
+[tasks.build-js-prod]
+description = "Build frontend TypeScript into bundled app.js"
+run = "bun build ./frontend/src/main.ts --outfile ./frontend/public/app.js --target browser"
+
 [tasks.build-prod]
-description = "Building the development version"
+description = "Building the release version"
 run = "cargo build --release"
+depends = ["build-js-prod"]
 
 [tasks.build-prod-with-timings]
-description = "Building the development version"
+description = "Building the release version"
 run = "cargo build --release --timings"
 
 [tasks.show-issues]
@@ -61,14 +66,7 @@ run = "cargo tarpaulin --out Stdout --skip-clean"
 description = "Run tests with coverage and generate HTML report"
 run = "cargo tarpaulin --out Html --skip-clean --output-dir target/tarpaulin"
 
-[tasks.build-js-prod]
-description = "Build frontend TypeScript into bundled app.js"
-run = "bun build ./frontend/src/main.ts --outfile ./frontend/public/app.js --target browser"
-
-[tasks.build-js-test]
-description = "Test Bun compilation of TypeScript to test.js"
-run = "bun build ./frontend/src/main.ts --outfile ./frontend/public/test.js --target browser"
-
 [tasks.start-dev-server]
 description = "Building the development version"
-run = "cargo run --"
+run = "cargo run -- --open"
+depends = ["build-js-prod"]

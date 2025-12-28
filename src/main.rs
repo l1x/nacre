@@ -262,7 +262,7 @@ mod tests {
         let response = app
             .oneshot(
                 Request::builder()
-                    .uri("/tasks/nacre-p1b")
+                    .uri("/tasks/nacre-90b.3")
                     .body(Body::empty())
                     .unwrap(),
             )
@@ -281,7 +281,7 @@ mod tests {
         let response = app
             .oneshot(
                 Request::builder()
-                    .uri("/tasks/nacre-p1b/edit")
+                    .uri("/tasks/nacre-90b.3/edit")
                     .body(Body::empty())
                     .unwrap(),
             )

@@ -456,7 +456,7 @@ impl Client {
 
     pub fn list_issues(&self) -> Result<Vec<Issue>> {
         let output = Command::new(&self.bin_path)
-            .args(&["list", "--json"])
+            .args(["list", "--json"])
             .output()?;
 
         if !output.status.success() {

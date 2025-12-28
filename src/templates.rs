@@ -33,51 +33,44 @@ pub struct EpicWithProgress {
     pub total: usize,
     pub closed: usize,
     pub percent: f64,
-    pub children: Vec<beads::Issue>,
 }
 
 impl EpicWithProgress {
     /// Create an EpicWithProgress from an epic issue and all issues.
-    /// If `include_children` is true, the children vector is populated (sorted by status).
     pub fn from_epic(
         epic: &beads::Issue,
         all_issues: &[beads::Issue],
-        include_children: bool,
+        _include_children: bool,
     ) -> Self {
         let prefix = format!("{}.", epic.id);
-        let mut children: Vec<beads::Issue> = all_issues
+        let children_count = all_issues
             .iter()
             .filter(|i| {
                 i.dependencies.iter().any(|d| d.depends_on_id == epic.id)
                     || i.id.starts_with(&prefix)
             })
-            .cloned()
-            .collect();
-
-        // Sort children by status priority
-        children.sort_by_key(|i| i.status.sort_order());
-
-        let total = children.len();
-        let closed = children
-            .iter()
-            .filter(|i| i.status == beads::Status::Closed)
             .count();
-        let percent = if total > 0 {
-            (closed as f64 / total as f64) * 100.0
+
+        let closed = all_issues
+            .iter()
+            .filter(|i| {
+                (i.dependencies.iter().any(|d| d.depends_on_id == epic.id)
+                    || i.id.starts_with(&prefix))
+                    && i.status == beads::Status::Closed
+            })
+            .count();
+
+        let percent = if children_count > 0 {
+            (closed as f64 / children_count as f64) * 100.0
         } else {
             0.0
         };
 
         Self {
             issue: epic.clone(),
-            total,
+            total: children_count,
             closed,
             percent,
-            children: if include_children {
-                children
-            } else {
-                Vec::new()
-            },
         }
     }
 }
@@ -235,6 +228,8 @@ pub struct TaskDetailTemplate {
     pub active_nav: &'static str,
     pub app_version: String,
     pub task: EpicWithProgress,
+    pub children_tree: Vec<TreeNode>,
+    pub can_expand: bool,
 }
 
 #[derive(Template)]
