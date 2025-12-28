@@ -103,7 +103,7 @@
                     {% else %}
                     <div class="blocked-list">
                         {% for issue in blocked %}
-                        <a href="/issues/{{ issue.id }}" class="blocked-item">
+                        <a href="/tasks/{{ issue.id }}" class="blocked-item">
                             <span class="blocked-type type-{{ issue.issue_type.as_css_class() }}">{{ issue.issue_type }}</span>
                             <span class="blocked-title">{{ issue.title }}</span>
                             <span class="blocked-id">{{ issue.id }}</span>
@@ -120,7 +120,7 @@
                     {% else %}
                     <div class="in-progress-list">
                         {% for issue in in_progress %}
-                        <a href="/issues/{{ issue.id }}" class="in-progress-item">
+                        <a href="/tasks/{{ issue.id }}" class="in-progress-item">
                             <span class="in-progress-type type-{{ issue.issue_type.as_css_class() }}">{{ issue.issue_type }}</span>
                             <span class="in-progress-title">{{ issue.title }}</span>
                             <span class="in-progress-id">{{ issue.id }}</span>
