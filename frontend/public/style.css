@@ -1126,11 +1126,11 @@ main:has(.board) {
 }
 
 .btn-tertiary {
-    background-color: var(--status-in-progress);
-    color: white;
+    background-color: var(--bg-secondary);
+    color: var(--text-secondary);
     border: 1px solid var(--border-color);
-    padding: 8px 16px;
-    font-size: 0.85rem;
+    padding: 4px 12px;
+    font-size: 0.75rem;
     cursor: pointer;
     transition: all 0.2s ease;
     text-decoration: none;
@@ -1138,6 +1138,11 @@ main:has(.board) {
     text-align: center;
     border-radius: var(--radius);
     font-weight: 500;
+}
+
+.btn-tertiary:hover {
+    background-color: var(--bg-card-hover);
+    color: var(--text-primary);
 }
 
 .btn-tertiary:hover {

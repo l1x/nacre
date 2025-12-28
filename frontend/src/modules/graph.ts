@@ -132,18 +132,27 @@ export function initGraph() {
     }
 
     function expandOneLevel() {
-        const expandedDepths = getCurrentExpandedDepths();
-        const maxDepth = Math.max(0, ...expandedDepths);
-        const targetDepth = maxDepth + 1;
-        
         nodes.forEach(node => {
             const depth = parseInt(node.getAttribute('data-depth') || '0');
             const id = node.getAttribute('data-id');
             const hasChildren = node.getAttribute('data-has-children') === 'true';
+            const parentId = node.getAttribute('data-parent');
             
-            // Expand nodes at the next level that have visible parents
-            if (id && hasChildren && depth === targetDepth) {
-                const parentVisible = isParentVisible(node);
+            // Find all expanded nodes at the previous level to determine current max depth
+            let maxDepth = -1;
+            nodes.forEach(n => {
+                if (n.getAttribute('data-parent') === '0') { // Root nodes
+                    maxDepth = Math.max(maxDepth, 0);
+                } else if (expandedNodes.has(n.getAttribute('data-parent'))) {
+                    const nodeDepth = parseInt(n.getAttribute('data-depth') || '0');
+                    maxDepth = Math.max(maxDepth, nodeDepth - 1);
+                }
+            });
+            
+            // Expand nodes at the next level if their parents are visible
+            if (id && hasChildren && depth === maxDepth + 1) {
+                // Check if parent is visible (either root or expanded)
+                const parentVisible = !parentId || expandedNodes.has(parentId);
                 if (parentVisible) {
                     expandedNodes.add(id);
                     const toggleBtn = node.querySelector('.tree-toggle');
@@ -159,17 +168,24 @@ export function initGraph() {
     }
 
     function collapseOneLevel() {
-        const expandedDepths = getCurrentExpandedDepths();
-        const maxDepth = expandedDepths.length > 0 ? Math.max(...expandedDepths) : 0;
-        const targetDepth = maxDepth - 1;
+        // Find current maximum expanded depth
+        let maxExpandedDepth = 0;
+        expandedNodes.forEach(id => {
+            nodes.forEach(node => {
+                if (node.getAttribute('data-id') === id) {
+                    const depth = parseInt(node.getAttribute('data-depth') || '0');
+                    maxExpandedDepth = Math.max(maxExpandedDepth, depth);
+                }
+            });
+        });
         
         nodes.forEach(node => {
             const depth = parseInt(node.getAttribute('data-depth') || '0');
             const id = node.getAttribute('data-id');
             const hasChildren = node.getAttribute('data-has-children') === 'true';
             
-            // Collapse nodes at the current maximum depth
-            if (id && hasChildren && depth > targetDepth) {
+            // Collapse nodes deeper than the new max depth
+            if (id && hasChildren && depth > maxExpandedDepth - 1) {
                 expandedNodes.delete(id);
                 const toggleBtn = node.querySelector('.tree-toggle');
                 if (toggleBtn) {
