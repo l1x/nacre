@@ -2050,15 +2050,34 @@ main:has(.board) {
     transform: scaleY(1.02);
 }
 
-/* Bar colors - Mapped to Theme */
-.html-chart__bar--blue { background: #7eb8da; } /* Using In Progress Blue */
-.html-chart__bar--green { background: #9b59b6; } /* Using Epic Purple for contrast */
-.html-chart__bar--orange { background: var(--accent); } /* Using Theme Accent (Orange) */
+/* Bar colors - Project Palette */
+.html-chart__bar--blue { background: #7eb8da; }
+.html-chart__bar--green { background: #9bbb59; }
+.html-chart__bar--orange { background: var(--accent); }
+.html-chart__bar--grey { background: var(--text-muted); }
 
 /* Legend Dots */
 .html-chart__legend-dot--blue { background: #7eb8da; }
-.html-chart__legend-dot--green { background: #9b59b6; }
+.html-chart__legend-dot--green { background: #9bbb59; }
 .html-chart__legend-dot--orange { background: var(--accent); }
+.html-chart__legend-dot--grey { background: var(--text-muted); }
+
+/* Specific Chart Overrides to match Board colors (Created=Orange, Resolved/Closed=Grey) */
+#ticket-activity .html-chart__bar--blue,
+#ticket-activity .html-chart__legend-dot--blue {
+    background: var(--accent);
+}
+
+#ticket-activity .html-chart__bar--green,
+#ticket-activity .html-chart__legend-dot--green {
+    background: var(--text-muted);
+}
+
+#throughput .html-chart__bar--blue,
+#throughput .html-chart__legend-dot--blue {
+    background: var(--text-muted);
+}
+
 .html-chart__bar-value {
     position: absolute;
     top: -20px;
