@@ -102,7 +102,7 @@ pub struct TreeNode {
 }
 
 #[derive(Template)]
-#[template(path = "landing.html")]
+#[template(path = "dashboard.html")]
 pub struct LandingTemplate {
     pub project_name: String,
     pub page_title: String,
@@ -126,7 +126,7 @@ pub struct BoardTemplate {
 }
 
 #[derive(Template)]
-#[template(path = "new_issue.html")]
+#[template(path = "task_new.html")]
 pub struct NewIssueTemplate {
     pub project_name: String,
     pub page_title: String,
@@ -157,7 +157,7 @@ pub struct PrdViewTemplate {
 }
 
 #[derive(Template)]
-#[template(path = "edit_issue.html")]
+#[template(path = "task_edit.html")]
 pub struct EditIssueTemplate {
     pub project_name: String,
     pub page_title: String,
@@ -228,7 +228,7 @@ pub struct TasksTemplate {
 }
 
 #[derive(Template)]
-#[template(path = "task_detail.html")]
+#[template(path = "task.html")]
 pub struct TaskDetailTemplate {
     pub project_name: String,
     pub page_title: String,
