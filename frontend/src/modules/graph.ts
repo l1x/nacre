@@ -120,59 +120,56 @@ export function initGraph() {
     // Expand one level button
     if (expandOneLevelBtn) {
         expandOneLevelBtn.addEventListener('click', () => {
-            const currentDepth = getCurrentMaxDepth();
-            expandToDepth(currentDepth + 1);
+            expandOneLevel();
         });
     }
 
     // Collapse one level button  
     if (collapseOneLevelBtn) {
         collapseOneLevelBtn.addEventListener('click', () => {
-            const currentDepth = getCurrentMaxDepth();
-            collapseToDepth(currentDepth - 1);
+            collapseOneLevel();
         });
     }
 
-    function getCurrentMaxDepth(): number {
-        let maxDepth = 0;
-        nodes.forEach(node => {
-            const parentId = node.getAttribute('data-parent');
-            if (!parentId) {
-                maxDepth = Math.max(maxDepth, 0);
-            } else if (expandedNodes.has(parentId)) {
-                const currentDepth = parseInt(node.getAttribute('data-depth') || '0');
-                maxDepth = Math.max(maxDepth, currentDepth);
-            }
-        });
-        return maxDepth;
-    }
-
-    function expandToDepth(targetDepth: number) {
+    function expandOneLevel() {
+        const expandedDepths = getCurrentExpandedDepths();
+        const maxDepth = Math.max(0, ...expandedDepths);
+        const targetDepth = maxDepth + 1;
+        
         nodes.forEach(node => {
             const depth = parseInt(node.getAttribute('data-depth') || '0');
             const id = node.getAttribute('data-id');
             const hasChildren = node.getAttribute('data-has-children') === 'true';
             
-            if (id && hasChildren && depth < targetDepth) {
-                expandedNodes.add(id);
-                const toggleBtn = node.querySelector('.tree-toggle');
-                if (toggleBtn) {
-                    toggleBtn.classList.add('expanded');
-                    const icon = toggleBtn.querySelector('.toggle-icon');
-                    if (icon) icon.textContent = '−';
+            // Expand nodes at the next level that have visible parents
+            if (id && hasChildren && depth === targetDepth) {
+                const parentVisible = isParentVisible(node);
+                if (parentVisible) {
+                    expandedNodes.add(id);
+                    const toggleBtn = node.querySelector('.tree-toggle');
+                    if (toggleBtn) {
+                        toggleBtn.classList.add('expanded');
+                        const icon = toggleBtn.querySelector('.toggle-icon');
+                        if (icon) icon.textContent = '−';
+                    }
                 }
             }
         });
         updateVisibility();
     }
 
-    function collapseToDepth(targetDepth: number) {
+    function collapseOneLevel() {
+        const expandedDepths = getCurrentExpandedDepths();
+        const maxDepth = expandedDepths.length > 0 ? Math.max(...expandedDepths) : 0;
+        const targetDepth = maxDepth - 1;
+        
         nodes.forEach(node => {
             const depth = parseInt(node.getAttribute('data-depth') || '0');
             const id = node.getAttribute('data-id');
             const hasChildren = node.getAttribute('data-has-children') === 'true';
             
-            if (id && hasChildren && depth >= targetDepth) {
+            // Collapse nodes at the current maximum depth
+            if (id && hasChildren && depth > targetDepth) {
                 expandedNodes.delete(id);
                 const toggleBtn = node.querySelector('.tree-toggle');
                 if (toggleBtn) {
@@ -183,6 +180,31 @@ export function initGraph() {
             }
         });
         updateVisibility();
+    }
+
+    function getCurrentExpandedDepths(): number[] {
+        const depths: number[] = [];
+        nodes.forEach(node => {
+            const id = node.getAttribute('data-id');
+            const depth = parseInt(node.getAttribute('data-depth') || '0');
+            if (id && expandedNodes.has(id)) {
+                depths.push(depth);
+            }
+        });
+        return [...new Set(depths)];
+    }
+
+    function isParentVisible(node: Element): boolean {
+        const parentId = node.getAttribute('data-parent');
+        if (!parentId) return true; // Root node
+        
+        const parent = Array.from(nodes).find(n => 
+            n.getAttribute('data-id') === parentId
+        );
+        if (!parent) return false;
+        
+        // Check if parent is visible (not hidden by filters and has expanded parent)
+        return !parent.classList.contains('hidden') && isParentVisible(parent);
     }
 
     // Initialize visibility
