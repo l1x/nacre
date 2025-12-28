@@ -1125,6 +1125,18 @@ main:has(.board) {
     color: var(--text-primary);
 }
 
+.btn-tertiary {
+    background-color: var(--status-in-progress);
+    color: white;
+    padding: 8px 16px;
+    font-size: 0.85rem;
+}
+
+.btn-tertiary:hover {
+    background-color: var(--status-blocked);
+    color: white;
+}
+
 /* Create button in nav */
 .create-btn {
     background-color: var(--accent);

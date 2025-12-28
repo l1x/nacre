@@ -6,6 +6,8 @@ export function initGraph() {
     const typeFilters = document.querySelectorAll('.type-filter') as NodeListOf<HTMLInputElement>;
     const expandAllBtn = document.getElementById('expand-all');
     const collapseAllBtn = document.getElementById('collapse-all');
+    const expandOneLevelBtn = document.getElementById('expand-one-level');
+    const collapseOneLevelBtn = document.getElementById('collapse-one-level');
 
     const expandedNodes = new Set<string>();
 
@@ -113,6 +115,74 @@ export function initGraph() {
             });
             updateVisibility();
         });
+    }
+
+    // Expand one level button
+    if (expandOneLevelBtn) {
+        expandOneLevelBtn.addEventListener('click', () => {
+            const currentDepth = getCurrentMaxDepth();
+            expandToDepth(currentDepth + 1);
+        });
+    }
+
+    // Collapse one level button  
+    if (collapseOneLevelBtn) {
+        collapseOneLevelBtn.addEventListener('click', () => {
+            const currentDepth = getCurrentMaxDepth();
+            collapseToDepth(currentDepth - 1);
+        });
+    }
+
+    function getCurrentMaxDepth(): number {
+        let maxDepth = 0;
+        nodes.forEach(node => {
+            const parentId = node.getAttribute('data-parent');
+            if (!parentId) {
+                maxDepth = Math.max(maxDepth, 0);
+            } else if (expandedNodes.has(parentId)) {
+                const currentDepth = parseInt(node.getAttribute('data-depth') || '0');
+                maxDepth = Math.max(maxDepth, currentDepth);
+            }
+        });
+        return maxDepth;
+    }
+
+    function expandToDepth(targetDepth: number) {
+        nodes.forEach(node => {
+            const depth = parseInt(node.getAttribute('data-depth') || '0');
+            const id = node.getAttribute('data-id');
+            const hasChildren = node.getAttribute('data-has-children') === 'true';
+            
+            if (id && hasChildren && depth < targetDepth) {
+                expandedNodes.add(id);
+                const toggleBtn = node.querySelector('.tree-toggle');
+                if (toggleBtn) {
+                    toggleBtn.classList.add('expanded');
+                    const icon = toggleBtn.querySelector('.toggle-icon');
+                    if (icon) icon.textContent = '−';
+                }
+            }
+        });
+        updateVisibility();
+    }
+
+    function collapseToDepth(targetDepth: number) {
+        nodes.forEach(node => {
+            const depth = parseInt(node.getAttribute('data-depth') || '0');
+            const id = node.getAttribute('data-id');
+            const hasChildren = node.getAttribute('data-has-children') === 'true';
+            
+            if (id && hasChildren && depth >= targetDepth) {
+                expandedNodes.delete(id);
+                const toggleBtn = node.querySelector('.tree-toggle');
+                if (toggleBtn) {
+                    toggleBtn.classList.remove('expanded');
+                    const icon = toggleBtn.querySelector('.toggle-icon');
+                    if (icon) icon.textContent = '+';
+                }
+            }
+        });
+        updateVisibility();
     }
 
     // Initialize visibility
