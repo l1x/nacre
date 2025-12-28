@@ -979,6 +979,10 @@ main:has(.board) {
     color: var(--accent);
 }
 
+.hidden-by-type {
+    display: none !important;
+}
+
 /* Animations */
 @keyframes fadeIn {
     from { opacity: 0; transform: translateY(8px); }

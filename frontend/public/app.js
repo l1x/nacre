@@ -186,6 +186,31 @@ function initBoardFeatures() {
       e.stopPropagation();
     });
   }
+  const typeFilters = document.querySelectorAll(".type-filter");
+  if (typeFilters.length > 0) {
+    const updateCardVisibility = () => {
+      const activeTypes = new Set(Array.from(typeFilters).filter((f) => f.checked).map((f) => f.value));
+      const cards = document.querySelectorAll(".issue-card");
+      cards.forEach((card) => {
+        let visible = false;
+        for (const type of activeTypes) {
+          if (card.classList.contains(`issue-type-${type}`)) {
+            visible = true;
+            break;
+          }
+        }
+        if (visible) {
+          card.classList.remove("hidden-by-type");
+        } else {
+          card.classList.add("hidden-by-type");
+        }
+      });
+    };
+    typeFilters.forEach((filter) => {
+      filter.addEventListener("change", updateCardVisibility);
+    });
+    updateCardVisibility();
+  }
 }
 
 // frontend/src/modules/dragdrop.ts

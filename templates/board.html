@@ -24,6 +24,18 @@
         <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme"></button>
     </header>
     <main id="content">
+        <div class="graph-controls" style="margin-bottom: 16px;">
+            <div class="filter-group">
+                <label>Show Types:</label>
+                <div class="checkbox-group">
+                    <label><input type="checkbox" class="type-filter" value="epic" checked> Epics</label>
+                    <label><input type="checkbox" class="type-filter" value="feature" checked> Features</label>
+                    <label><input type="checkbox" class="type-filter" value="bug" checked> Bugs</label>
+                    <label><input type="checkbox" class="type-filter" value="task" checked> Tasks</label>
+                    <label><input type="checkbox" class="type-filter" value="chore" checked> Chores</label>
+                </div>
+            </div>
+        </div>
         <div class="board">
             {% for col in columns %}
             <div class="board-column" data-status="{{ col.status }}">
