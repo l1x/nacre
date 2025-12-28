@@ -116,26 +116,6 @@ pub struct LandingTemplate {
 }
 
 #[derive(Template)]
-#[template(path = "index.html")]
-pub struct IndexTemplate {
-    pub project_name: String,
-    pub page_title: String,
-    pub active_nav: &'static str,
-    pub app_version: String,
-    pub nodes: Vec<TreeNode>,
-}
-
-#[derive(Template)]
-#[template(path = "epics.html")]
-pub struct EpicsTemplate {
-    pub project_name: String,
-    pub page_title: String,
-    pub active_nav: &'static str,
-    pub app_version: String,
-    pub epics: Vec<EpicWithProgress>,
-}
-
-#[derive(Template)]
 #[template(path = "board.html")]
 pub struct BoardTemplate {
     pub project_name: String,
@@ -143,17 +123,6 @@ pub struct BoardTemplate {
     pub active_nav: &'static str,
     pub app_version: String,
     pub columns: Vec<BoardColumn>,
-}
-
-#[derive(Template)]
-#[template(path = "issue.html")]
-pub struct IssueDetailTemplate {
-    pub project_name: String,
-    pub page_title: String,
-    pub active_nav: &'static str,
-    pub app_version: String,
-    pub issue: beads::Issue,
-    pub children: Vec<beads::Issue>,
 }
 
 #[derive(Template)]
@@ -185,16 +154,6 @@ pub struct PrdViewTemplate {
     #[allow(dead_code)]
     pub filename: String,
     pub content: String,
-}
-
-#[derive(Template)]
-#[template(path = "epic_detail.html")]
-pub struct EpicDetailTemplate {
-    pub project_name: String,
-    pub page_title: String,
-    pub active_nav: &'static str,
-    pub app_version: String,
-    pub epic: EpicWithProgress,
 }
 
 #[derive(Template)]
@@ -256,6 +215,26 @@ impl ChartData {
     pub fn has_data(&self) -> bool {
         self.series.iter().any(|s| s.bars.iter().any(|b| b.value > 0.0))
     }
+}
+
+#[derive(Template)]
+#[template(path = "tasks.html")]
+pub struct TasksTemplate {
+    pub project_name: String,
+    pub page_title: String,
+    pub active_nav: &'static str,
+    pub app_version: String,
+    pub nodes: Vec<TreeNode>,
+}
+
+#[derive(Template)]
+#[template(path = "task_detail.html")]
+pub struct TaskDetailTemplate {
+    pub project_name: String,
+    pub page_title: String,
+    pub active_nav: &'static str,
+    pub app_version: String,
+    pub task: EpicWithProgress,
 }
 
 #[derive(Template)]

@@ -206,7 +206,7 @@ nav a.active::after {
 main {
     flex: 1;
     overflow: auto;
-    padding: 40px 32px;
+    padding: 24px 32px;
     max-width: var(--content-max-width);
     margin: 0 auto;
     width: 100%;
@@ -795,6 +795,12 @@ main:has(.board) {
 .meta-chip.status-in-progress { color: #5dade2; background-color: rgba(93, 173, 226, 0.05); border-color: rgba(93, 173, 226, 0.2); }
 .meta-chip.status-blocked { color: #ec7063; background-color: rgba(236, 112, 99, 0.05); border-color: rgba(236, 112, 99, 0.2); }
 .meta-chip.status-closed { color: var(--text-muted); }
+
+.meta-label {
+    color: var(--text-muted);
+    font-weight: 400;
+    margin-right: 4px;
+}
 
 .detail-section {
     margin-bottom: 40px;

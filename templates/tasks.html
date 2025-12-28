@@ -41,7 +41,7 @@
                         {% endif %}
                         <span class="tree-status status-{{ node.status }}"></span>
                         <span class="tree-type type-{{ node.issue_type }}">{{ node.issue_type }}</span>
-                        <a href="/issues/{{ node.id }}" class="tree-title">{{ node.title }}</a>
+                        <a href="/tasks/{{ node.id }}" class="tree-title">{{ node.title }}</a>
                         <span class="tree-id">{{ node.id }}</span>
                         <span class="tree-priority">P{{ node.priority }}</span>
                         {% if node.blocked_by_count > 0 %}

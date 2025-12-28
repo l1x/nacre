@@ -73,20 +73,18 @@ async fn main() {
 
     let app = Router::new()
         .route("/", get(handlers::landing))
-        .route("/issues", get(handlers::index))
-        .route("/epics", get(handlers::epics))
-        .route("/epics/:id", get(handlers::epic_detail))
+        .route("/tasks", get(handlers::tasks_list))
+        .route("/tasks/new", get(handlers::new_task_form))
+        .route("/tasks/:id", get(handlers::task_detail))
+        .route("/tasks/:id/edit", get(handlers::edit_task))
         .route("/board", get(handlers::board))
         .route("/graph", get(handlers::graph))
         .route("/metrics", get(handlers::metrics_handler))
-        .route("/issues/new", get(handlers::new_issue_form))
-        .route("/issues/:id", get(handlers::issue_detail))
-        .route("/issues/:id/edit", get(handlers::edit_issue))
         .route("/prds", get(handlers::prds_list))
         .route("/prds/:filename", get(handlers::prd_view))
-        .route("/api/issues", get(handlers::list_issues))
-        .route("/api/issues/:id", post(handlers::update_issue_handler))
-        .route("/api/issues", post(handlers::create_issue_handler))
+        .route("/api/issues", get(handlers::list_tasks))
+        .route("/api/issues/:id", post(handlers::update_task))
+        .route("/api/issues", post(handlers::create_task))
         .route("/health", get(handlers::health_check))
         .route("/style.css", get(handlers::serve_css))
         .route("/app.js", get(handlers::serve_js))
@@ -194,15 +192,15 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_index() {
+    async fn test_tasks() {
         let app = Router::new()
-            .route("/issues", get(handlers::index))
+            .route("/tasks", get(handlers::tasks_list))
             .with_state(test_state());
 
         let response = app
             .oneshot(
                 Request::builder()
-                    .uri("/issues")
+                    .uri("/tasks")
                     .body(Body::empty())
                     .unwrap(),
             )
@@ -215,25 +213,6 @@ mod tests {
             .await
             .unwrap();
         assert!(body.starts_with(b"<!DOCTYPE html>"));
-    }
-
-    #[tokio::test]
-    async fn test_epics() {
-        let app = Router::new()
-            .route("/epics", get(handlers::epics))
-            .with_state(test_state());
-
-        let response = app
-            .oneshot(
-                Request::builder()
-                    .uri("/epics")
-                    .body(Body::empty())
-                    .unwrap(),
-            )
-            .await
-            .unwrap();
-
-        assert_eq!(response.status(), StatusCode::OK);
     }
 
     #[tokio::test]
@@ -275,15 +254,15 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_issue_detail() {
+    async fn test_task_detail() {
         let app = Router::new()
-            .route("/issues/:id", get(handlers::issue_detail))
+            .route("/tasks/:id", get(handlers::task_detail))
             .with_state(test_state());
 
         let response = app
             .oneshot(
                 Request::builder()
-                    .uri("/issues/nacre-p1b")
+                    .uri("/tasks/nacre-p1b")
                     .body(Body::empty())
                     .unwrap(),
             )
@@ -294,15 +273,15 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_edit_issue() {
+    async fn test_edit_task() {
         let app = Router::new()
-            .route("/issues/:id/edit", get(handlers::edit_issue))
+            .route("/tasks/:id/edit", get(handlers::edit_task))
             .with_state(test_state());
 
         let response = app
             .oneshot(
                 Request::builder()
-                    .uri("/issues/nacre-p1b/edit")
+                    .uri("/tasks/nacre-p1b/edit")
                     .body(Body::empty())
                     .unwrap(),
             )
@@ -313,9 +292,9 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_list_issues() {
+    async fn test_list_tasks() {
         let app = Router::new()
-            .route("/api/issues", get(handlers::list_issues))
+            .route("/api/issues", get(handlers::list_tasks))
             .with_state(test_state());
 
         let response = app

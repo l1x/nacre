@@ -6,95 +6,40 @@ use axum::{
 use std::collections::HashMap;
 
 use crate::beads;
-use crate::templates::*;
+use crate::templates::{EditIssueTemplate, EpicWithProgress, NewIssueTemplate, TaskDetailTemplate, TasksTemplate, TreeNode};
 
-pub async fn index(State(state): State<crate::AppState>) -> IndexTemplate {
+pub async fn tasks_list(State(state): State<crate::AppState>) -> TasksTemplate {
     let all_issues = state.client.list_issues().unwrap_or_default();
     let nodes = build_issue_tree(&all_issues);
 
-    IndexTemplate {
+    TasksTemplate {
         project_name: state.project_name.clone(),
-        page_title: "Issues".to_string(),
-        active_nav: "issues",
+        page_title: "Tasks".to_string(),
+        active_nav: "tasks",
         app_version: state.app_version.clone(),
         nodes,
     }
 }
 
-pub async fn issue_detail(
+pub async fn task_detail(
     State(state): State<crate::AppState>,
     Path(id): Path<String>,
-) -> crate::AppResult<IssueDetailTemplate> {
-    let issue = state.client.get_issue(&id)?;
-    let all_issues = state.client.list_issues().unwrap_or_default();
-    
-    // Find children (ParentChild dependency or dot-notation)
-    let prefix = format!("{}.", id);
-    let mut children: Vec<beads::Issue> = all_issues
-        .into_iter()
-        .filter(|i| {
-            i.dependencies.iter().any(|d| d.depends_on_id == id && d.dep_type == beads::DependencyType::ParentChild)
-                || i.id.starts_with(&prefix)
-        })
-        .collect();
+) -> crate::AppResult<TaskDetailTemplate> {
+    let all_issues = state.client.list_issues()?;
 
-    children.sort_by_key(|i| i.status.sort_order());
+    // Find the issue (any type, not just epics)
+    let issue = all_issues
+        .iter()
+        .find(|i| i.id == id)
+        .ok_or_else(|| crate::AppError::NotFound(format!("Task {}", id)))?;
 
-    Ok(IssueDetailTemplate {
+    Ok(TaskDetailTemplate {
         project_name: state.project_name.clone(),
-        page_title: id,
-        active_nav: "",
+        page_title: id.clone(),
+        active_nav: "tasks",
         app_version: state.app_version.clone(),
-        issue,
-        children,
+        task: EpicWithProgress::from_epic(issue, &all_issues, true),
     })
-}
-
-pub async fn edit_issue(
-    State(state): State<crate::AppState>,
-    Path(id): Path<String>,
-) -> crate::AppResult<EditIssueTemplate> {
-    let issue = state.client.get_issue(&id)?;
-    Ok(EditIssueTemplate {
-        project_name: state.project_name.clone(),
-        page_title: format!("Edit {}", id),
-        active_nav: "",
-        app_version: state.app_version.clone(),
-        issue,
-    })
-}
-
-pub async fn new_issue_form(State(state): State<crate::AppState>) -> NewIssueTemplate {
-    NewIssueTemplate {
-        project_name: state.project_name.clone(),
-        page_title: "New Issue".to_string(),
-        active_nav: "",
-        app_version: state.app_version.clone(),
-    }
-}
-
-pub async fn list_issues(
-    State(state): State<crate::AppState>,
-) -> crate::AppResult<Json<Vec<beads::Issue>>> {
-    let issues = state.client.list_issues()?;
-    Ok(Json(issues))
-}
-
-pub async fn update_issue_handler(
-    State(state): State<crate::AppState>,
-    Path(id): Path<String>,
-    Json(update): Json<beads::IssueUpdate>,
-) -> crate::AppResult<StatusCode> {
-    state.client.update_issue(&id, update)?;
-    Ok(StatusCode::OK)
-}
-
-pub async fn create_issue_handler(
-    State(state): State<crate::AppState>,
-    Json(create): Json<beads::IssueCreate>,
-) -> crate::AppResult<Json<serde_json::Value>> {
-    let id = state.client.create_issue(create)?;
-    Ok(Json(serde_json::json!({ "id": id })))
 }
 
 /// Build a hierarchical tree of issues for display
@@ -239,4 +184,55 @@ fn build_issue_tree(all_issues: &[beads::Issue]) -> Vec<TreeNode> {
     }
 
     nodes
+}
+
+// Form handlers
+
+pub async fn edit_task(
+    State(state): State<crate::AppState>,
+    Path(id): Path<String>,
+) -> crate::AppResult<EditIssueTemplate> {
+    let issue = state.client.get_issue(&id)?;
+    Ok(EditIssueTemplate {
+        project_name: state.project_name.clone(),
+        page_title: format!("Edit {}", id),
+        active_nav: "tasks",
+        app_version: state.app_version.clone(),
+        issue,
+    })
+}
+
+pub async fn new_task_form(State(state): State<crate::AppState>) -> NewIssueTemplate {
+    NewIssueTemplate {
+        project_name: state.project_name.clone(),
+        page_title: "New Task".to_string(),
+        active_nav: "tasks",
+        app_version: state.app_version.clone(),
+    }
+}
+
+// API handlers
+
+pub async fn list_tasks(
+    State(state): State<crate::AppState>,
+) -> crate::AppResult<Json<Vec<beads::Issue>>> {
+    let issues = state.client.list_issues()?;
+    Ok(Json(issues))
+}
+
+pub async fn update_task(
+    State(state): State<crate::AppState>,
+    Path(id): Path<String>,
+    Json(update): Json<beads::IssueUpdate>,
+) -> crate::AppResult<StatusCode> {
+    state.client.update_issue(&id, update)?;
+    Ok(StatusCode::OK)
+}
+
+pub async fn create_task(
+    State(state): State<crate::AppState>,
+    Json(create): Json<beads::IssueCreate>,
+) -> crate::AppResult<Json<serde_json::Value>> {
+    let id = state.client.create_issue(create)?;
+    Ok(Json(serde_json::json!({ "id": id })))
 }

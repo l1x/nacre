@@ -44,7 +44,7 @@
                 </div>
 
                 <div class="form-actions">
-                    <a href="/issues" class="btn btn-secondary">Cancel</a>
+                    <a href="/tasks" class="btn btn-secondary">Cancel</a>
                     <button type="submit" class="btn btn-primary">Create Issue</button>
                 </div>
             </form>
@@ -75,7 +75,7 @@
 
                 if (response.ok) {
                     const result = await response.json();
-                    window.location.href = '/issues/' + result.id;
+                    window.location.href = '/tasks/' + result.id;
                 } else {
                     alert('Failed to create issue');
                     submitBtn.disabled = false;

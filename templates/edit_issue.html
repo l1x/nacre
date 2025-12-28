@@ -44,7 +44,7 @@
                 </div>
 
                 <div class="form-actions">
-                    <a href="/issues/{{ issue.id }}" class="btn btn-secondary">Cancel</a>
+                    <a href="/tasks/{{ issue.id }}" class="btn btn-secondary">Cancel</a>
                     <button type="submit" class="btn btn-primary">Save Changes</button>
                 </div>
             </form>
@@ -74,7 +74,7 @@
                 });
 
                 if (response.ok) {
-                    window.location.href = '/issues/{{ issue.id }}';
+                    window.location.href = '/tasks/{{ issue.id }}';
                 } else {
                     alert('Failed to update issue');
                     submitBtn.disabled = false;
