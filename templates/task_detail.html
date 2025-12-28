@@ -6,7 +6,7 @@
 <body>
     {% include "_header.html" %}
     <main id="content">
-        <div class="epic-detail">
+        <div class="task-detail">
             <a href="/tasks/{{ task.issue.id }}/edit" class="edit-action-btn">Edit</a>
             <div class="scandi-header" style="margin-bottom: 24px;">
                 <div class="issue-eyebrow">
@@ -49,9 +49,9 @@
             <div style="margin-top: 32px; padding-top: 24px; border-top: 1px solid var(--border-subtle);">
                 <div class="detail-section">
                     <h3>Child Issues ({{ task.total }})</h3>
-                    <div class="epic-children-list">
+                    <div class="task-children-list">
                         {% for child in task.children %}
-                        <div class="epic-child-row" data-filter-text="{{ child.title|lower }} {{ child.id|lower }} {{ child.status|lower }}">
+                        <div class="task-child-row" data-filter-text="{{ child.title|lower }} {{ child.id|lower }} {{ child.status|lower }}">
                             <span class="child-status status-{{ child.status.as_str() }}">{{ child.status }}</span>
                             <span class="child-type type-{{ child.issue_type.as_css_class() }}">{{ child.issue_type }}</span>
                             <a href="/tasks/{{ child.id }}" class="child-title">{{ child.title }}</a>

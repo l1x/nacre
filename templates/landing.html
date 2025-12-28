@@ -81,7 +81,7 @@
                     {% else %}
                     <div class="epic-progress-list">
                         {% for epic in epics %}
-                        <a href="/epics/{{ epic.issue.id }}" class="epic-progress-item">
+                        <a href="/tasks/{{ epic.issue.id }}" class="epic-progress-item">
                             <div class="epic-progress-header">
                                 <span class="epic-progress-title">{{ epic.issue.title }}</span>
                                 <span class="epic-progress-percent">{{ "{:.0}"|format(epic.percent) }}%</span>

@@ -318,54 +318,6 @@ main > h2 {
     border-radius: 3px;
 }
 
-/* Epics View */
-.epic-list {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-}
-
-.epic-item {
-    background-color: var(--bg-card);
-    border: 1px solid var(--border-color);
-    padding: 14px 20px;
-    border-radius: var(--radius);
-    transition: background-color 0.2s ease;
-}
-
-.epic-item:hover {
-    background-color: var(--bg-card-hover);
-}
-
-.epic-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 10px;
-}
-
-.epic-title {
-    font-family: 'Georgia', 'Times New Roman', serif;
-    font-size: 1.15rem;
-    font-weight: 400;
-    font-style: italic;
-    color: var(--text-primary);
-}
-
-.epic-title-link {
-    font-family: 'Georgia', 'Times New Roman', serif;
-    font-size: 1.15rem;
-    font-weight: 400;
-    font-style: italic;
-    color: var(--text-primary);
-    text-decoration: none;
-    transition: color 0.2s ease;
-}
-
-.epic-title-link:hover {
-    color: var(--accent);
-}
-
 .progress-container {
     height: 4px;
     background-color: var(--bg-secondary);
@@ -433,34 +385,6 @@ main > h2 {
     transform: rotate(90deg);
 }
 
-.epic-children {
-    margin-top: 16px;
-    padding-top: 16px;
-    border-top: 1px solid var(--border-subtle);
-    overflow: hidden;
-    transition: max-height 0.3s ease, opacity 0.3s ease;
-}
-
-.epic-children.collapsed {
-    max-height: 0;
-    opacity: 0;
-    margin-top: 0;
-    padding-top: 0;
-    border-top: none;
-}
-
-.epic-child-item {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 8px 0;
-    font-size: 0.9rem;
-}
-
-.epic-child-item:not(:last-child) {
-    border-bottom: 1px solid var(--border-subtle);
-}
-
 .child-status {
     font-size: 0.7rem;
     padding: 2px 8px;
@@ -492,7 +416,8 @@ main > h2 {
 }
 
 /* Epic Detail View */
-.epic-detail {
+.task-detail {
+    position: relative;
     background-color: var(--bg-card);
     border: 1px solid var(--border-color);
     padding: 40px 48px;
@@ -523,13 +448,13 @@ main > h2 {
     white-space: nowrap;
 }
 
-.epic-children-list {
+.task-children-list {
     display: flex;
     flex-direction: column;
     gap: 2px;
 }
 
-.epic-child-row {
+.task-child-row {
     display: flex;
     align-items: center;
     gap: 12px;
@@ -539,7 +464,7 @@ main > h2 {
     transition: background-color 0.15s ease;
 }
 
-.epic-child-row:hover {
+.task-child-row:hover {
     background-color: var(--bg-card-hover);
 }
 
@@ -1038,7 +963,7 @@ main:has(.board) {
     to { opacity: 1; transform: translateY(0); }
 }
 
-.issue-item, .epic-item, .issue-card {
+.issue-item, .issue-card {
     animation: fadeIn 0.3s ease;
 }
 
