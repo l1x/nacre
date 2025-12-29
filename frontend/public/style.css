@@ -1913,6 +1913,116 @@ main:has(.board) {
 }
 
 /* ===========================================
+   Activity Heat Map
+   =========================================== */
+
+.heatmap-container {
+    background-color: var(--bg-card);
+    border-radius: var(--radius);
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+}
+
+.heatmap {
+    display: grid;
+    grid-template-columns: auto repeat(7, 1fr);
+    gap: 2px;
+    width: 100%;
+    max-width: 500px;
+}
+
+.heatmap-corner {
+    /* Empty corner cell */
+}
+
+.heatmap-col-labels {
+    display: contents;
+}
+
+.heatmap-col-label {
+    text-align: center;
+    font-size: 11px;
+    color: var(--text-muted);
+    padding-bottom: 8px;
+}
+
+.heatmap-row-label {
+    font-size: 10px;
+    color: var(--text-muted);
+    text-align: right;
+    padding-right: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+.heatmap-row {
+    display: contents;
+}
+
+.heatmap-cell {
+    aspect-ratio: 1;
+    border-radius: 2px;
+    min-width: 12px;
+    min-height: 12px;
+    transition: transform 0.1s ease;
+}
+
+.heatmap-cell:hover {
+    transform: scale(1.2);
+    z-index: 1;
+}
+
+/* Intensity levels - using accent color with varying opacity */
+.heatmap-intensity-0 {
+    background-color: var(--bg-secondary);
+}
+
+.heatmap-intensity-1 {
+    background-color: oklch(0.7 0.12 145);
+}
+
+.heatmap-intensity-2 {
+    background-color: oklch(0.6 0.15 145);
+}
+
+.heatmap-intensity-3 {
+    background-color: oklch(0.5 0.18 145);
+}
+
+.heatmap-intensity-4 {
+    background-color: oklch(0.4 0.2 145);
+}
+
+/* Legend */
+.heatmap-legend {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 8px;
+}
+
+.heatmap-legend .heatmap-cell {
+    width: 12px;
+    height: 12px;
+    min-width: 12px;
+    min-height: 12px;
+}
+
+.heatmap-legend .heatmap-cell:hover {
+    transform: none;
+}
+
+.heatmap-legend-label {
+    font-size: 11px;
+    color: var(--text-muted);
+    padding: 0 4px;
+}
+
+/* ===========================================
    HTML Bar Charts - JS-library-quality styling
    =========================================== */
 

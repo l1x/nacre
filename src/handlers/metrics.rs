@@ -321,6 +321,67 @@ pub async fn metrics_handler(
         "",
     );
 
+    // --- Activity Heat Map (hour of day × day of week) ---
+    // Grid: 24 hours (rows) × 7 days (cols)
+    let mut heatmap_grid: [[usize; 7]; 24] = [[0; 7]; 24];
+
+    // Count activity events by hour and day of week
+    for activity in &activities {
+        let hour = activity.timestamp.hour() as usize;
+        let weekday = activity.timestamp.weekday().number_days_from_monday() as usize;
+        heatmap_grid[hour][weekday] += 1;
+    }
+
+    // Also count issue creation times
+    for issue in &all_issues {
+        let hour = issue.created_at.hour() as usize;
+        let weekday = issue.created_at.weekday().number_days_from_monday() as usize;
+        heatmap_grid[hour][weekday] += 1;
+    }
+
+    let heatmap_max = heatmap_grid
+        .iter()
+        .flat_map(|row| row.iter())
+        .copied()
+        .max()
+        .unwrap_or(0);
+
+    // Convert to HeatMapData with intensity levels (0-4)
+    let row_labels: Vec<String> = (0..24).map(|h| format!("{:02}:00", h)).collect();
+    let col_labels: Vec<String> = vec![
+        "Mon".to_string(),
+        "Tue".to_string(),
+        "Wed".to_string(),
+        "Thu".to_string(),
+        "Fri".to_string(),
+        "Sat".to_string(),
+        "Sun".to_string(),
+    ];
+
+    let cells: Vec<Vec<HeatMapCell>> = heatmap_grid
+        .iter()
+        .map(|row| {
+            row.iter()
+                .map(|&value| {
+                    let intensity = if heatmap_max == 0 {
+                        0
+                    } else {
+                        // Scale to 0-4 intensity levels
+                        ((value as f64 / heatmap_max as f64) * 4.0).ceil() as u8
+                    };
+                    HeatMapCell { value, intensity }
+                })
+                .collect()
+        })
+        .collect();
+
+    let activity_heatmap = HeatMapData {
+        row_labels,
+        col_labels,
+        cells,
+        max_value: heatmap_max,
+    };
+
     Ok(MetricsTemplate {
         project_name: state.project_name.clone(),
         page_title: "Metrics".to_string(),
@@ -342,5 +403,6 @@ pub async fn metrics_handler(
         p50_cycle_time_mins,
         p90_cycle_time_mins,
         p100_cycle_time_mins,
+        activity_heatmap,
     })
 }

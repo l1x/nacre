@@ -264,6 +264,41 @@
                 </div>
             </section>
             {% endif %}
+
+            <!-- Activity Heat Map -->
+            {% if activity_heatmap.has_data() %}
+            <section class="metrics-section" id="activity-heatmap">
+                <h2>Activity Heat Map <span class="chart-desc">When work happens (hour × day)</span></h2>
+                <div class="heatmap-container">
+                    <div class="heatmap">
+                        <div class="heatmap-corner"></div>
+                        <div class="heatmap-col-labels">
+                            {% for label in activity_heatmap.col_labels %}
+                            <span class="heatmap-col-label">{{ label }}</span>
+                            {% endfor %}
+                        </div>
+                        {% for row_idx in 0..activity_heatmap.row_labels.len() %}
+                        <div class="heatmap-row-label">{{ activity_heatmap.row_labels[row_idx] }}</div>
+                        <div class="heatmap-row">
+                            {% for cell in activity_heatmap.cells[row_idx] %}
+                            <div class="heatmap-cell heatmap-intensity-{{ cell.intensity }}" title="{{ cell.value }} events">
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <div class="heatmap-legend">
+                        <span class="heatmap-legend-label">Less</span>
+                        <div class="heatmap-cell heatmap-intensity-0"></div>
+                        <div class="heatmap-cell heatmap-intensity-1"></div>
+                        <div class="heatmap-cell heatmap-intensity-2"></div>
+                        <div class="heatmap-cell heatmap-intensity-3"></div>
+                        <div class="heatmap-cell heatmap-intensity-4"></div>
+                        <span class="heatmap-legend-label">More</span>
+                    </div>
+                </div>
+            </section>
+            {% endif %}
         </div>
     </main>
 {% include "_footer.html" %}
