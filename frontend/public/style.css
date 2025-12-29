@@ -1419,6 +1419,8 @@ main:has(.board) {
     margin-bottom: 0;
     display: flex;
     flex-direction: column;
+    min-width: 0;
+    overflow: hidden;
 }
 
 .dashboard-columns > .dashboard-section > *:last-child {
