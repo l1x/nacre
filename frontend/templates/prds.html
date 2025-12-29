@@ -6,7 +6,9 @@
 <body>
     {% include "_header.html" %}
     <main id="content">
-        <h2>Product Requirements Documents</h2>
+        <div class="page-header">
+            <h2>Product Requirements Documents</h2>
+        </div>
         <ul class="prd-list">
         {% for file in files %}
             <li data-filter-text="{{ file|lower }}"><a href="/prds/{{ file }}">{{ file }}</a></li>

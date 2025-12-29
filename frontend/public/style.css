@@ -878,6 +878,24 @@ main:has(.board) {
     opacity: 0.8;
 }
 
+/* Page Header */
+.page-header {
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    padding: 16px 24px;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.page-header h2 {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 500;
+}
+
 /* PRDs View */
 .prd-list {
     list-style: none;
