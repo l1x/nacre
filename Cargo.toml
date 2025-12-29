@@ -11,6 +11,10 @@ name = "markdown_comparison"
 harness = false
 name = "template_comparison"
 
+[[bench]]
+harness = false
+name = "tree_building"
+
 [dependencies]
 argh = "0.1"
 askama = { version = "0.12", features = ["markdown"] }

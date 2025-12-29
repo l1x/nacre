@@ -3,7 +3,7 @@ use axum::{
     extract::{Path, State},
     http::StatusCode,
 };
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 use crate::beads;
 use crate::templates::{EditIssueTemplate, EpicWithProgress, NewIssueTemplate, TaskDetailTemplate, TasksTemplate, TreeNode};
@@ -82,6 +82,9 @@ pub async fn task_detail(
 
 /// Build a hierarchical tree of issues for display
 fn build_issue_tree(all_issues: &[beads::Issue]) -> Vec<TreeNode> {
+    // Build ID set for O(1) parent lookups (optimization from O(n²) to O(n))
+    let id_set: HashSet<&str> = all_issues.iter().map(|i| i.id.as_str()).collect();
+
     // Build parent-child relationships
     let mut children_map: HashMap<String, Vec<String>> = HashMap::new();
     let mut parent_map: HashMap<String, String> = HashMap::new();
@@ -103,7 +106,7 @@ fn build_issue_tree(all_issues: &[beads::Issue]) -> Vec<TreeNode> {
             && let Some(dot_pos) = issue.id.rfind('.')
         {
             let potential_parent = &issue.id[..dot_pos];
-            if all_issues.iter().any(|i| i.id == potential_parent) {
+            if id_set.contains(potential_parent) {
                 children_map
                     .entry(potential_parent.to_string())
                     .or_default()
