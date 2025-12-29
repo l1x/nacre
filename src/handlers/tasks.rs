@@ -1,8 +1,10 @@
 use axum::{
     Json,
     extract::{Path, State},
-    http::StatusCode,
+    http::{StatusCode, header, HeaderMap},
+    response::IntoResponse,
 };
+use chrono::Utc;
 use std::collections::{HashMap, HashSet};
 
 use crate::beads;
@@ -256,9 +258,37 @@ pub async fn new_task_form(State(state): State<crate::SharedAppState>) -> NewIss
 
 pub async fn list_tasks(
     State(state): State<crate::SharedAppState>,
-) -> crate::AppResult<Json<Vec<beads::Issue>>> {
+    headers: HeaderMap,
+) -> crate::AppResult<impl IntoResponse> {
     let issues = state.client.list_issues()?;
-    Ok(Json(issues))
+
+    let max_updated_at = issues.iter().map(|i| i.updated_at).max();
+
+    let etag = if let Some(last_mod) = max_updated_at {
+        format!("\"{:x}-{}\"", last_mod.timestamp(), issues.len())
+    } else {
+        format!("\"{}\"", issues.len())
+    };
+
+    if let Some(if_none_match) = headers.get(header::IF_NONE_MATCH) {
+        if if_none_match == etag.as_str() {
+            return Ok(StatusCode::NOT_MODIFIED.into_response());
+        }
+    }
+
+    let mut response_headers = HeaderMap::new();
+    response_headers.insert(header::CACHE_CONTROL, "no-cache".parse().unwrap());
+    response_headers.insert(header::ETAG, etag.parse().unwrap());
+
+    if let Some(last_mod) = max_updated_at {
+        let last_mod_str = last_mod
+            .with_timezone(&Utc)
+            .format("%a, %d %b %Y %H:%M:%S GMT")
+            .to_string();
+        response_headers.insert(header::LAST_MODIFIED, last_mod_str.parse().unwrap());
+    }
+
+    Ok((response_headers, Json(issues)).into_response())
 }
 
 pub async fn update_task(
