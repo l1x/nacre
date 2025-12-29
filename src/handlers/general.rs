@@ -1,6 +1,6 @@
 use axum::{
     extract::State,
-    http::{header, HeaderMap, StatusCode},
+    http::{HeaderMap, StatusCode, header},
     response::IntoResponse,
 };
 
@@ -25,9 +25,10 @@ pub async fn health_check() -> &'static str {
 
 pub async fn serve_css(headers: HeaderMap) -> impl IntoResponse {
     if let Some(if_none_match) = headers.get(header::IF_NONE_MATCH)
-        && if_none_match.as_bytes() == CSS_ETAG.as_bytes() {
-            return (StatusCode::NOT_MODIFIED, HeaderMap::new(), "").into_response();
-        }
+        && if_none_match.as_bytes() == CSS_ETAG.as_bytes()
+    {
+        return (StatusCode::NOT_MODIFIED, HeaderMap::new(), "").into_response();
+    }
     (
         [
             (header::CONTENT_TYPE, "text/css"),
@@ -41,9 +42,10 @@ pub async fn serve_css(headers: HeaderMap) -> impl IntoResponse {
 
 pub async fn serve_js(headers: HeaderMap) -> impl IntoResponse {
     if let Some(if_none_match) = headers.get(header::IF_NONE_MATCH)
-        && if_none_match.as_bytes() == JS_ETAG.as_bytes() {
-            return (StatusCode::NOT_MODIFIED, HeaderMap::new(), "").into_response();
-        }
+        && if_none_match.as_bytes() == JS_ETAG.as_bytes()
+    {
+        return (StatusCode::NOT_MODIFIED, HeaderMap::new(), "").into_response();
+    }
     (
         [
             (header::CONTENT_TYPE, "application/javascript"),
@@ -57,9 +59,10 @@ pub async fn serve_js(headers: HeaderMap) -> impl IntoResponse {
 
 pub async fn serve_favicon(headers: HeaderMap) -> impl IntoResponse {
     if let Some(if_none_match) = headers.get(header::IF_NONE_MATCH)
-        && if_none_match.as_bytes() == FAVICON_ETAG.as_bytes() {
-            return (StatusCode::NOT_MODIFIED, HeaderMap::new(), "").into_response();
-        }
+        && if_none_match.as_bytes() == FAVICON_ETAG.as_bytes()
+    {
+        return (StatusCode::NOT_MODIFIED, HeaderMap::new(), "").into_response();
+    }
     (
         [
             (header::CONTENT_TYPE, "image/svg+xml"),

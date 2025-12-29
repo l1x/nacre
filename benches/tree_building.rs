@@ -94,7 +94,14 @@ fn build_tree_current(issues: &[Issue]) -> Vec<(String, Option<String>, usize)> 
             sorted.sort_by(|a, b| a.1.cmp(&b.1).then_with(|| a.0.cmp(b.0)));
 
             for (child_id, _) in sorted {
-                build_recursive(child_id, issue_map, children_map, parent_map, depth + 1, result);
+                build_recursive(
+                    child_id,
+                    issue_map,
+                    children_map,
+                    parent_map,
+                    depth + 1,
+                    result,
+                );
             }
         }
     }
@@ -107,7 +114,14 @@ fn build_tree_current(issues: &[Issue]) -> Vec<(String, Option<String>, usize)> 
     roots.sort_by(|a, b| a.status.cmp(&b.status).then_with(|| a.id.cmp(&b.id)));
 
     for root in roots {
-        build_recursive(&root.id, &issue_map, &children_map, &parent_map, 0, &mut result);
+        build_recursive(
+            &root.id,
+            &issue_map,
+            &children_map,
+            &parent_map,
+            0,
+            &mut result,
+        );
     }
 
     result
@@ -190,17 +204,13 @@ fn bench_tree_building(c: &mut Criterion) {
         group.bench_with_input(
             BenchmarkId::new("current_O(n²)", size),
             &issues,
-            |b, issues| {
-                b.iter(|| build_tree_current(black_box(issues)))
-            },
+            |b, issues| b.iter(|| build_tree_current(black_box(issues))),
         );
 
         group.bench_with_input(
             BenchmarkId::new("optimized_O(n_log_n)", size),
             &issues,
-            |b, issues| {
-                b.iter(|| build_tree_optimized(black_box(issues)))
-            },
+            |b, issues| b.iter(|| build_tree_optimized(black_box(issues))),
         );
     }
 

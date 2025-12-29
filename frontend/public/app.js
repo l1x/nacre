@@ -71,6 +71,114 @@ function initListFeatures() {
   });
 }
 
+// frontend/src/modules/toast.ts
+class ToastManager {
+  container = null;
+  activeToasts = new Set;
+  initialized = false;
+  constructor() {
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", () => this.init());
+    } else {
+      this.init();
+    }
+  }
+  init() {
+    if (this.initialized)
+      return;
+    this.container = document.createElement("div");
+    this.container.id = "toast-container";
+    this.container.className = "toast-container";
+    document.body.appendChild(this.container);
+    this.initialized = true;
+  }
+  createToast(config) {
+    const toast = document.createElement("div");
+    toast.className = `toast toast-${config.type || "info"}`;
+    const message = document.createElement("div");
+    message.className = "toast-message";
+    message.textContent = config.message;
+    const actions = document.createElement("div");
+    actions.className = "toast-actions";
+    if (config.retryAction) {
+      const retryBtn = document.createElement("button");
+      retryBtn.className = "toast-retry";
+      retryBtn.textContent = "Retry";
+      retryBtn.addEventListener("click", async () => {
+        retryBtn.disabled = true;
+        retryBtn.textContent = "Retrying...";
+        try {
+          await config.retryAction();
+          this.remove(toast);
+          this.show({ message: "Success!", type: "success", duration: 2000 });
+        } catch (err) {
+          retryBtn.disabled = false;
+          retryBtn.textContent = "Retry";
+        }
+      });
+      actions.appendChild(retryBtn);
+    }
+    const closeBtn = document.createElement("button");
+    closeBtn.className = "toast-close";
+    closeBtn.textContent = "×";
+    closeBtn.addEventListener("click", () => this.remove(toast));
+    actions.appendChild(closeBtn);
+    toast.appendChild(message);
+    toast.appendChild(actions);
+    return toast;
+  }
+  show(config) {
+    if (!this.initialized)
+      return;
+    if (!this.container)
+      return;
+    const toast = this.createToast(config);
+    this.container.appendChild(toast);
+    this.activeToasts.add(toast);
+    setTimeout(() => {
+      toast.classList.add("toast-show");
+    }, 10);
+    if (config.duration && config.duration > 0) {
+      setTimeout(() => {
+        this.remove(toast);
+      }, config.duration);
+    }
+  }
+  remove(toast) {
+    toast.classList.remove("toast-show");
+    setTimeout(() => {
+      if (toast.parentNode) {
+        toast.parentNode.removeChild(toast);
+      }
+      this.activeToasts.delete(toast);
+    }, 300);
+  }
+  clear() {
+    this.activeToasts.forEach((toast) => this.remove(toast));
+  }
+}
+var toast = new ToastManager;
+function handleError(error, context, retryAction) {
+  const message = error instanceof Error ? error.message : "Unknown error occurred";
+  console.error(`[${context}] ${message}`, error);
+  toast.show({
+    message: `${context}: ${message}`,
+    type: "error",
+    duration: retryAction ? 0 : 5000,
+    retryAction
+  });
+}
+function handleNetworkError(response, context, retryAction) {
+  const message = `HTTP ${response.status}: ${response.statusText}`;
+  console.error(`[${context}] ${message}`, response);
+  toast.show({
+    message: `${context}: ${message}`,
+    type: "error",
+    duration: retryAction ? 0 : 5000,
+    retryAction
+  });
+}
+
 // frontend/src/modules/edit.ts
 function initInlineEdit() {
   document.addEventListener("click", (e) => {
@@ -97,7 +205,7 @@ function initInlineEdit() {
       const issueItem = input.closest(".issue-item");
       const id = issueItem ? issueItem.getAttribute("data-id") : null;
       if (newTitle && newTitle !== currentTitle && id) {
-        try {
+        const updateTitle = async () => {
           const res = await fetch(`/api/issues/${id}`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -105,14 +213,19 @@ function initInlineEdit() {
           });
           if (!res.ok)
             throw new Error("Update failed");
+        };
+        try {
+          await updateTitle();
           const newTitleEl = document.createElement("div");
           newTitleEl.classList.add("issue-title");
           newTitleEl.innerText = newTitle;
           input.replaceWith(newTitleEl);
         } catch (err) {
-          console.error(err);
-          alert("Failed to update title");
-          replaceWithOriginal();
+          if (err instanceof Error && err.message === "Update failed") {
+            handleNetworkError(new Response(null, { status: 500, statusText: "Update failed" }), "Failed to update title", updateTitle);
+          } else {
+            handleError(err, "Failed to update title", updateTitle);
+          }
         }
       } else {
         replaceWithOriginal();
@@ -283,7 +396,7 @@ function initDragAndDrop() {
         const apiStatus = droppable.getAttribute("data-status");
         const id = draggable.getAttribute("data-id");
         if (id && apiStatus) {
-          try {
+          const updateStatus = async () => {
             const res = await fetch(`/api/issues/${id}`, {
               method: "POST",
               headers: { "Content-Type": "application/json" },
@@ -291,10 +404,15 @@ function initDragAndDrop() {
             });
             if (!res.ok)
               throw new Error("Update failed");
+          };
+          try {
+            await updateStatus();
           } catch (err) {
-            console.error(err);
-            alert("Failed to update status");
-            window.location.reload();
+            if (err instanceof Error && err.message === "Update failed") {
+              handleNetworkError(new Response(null, { status: 500, statusText: "Update failed" }), "Failed to update status", updateStatus);
+            } else {
+              handleError(err, "Failed to update status", updateStatus);
+            }
           }
         }
       });

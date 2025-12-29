@@ -1,15 +1,20 @@
 use axum::{
     Json,
     extract::{Path, State},
-    http::{StatusCode, header, HeaderMap},
+    http::{HeaderMap, StatusCode, header},
     response::IntoResponse,
 };
 use std::collections::{HashMap, HashSet};
 
 use crate::beads;
-use crate::templates::{EditIssueTemplate, EpicWithProgress, NewIssueTemplate, TaskDetailTemplate, TasksTemplate, TreeNode};
+use crate::templates::{
+    EditIssueTemplate, EpicWithProgress, NewIssueTemplate, TaskDetailTemplate, TasksTemplate,
+    TreeNode,
+};
 
-pub async fn tasks_list(State(state): State<crate::SharedAppState>) -> crate::AppResult<TasksTemplate> {
+pub async fn tasks_list(
+    State(state): State<crate::SharedAppState>,
+) -> crate::AppResult<TasksTemplate> {
     let all_issues = state.client.list_issues()?;
     let nodes = build_issue_tree(&all_issues);
 
@@ -50,18 +55,18 @@ pub async fn task_detail(
     // Since we included 'id', it should be the first root.
     // We want to skip it and take the rest (which are its children/descendants).
     let mut tree_nodes = build_issue_tree(&descendants);
-    
+
     // Remove the root node (the task itself) if present
     if !tree_nodes.is_empty() && tree_nodes[0].id == id {
         tree_nodes.remove(0);
     }
-    
+
     // Adjust depths and parents for the detail view context
     for node in &mut tree_nodes {
         if node.depth > 0 {
             node.depth -= 1;
         }
-        
+
         // If the parent is the current task, treat it as a root in this view
         if node.parent_id.as_deref() == Some(&id) {
             node.parent_id = None;
@@ -270,9 +275,10 @@ pub async fn list_tasks(
     };
 
     if let Some(if_none_match) = headers.get(header::IF_NONE_MATCH)
-        && if_none_match == etag.as_str() {
-            return Ok(StatusCode::NOT_MODIFIED.into_response());
-        }
+        && if_none_match == etag.as_str()
+    {
+        return Ok(StatusCode::NOT_MODIFIED.into_response());
+    }
 
     let mut response_headers = HeaderMap::new();
     response_headers.insert(header::CACHE_CONTROL, "no-cache".parse().unwrap());

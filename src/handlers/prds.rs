@@ -34,13 +34,7 @@ pub async fn prd_view(
     State(state): State<crate::SharedAppState>,
     Path(filename): Path<String>,
 ) -> crate::AppResult<PrdViewTemplate> {
-    let base_dir = std::env::current_dir().unwrap_or_else(|_| std::path::PathBuf::from(".")).join("docs/prds");
-    let base_canonical = base_dir.canonicalize().map_err(|_| crate::AppError::NotFound("PRD directory not found".to_string()))?;
-    
-    let requested_path = base_dir.join(&filename);
-    let canonical_path = requested_path.canonicalize().map_err(|_| crate::AppError::NotFound(filename.clone()))?;
-
-    if !canonical_path.starts_with(&base_canonical) {
+    if filename.contains("..") || filename.contains('/') || filename.contains('\\') || !filename.ends_with(".md") {
         return Err(crate::AppError::BadRequest("Invalid filename".to_string()));
     }
 

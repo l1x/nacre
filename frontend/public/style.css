@@ -656,6 +656,106 @@ main:has(.board) {
 .issue-card.issue-type-merge-request { border-left: 3px solid #1abc9c; }
 .issue-card.issue-type-molecule { border-left: 3px solid #f39c12; }
 
+/* Toast Notifications */
+.toast-container {
+    position: fixed;
+    top: 80px;
+    right: 20px;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-width: 400px;
+}
+
+.toast {
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    padding: 12px 16px;
+    box-shadow: var(--shadow-md);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    transform: translateX(100%);
+    opacity: 0;
+    transition: transform 0.2s ease, opacity 0.2s ease;
+    max-width: 100%;
+}
+
+.toast-show {
+    transform: translateX(0);
+    opacity: 1;
+}
+
+.toast-message {
+    flex: 1;
+    font-size: 0.9rem;
+    line-height: 1.3;
+    color: var(--text-primary);
+    word-wrap: break-word;
+}
+
+.toast-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.toast-close {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 2px 4px;
+    border-radius: var(--radius-sm);
+    transition: background-color 0.2s ease;
+}
+
+.toast-close:hover {
+    background-color: var(--bg-secondary);
+    color: var(--text-primary);
+}
+
+.toast-retry {
+    background-color: var(--accent);
+    color: white;
+    border: none;
+    padding: 4px 8px;
+    border-radius: var(--radius-sm);
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.toast-retry:hover:not(:disabled) {
+    background-color: var(--accent-muted);
+}
+
+.toast-retry:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Toast type styles */
+.toast-error {
+    border-left: 4px solid #e74c3c;
+}
+
+.toast-warning {
+    border-left: 4px solid #f39c12;
+}
+
+.toast-info {
+    border-left: 4px solid #3498db;
+}
+
+.toast-success {
+    border-left: 4px solid #27ae60;
+}
+
 /* Issue Detail View - Scandinavian/Minimal Style */
 .issue-detail {
     background-color: var(--bg-card);
@@ -876,6 +976,24 @@ main:has(.board) {
     font-size: 0.7rem;
     color: var(--text-muted);
     opacity: 0.8;
+}
+
+/* Page Header */
+.page-header {
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    padding: 16px 24px;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.page-header h2 {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 500;
 }
 
 /* PRDs View */
@@ -1892,6 +2010,116 @@ main:has(.board) {
     margin-bottom: 24px;
     padding-bottom: 12px;
     border-bottom: 1px solid var(--border-subtle);
+}
+
+/* ===========================================
+   Activity Heat Map
+   =========================================== */
+
+.heatmap-container {
+    background-color: var(--bg-card);
+    border-radius: var(--radius);
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+}
+
+.heatmap {
+    display: grid;
+    grid-template-columns: auto repeat(24, 1fr);
+    gap: 2px;
+    width: 100%;
+    max-width: 700px;
+}
+
+.heatmap-corner {
+    /* Empty corner cell */
+}
+
+.heatmap-col-labels {
+    display: contents;
+}
+
+.heatmap-col-label {
+    text-align: center;
+    font-size: 11px;
+    color: var(--text-muted);
+    padding-bottom: 8px;
+}
+
+.heatmap-row-label {
+    font-size: 10px;
+    color: var(--text-muted);
+    text-align: right;
+    padding-right: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+.heatmap-row {
+    display: contents;
+}
+
+.heatmap-cell {
+    aspect-ratio: 1;
+    border-radius: 2px;
+    min-width: 12px;
+    min-height: 12px;
+    transition: transform 0.1s ease;
+}
+
+.heatmap-cell:hover {
+    transform: scale(1.2);
+    z-index: 1;
+}
+
+/* Intensity levels - using accent color with varying opacity */
+.heatmap-intensity-0 {
+    background-color: var(--bg-secondary);
+}
+
+.heatmap-intensity-1 {
+    background-color: oklch(0.7 0.12 145);
+}
+
+.heatmap-intensity-2 {
+    background-color: oklch(0.6 0.15 145);
+}
+
+.heatmap-intensity-3 {
+    background-color: oklch(0.5 0.18 145);
+}
+
+.heatmap-intensity-4 {
+    background-color: oklch(0.4 0.2 145);
+}
+
+/* Legend */
+.heatmap-legend {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 8px;
+}
+
+.heatmap-legend .heatmap-cell {
+    width: 12px;
+    height: 12px;
+    min-width: 12px;
+    min-height: 12px;
+}
+
+.heatmap-legend .heatmap-cell:hover {
+    transform: none;
+}
+
+.heatmap-legend-label {
+    font-size: 11px;
+    color: var(--text-muted);
+    padding: 0 4px;
 }
 
 /* ===========================================

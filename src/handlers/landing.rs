@@ -3,7 +3,9 @@ use axum::extract::State;
 use crate::beads;
 use crate::templates::*;
 
-pub async fn landing(State(state): State<crate::SharedAppState>) -> crate::AppResult<LandingTemplate> {
+pub async fn landing(
+    State(state): State<crate::SharedAppState>,
+) -> crate::AppResult<LandingTemplate> {
     let all_issues = state.client.list_issues()?;
 
     // Calculate stats
@@ -73,11 +75,16 @@ pub async fn landing(State(state): State<crate::SharedAppState>) -> crate::AppRe
         }
     }
     let date_format = time::format_description::parse("[month].[day]").unwrap();
-    let labels: Vec<String> = dates.iter().map(|d| d.format(&date_format).unwrap()).collect();
+    let labels: Vec<String> = dates
+        .iter()
+        .map(|d| d.format(&date_format).unwrap())
+        .collect();
 
     // --- Tickets Activity Chart ---
-    let mut created_by_day: std::collections::HashMap<time::Date, usize> = std::collections::HashMap::new();
-    let mut resolved_by_day: std::collections::HashMap<time::Date, usize> = std::collections::HashMap::new();
+    let mut created_by_day: std::collections::HashMap<time::Date, usize> =
+        std::collections::HashMap::new();
+    let mut resolved_by_day: std::collections::HashMap<time::Date, usize> =
+        std::collections::HashMap::new();
     for d in &dates {
         created_by_day.insert(*d, 0);
         resolved_by_day.insert(*d, 0);
@@ -94,9 +101,18 @@ pub async fn landing(State(state): State<crate::SharedAppState>) -> crate::AppRe
             }
         }
     }
-    let created_values: Vec<f64> = dates.iter().map(|d| *created_by_day.get(d).unwrap_or(&0) as f64).collect();
-    let resolved_values: Vec<f64> = dates.iter().map(|d| *resolved_by_day.get(d).unwrap_or(&0) as f64).collect();
-    let tickets_max = created_values.iter().chain(resolved_values.iter()).fold(0.0_f64, |a, &b| a.max(b));
+    let created_values: Vec<f64> = dates
+        .iter()
+        .map(|d| *created_by_day.get(d).unwrap_or(&0) as f64)
+        .collect();
+    let resolved_values: Vec<f64> = dates
+        .iter()
+        .map(|d| *resolved_by_day.get(d).unwrap_or(&0) as f64)
+        .collect();
+    let tickets_max = created_values
+        .iter()
+        .chain(resolved_values.iter())
+        .fold(0.0_f64, |a, &b| a.max(b));
     let tickets_chart = create_chart(
         labels.clone(),
         vec![

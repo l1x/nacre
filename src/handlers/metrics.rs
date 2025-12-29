@@ -10,7 +10,9 @@ enum MetricsData {
     Summary(beads::Result<serde_json::Value>),
 }
 
-pub async fn metrics_handler(State(state): State<crate::SharedAppState>) -> crate::AppResult<MetricsTemplate> {
+pub async fn metrics_handler(
+    State(state): State<crate::SharedAppState>,
+) -> crate::AppResult<MetricsTemplate> {
     // Run all 3 CLI calls in parallel using JoinSet with spawn_blocking
     let mut set: tokio::task::JoinSet<MetricsData> = tokio::task::JoinSet::new();
 
@@ -129,7 +131,10 @@ pub async fn metrics_handler(State(state): State<crate::SharedAppState>) -> crat
         }
     }
     let date_format = time::format_description::parse("[month].[day]").unwrap();
-    let labels: Vec<String> = dates.iter().map(|d| d.format(&date_format).unwrap()).collect();
+    let labels: Vec<String> = dates
+        .iter()
+        .map(|d| d.format(&date_format).unwrap())
+        .collect();
 
     // --- Tickets Activity Chart ---
     let mut created_by_day: HashMap<time::Date, usize> = HashMap::new();
@@ -150,9 +155,18 @@ pub async fn metrics_handler(State(state): State<crate::SharedAppState>) -> crat
             }
         }
     }
-    let created_values: Vec<f64> = dates.iter().map(|d| *created_by_day.get(d).unwrap_or(&0) as f64).collect();
-    let resolved_values: Vec<f64> = dates.iter().map(|d| *resolved_by_day.get(d).unwrap_or(&0) as f64).collect();
-    let tickets_max = created_values.iter().chain(resolved_values.iter()).fold(0.0_f64, |a, &b| a.max(b));
+    let created_values: Vec<f64> = dates
+        .iter()
+        .map(|d| *created_by_day.get(d).unwrap_or(&0) as f64)
+        .collect();
+    let resolved_values: Vec<f64> = dates
+        .iter()
+        .map(|d| *resolved_by_day.get(d).unwrap_or(&0) as f64)
+        .collect();
+    let tickets_max = created_values
+        .iter()
+        .chain(resolved_values.iter())
+        .fold(0.0_f64, |a, &b| a.max(b));
     let tickets_chart = create_chart(
         labels.clone(),
         vec![
@@ -172,7 +186,10 @@ pub async fn metrics_handler(State(state): State<crate::SharedAppState>) -> crat
             let close_date = closed_at.date();
             if close_date >= start_dt.date() && close_date <= now_dt.date() {
                 let lead_time_hours = (closed_at - issue.created_at).whole_minutes() as f64 / 60.0;
-                lead_times_by_day.entry(close_date).or_default().push(lead_time_hours);
+                lead_times_by_day
+                    .entry(close_date)
+                    .or_default()
+                    .push(lead_time_hours);
             }
         }
     }
@@ -187,12 +204,15 @@ pub async fn metrics_handler(State(state): State<crate::SharedAppState>) -> crat
                 calculate_percentile(&times, 100.0),
             )
         })
-        .fold((vec![], vec![], vec![]), |(mut a, mut b, mut c), (p50, p90, p100)| {
-            a.push(p50);
-            b.push(p90);
-            c.push(p100);
-            (a, b, c)
-        });
+        .fold(
+            (vec![], vec![], vec![]),
+            |(mut a, mut b, mut c), (p50, p90, p100)| {
+                a.push(p50);
+                b.push(p90);
+                c.push(p100);
+                (a, b, c)
+            },
+        );
     let lead_max = lead_p100.iter().fold(0.0_f64, |a, &b| a.max(b));
     let lead_time_chart = create_chart(
         labels.clone(),
@@ -215,7 +235,10 @@ pub async fn metrics_handler(State(state): State<crate::SharedAppState>) -> crat
             if close_date >= start_dt.date() && close_date <= now_dt.date() {
                 let started_at = started_times.get(&issue.id).unwrap_or(&issue.created_at);
                 let duration_mins = (closed_at - *started_at).whole_minutes() as f64;
-                cycle_times_by_day.entry(close_date).or_default().push(duration_mins);
+                cycle_times_by_day
+                    .entry(close_date)
+                    .or_default()
+                    .push(duration_mins);
             }
         }
     }
@@ -230,14 +253,17 @@ pub async fn metrics_handler(State(state): State<crate::SharedAppState>) -> crat
                 calculate_percentile(&times, 100.0),
             )
         })
-        .fold((vec![], vec![], vec![]), |(mut a, mut b, mut c), (p50, p90, p100)| {
-            a.push(p50);
-            b.push(p90);
-            c.push(p100);
-            (a, b, c)
-        });
+        .fold(
+            (vec![], vec![], vec![]),
+            |(mut a, mut b, mut c), (p50, p90, p100)| {
+                a.push(p50);
+                b.push(p90);
+                c.push(p100);
+                (a, b, c)
+            },
+        );
     let cycle_max = cycle_p100.iter().fold(0.0_f64, |a, &b| a.max(b));
-    
+
     let (cycle_unit, cycle_divisor) = if cycle_max > 60.0 {
         ("h", 60.0)
     } else {
@@ -252,9 +278,27 @@ pub async fn metrics_handler(State(state): State<crate::SharedAppState>) -> crat
     let cycle_time_chart = create_chart(
         labels.clone(),
         vec![
-            create_series("p50", "blue", &cycle_p50_scaled, cycle_max_scaled, cycle_unit),
-            create_series("p90", "green", &cycle_p90_scaled, cycle_max_scaled, cycle_unit),
-            create_series("p100", "orange", &cycle_p100_scaled, cycle_max_scaled, cycle_unit),
+            create_series(
+                "p50",
+                "blue",
+                &cycle_p50_scaled,
+                cycle_max_scaled,
+                cycle_unit,
+            ),
+            create_series(
+                "p90",
+                "green",
+                &cycle_p90_scaled,
+                cycle_max_scaled,
+                cycle_unit,
+            ),
+            create_series(
+                "p100",
+                "orange",
+                &cycle_p100_scaled,
+                cycle_max_scaled,
+                cycle_unit,
+            ),
         ],
         cycle_unit,
     );
@@ -267,9 +311,78 @@ pub async fn metrics_handler(State(state): State<crate::SharedAppState>) -> crat
     let throughput_max = throughput_values.iter().fold(0.0_f64, |a, &b| a.max(b));
     let throughput_chart = create_chart(
         labels,
-        vec![create_series("Closed", "blue", &throughput_values, throughput_max, "")],
+        vec![create_series(
+            "Closed",
+            "blue",
+            &throughput_values,
+            throughput_max,
+            "",
+        )],
         "",
     );
+
+    // --- Activity Heat Map (day of week × hour of day) ---
+    // Grid: 7 days (rows) × 24 hours (cols)
+    let mut heatmap_grid: [[usize; 24]; 7] = [[0; 24]; 7];
+
+    // Count activity events by day of week and hour
+    for activity in &activities {
+        let hour = activity.timestamp.hour() as usize;
+        let weekday = activity.timestamp.weekday().number_days_from_monday() as usize;
+        heatmap_grid[weekday][hour] += 1;
+    }
+
+    // Also count issue creation times
+    for issue in &all_issues {
+        let hour = issue.created_at.hour() as usize;
+        let weekday = issue.created_at.weekday().number_days_from_monday() as usize;
+        heatmap_grid[weekday][hour] += 1;
+    }
+
+    let heatmap_max = heatmap_grid
+        .iter()
+        .flat_map(|row| row.iter())
+        .copied()
+        .max()
+        .unwrap_or(0);
+
+    // Convert to HeatMapData with intensity levels (0-4)
+    // Row labels: days of week (Y-axis)
+    let row_labels: Vec<String> = vec![
+        "Mon".to_string(),
+        "Tue".to_string(),
+        "Wed".to_string(),
+        "Thu".to_string(),
+        "Fri".to_string(),
+        "Sat".to_string(),
+        "Sun".to_string(),
+    ];
+    // Column labels: hours (X-axis)
+    let col_labels: Vec<String> = (0..24).map(|h| format!("{:02}", h)).collect();
+
+    let cells: Vec<Vec<HeatMapCell>> = heatmap_grid
+        .iter()
+        .map(|row| {
+            row.iter()
+                .map(|&value| {
+                    let intensity = if heatmap_max == 0 {
+                        0
+                    } else {
+                        // Scale to 0-4 intensity levels
+                        ((value as f64 / heatmap_max as f64) * 4.0).ceil() as u8
+                    };
+                    HeatMapCell { value, intensity }
+                })
+                .collect()
+        })
+        .collect();
+
+    let activity_heatmap = HeatMapData {
+        row_labels,
+        col_labels,
+        cells,
+        max_value: heatmap_max,
+    };
 
     Ok(MetricsTemplate {
         project_name: state.project_name.clone(),
@@ -292,5 +405,6 @@ pub async fn metrics_handler(State(state): State<crate::SharedAppState>) -> crat
         p50_cycle_time_mins,
         p90_cycle_time_mins,
         p100_cycle_time_mins,
+        activity_heatmap,
     })
 }

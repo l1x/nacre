@@ -8,8 +8,8 @@ pub use error::{AppError, AppResult};
 use axum::Router;
 use axum::routing::{get, post};
 use std::sync::atomic::{AtomicU64, Ordering};
-use tower_http::trace::TraceLayer;
 use tower_http::compression::CompressionLayer;
+use tower_http::trace::TraceLayer;
 use tracing::Span;
 
 use std::sync::Arc;

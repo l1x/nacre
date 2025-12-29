@@ -1,4 +1,4 @@
-# Beads Project Management Issue Hierarchy & Dependencies
+# Project Management Format and Tooling
 
 This guide explains how to structure work in beads using two complementary concepts.
 

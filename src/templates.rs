@@ -209,12 +209,49 @@ pub struct ChartData {
 impl ChartData {
     /// Check if chart has any non-zero data
     pub fn has_data(&self) -> bool {
-        self.series.iter().any(|s| s.bars.iter().any(|b| b.value > 0.0))
+        self.series
+            .iter()
+            .any(|s| s.bars.iter().any(|b| b.value > 0.0))
+    }
+}
+
+/// A single cell in a heat map
+#[derive(Clone)]
+pub struct HeatMapCell {
+    /// The count/value for this cell
+    pub value: usize,
+    /// Intensity level 0-4 for CSS class
+    pub intensity: u8,
+}
+
+/// Heat map data for activity visualization
+#[derive(Clone)]
+pub struct HeatMapData {
+    /// Row labels (hours 0-23)
+    pub row_labels: Vec<String>,
+    /// Column labels (days Mon-Sun)
+    pub col_labels: Vec<String>,
+    /// Grid of cells [row][col] = [hour][day]
+    pub cells: Vec<Vec<HeatMapCell>>,
+    /// Maximum value in the heat map
+    pub max_value: usize,
+}
+
+impl HeatMapData {
+    /// Check if heat map has any data
+    pub fn has_data(&self) -> bool {
+        self.max_value > 0
     }
 }
 
 /// Helper to create a series of bars from values
-pub fn create_series(name: &str, color: &'static str, values: &[f64], max: f64, unit: &str) -> ChartSeries {
+pub fn create_series(
+    name: &str,
+    color: &'static str,
+    values: &[f64],
+    max: f64,
+    unit: &str,
+) -> ChartSeries {
     ChartSeries {
         name: name.to_string(),
         color,
@@ -236,7 +273,11 @@ pub fn create_series(name: &str, color: &'static str, values: &[f64], max: f64, 
 }
 
 /// Helper to create chart data from multiple series
-pub fn create_chart(labels: Vec<String>, series: Vec<ChartSeries>, unit: &'static str) -> ChartData {
+pub fn create_chart(
+    labels: Vec<String>,
+    series: Vec<ChartSeries>,
+    unit: &'static str,
+) -> ChartData {
     let max_value = series
         .iter()
         .flat_map(|s| s.bars.iter().map(|b| b.value))
@@ -304,4 +345,5 @@ pub struct MetricsTemplate {
     pub p50_cycle_time_mins: f64,
     pub p90_cycle_time_mins: f64,
     pub p100_cycle_time_mins: f64,
+    pub activity_heatmap: HeatMapData,
 }
