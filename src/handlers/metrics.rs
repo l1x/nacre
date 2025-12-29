@@ -321,22 +321,22 @@ pub async fn metrics_handler(
         "",
     );
 
-    // --- Activity Heat Map (hour of day × day of week) ---
-    // Grid: 24 hours (rows) × 7 days (cols)
-    let mut heatmap_grid: [[usize; 7]; 24] = [[0; 7]; 24];
+    // --- Activity Heat Map (day of week × hour of day) ---
+    // Grid: 7 days (rows) × 24 hours (cols)
+    let mut heatmap_grid: [[usize; 24]; 7] = [[0; 24]; 7];
 
-    // Count activity events by hour and day of week
+    // Count activity events by day of week and hour
     for activity in &activities {
         let hour = activity.timestamp.hour() as usize;
         let weekday = activity.timestamp.weekday().number_days_from_monday() as usize;
-        heatmap_grid[hour][weekday] += 1;
+        heatmap_grid[weekday][hour] += 1;
     }
 
     // Also count issue creation times
     for issue in &all_issues {
         let hour = issue.created_at.hour() as usize;
         let weekday = issue.created_at.weekday().number_days_from_monday() as usize;
-        heatmap_grid[hour][weekday] += 1;
+        heatmap_grid[weekday][hour] += 1;
     }
 
     let heatmap_max = heatmap_grid
@@ -347,8 +347,8 @@ pub async fn metrics_handler(
         .unwrap_or(0);
 
     // Convert to HeatMapData with intensity levels (0-4)
-    let row_labels: Vec<String> = (0..24).map(|h| format!("{:02}:00", h)).collect();
-    let col_labels: Vec<String> = vec![
+    // Row labels: days of week (Y-axis)
+    let row_labels: Vec<String> = vec![
         "Mon".to_string(),
         "Tue".to_string(),
         "Wed".to_string(),
@@ -357,6 +357,8 @@ pub async fn metrics_handler(
         "Sat".to_string(),
         "Sun".to_string(),
     ];
+    // Column labels: hours (X-axis)
+    let col_labels: Vec<String> = (0..24).map(|h| format!("{:02}", h)).collect();
 
     let cells: Vec<Vec<HeatMapCell>> = heatmap_grid
         .iter()
