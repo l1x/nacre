@@ -209,12 +209,20 @@ pub struct ChartData {
 impl ChartData {
     /// Check if chart has any non-zero data
     pub fn has_data(&self) -> bool {
-        self.series.iter().any(|s| s.bars.iter().any(|b| b.value > 0.0))
+        self.series
+            .iter()
+            .any(|s| s.bars.iter().any(|b| b.value > 0.0))
     }
 }
 
 /// Helper to create a series of bars from values
-pub fn create_series(name: &str, color: &'static str, values: &[f64], max: f64, unit: &str) -> ChartSeries {
+pub fn create_series(
+    name: &str,
+    color: &'static str,
+    values: &[f64],
+    max: f64,
+    unit: &str,
+) -> ChartSeries {
     ChartSeries {
         name: name.to_string(),
         color,
@@ -236,7 +244,11 @@ pub fn create_series(name: &str, color: &'static str, values: &[f64], max: f64, 
 }
 
 /// Helper to create chart data from multiple series
-pub fn create_chart(labels: Vec<String>, series: Vec<ChartSeries>, unit: &'static str) -> ChartData {
+pub fn create_chart(
+    labels: Vec<String>,
+    series: Vec<ChartSeries>,
+    unit: &'static str,
+) -> ChartData {
     let max_value = series
         .iter()
         .flat_map(|s| s.bars.iter().map(|b| b.value))

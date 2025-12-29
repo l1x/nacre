@@ -6,7 +6,7 @@ pub mod prds;
 pub mod tasks;
 
 pub use board::board;
-pub use general::{graph, health_check, serve_css, serve_favicon, serve_js, palette};
+pub use general::{graph, health_check, palette, serve_css, serve_favicon, serve_js};
 pub use landing::landing;
 pub use metrics::metrics_handler;
 pub use prds::{prd_view, prds_list};

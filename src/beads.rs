@@ -475,9 +475,7 @@ impl Client {
     }
 
     pub fn list_issues(&self) -> Result<Vec<Issue>> {
-        let output = self.base_command()
-            .args(["list", "--json"])
-            .output()?;
+        let output = self.base_command().args(["list", "--json"]).output()?;
 
         if !output.status.success() {
             let error_msg = String::from_utf8_lossy(&output.stderr);
@@ -489,7 +487,8 @@ impl Client {
     }
 
     pub fn get_issue(&self, id: &str) -> Result<Issue> {
-        let output = self.base_command()
+        let output = self
+            .base_command()
             .arg("show")
             .arg(id)
             .arg("--json")
@@ -609,10 +608,7 @@ impl Client {
     }
 
     pub fn get_activity(&self) -> Result<Vec<Activity>> {
-        let output = self.base_command()
-            .arg("activity")
-            .arg("--json")
-            .output()?;
+        let output = self.base_command().arg("activity").arg("--json").output()?;
 
         if !output.status.success() {
             let error_msg = String::from_utf8_lossy(&output.stderr);
@@ -624,10 +620,7 @@ impl Client {
     }
 
     pub fn get_status_summary(&self) -> Result<serde_json::Value> {
-        let output = self.base_command()
-            .arg("status")
-            .arg("--json")
-            .output()?;
+        let output = self.base_command().arg("status").arg("--json").output()?;
 
         if !output.status.success() {
             let error_msg = String::from_utf8_lossy(&output.stderr);

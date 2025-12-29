@@ -1,20 +1,20 @@
 use axum::http::StatusCode;
 use axum_test::TestServer;
-use nacre::{create_app, AppState};
+use nacre::{AppState, create_app};
 use std::sync::Arc;
 use tempfile::TempDir;
 
 // Helper to create a test server with a temporary beads database
 async fn test_server() -> (TestServer, TempDir) {
     let temp_dir = TempDir::new().expect("Failed to create temp dir");
-    
+
     // Initialize a beads database in the temp directory
     let status = std::process::Command::new("bd")
         .current_dir(temp_dir.path())
         .arg("init")
         .status()
         .expect("Failed to run bd init");
-    
+
     assert!(status.success(), "bd init failed");
 
     let beads_dir = temp_dir.path().join(".beads");
@@ -30,7 +30,7 @@ async fn test_server() -> (TestServer, TempDir) {
             }
         }
     }
-    
+
     let mut state = AppState::new();
     if let Some(path) = db_path {
         state.client = state.client.with_db(path.to_string_lossy().to_string());
@@ -38,7 +38,7 @@ async fn test_server() -> (TestServer, TempDir) {
 
     let app = create_app(Arc::new(state));
     let server = TestServer::new(app).unwrap();
-    
+
     (server, temp_dir)
 }
 
@@ -49,7 +49,7 @@ async fn test_health_check() {
     let server = TestServer::new(app).unwrap();
 
     let response = server.get("/health").await;
-    
+
     assert_eq!(response.status_code(), StatusCode::OK);
     assert_eq!(response.text(), "OK");
 }
@@ -57,9 +57,9 @@ async fn test_health_check() {
 #[tokio::test]
 async fn test_landing_page() {
     let (server, _temp) = test_server().await;
-    
+
     let response = server.get("/").await;
-    
+
     assert_eq!(response.status_code(), StatusCode::OK);
     assert!(response.text().contains("<!DOCTYPE html>"));
 }
@@ -67,9 +67,9 @@ async fn test_landing_page() {
 #[tokio::test]
 async fn test_tasks_list() {
     let (server, _temp) = test_server().await;
-    
+
     let response = server.get("/tasks").await;
-    
+
     assert_eq!(response.status_code(), StatusCode::OK);
     assert!(response.text().contains("<!DOCTYPE html>"));
 }
@@ -77,36 +77,36 @@ async fn test_tasks_list() {
 #[tokio::test]
 async fn test_board_view() {
     let (server, _temp) = test_server().await;
-    
+
     let response = server.get("/board").await;
-    
+
     assert_eq!(response.status_code(), StatusCode::OK);
 }
 
 #[tokio::test]
 async fn test_graph_view() {
     let (server, _temp) = test_server().await;
-    
+
     let response = server.get("/graph").await;
-    
+
     assert_eq!(response.status_code(), StatusCode::OK);
 }
 
 #[tokio::test]
 async fn test_palette_view() {
     let (server, _temp) = test_server().await;
-    
+
     let response = server.get("/palette").await;
-    
+
     assert_eq!(response.status_code(), StatusCode::OK);
 }
 
 #[tokio::test]
 async fn test_api_tasks_list() {
     let (server, _temp) = test_server().await;
-    
+
     let response = server.get("/api/issues").await;
-    
+
     assert_eq!(response.status_code(), StatusCode::OK);
     // Should be valid JSON
     let _json: serde_json::Value = response.json();
@@ -115,17 +115,17 @@ async fn test_api_tasks_list() {
 #[tokio::test]
 async fn test_metrics_view() {
     let (server, _temp) = test_server().await;
-    
+
     let response = server.get("/metrics").await;
-    
+
     assert_eq!(response.status_code(), StatusCode::OK);
 }
 
 #[tokio::test]
 async fn test_prds_list() {
     let (server, _temp) = test_server().await;
-    
+
     let response = server.get("/prds").await;
-    
+
     assert_eq!(response.status_code(), StatusCode::OK);
 }

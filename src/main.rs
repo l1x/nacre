@@ -28,12 +28,9 @@ async fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
             tracing_subscriber::EnvFilter::try_from_default_env()
                 .unwrap_or_else(|_| "nacre=info,tower_http=info".into()),
         )
-        .with(
-            tracing_subscriber::fmt::layer()
-                .with_timer(tracing_subscriber::fmt::time::UtcTime::new(
-                    kiters::timestamp::get_utc_formatter(),
-                )),
-        )
+        .with(tracing_subscriber::fmt::layer().with_timer(
+            tracing_subscriber::fmt::time::UtcTime::new(kiters::timestamp::get_utc_formatter()),
+        ))
         .init();
 
     let args: Args = argh::from_env();
