@@ -4,10 +4,36 @@ use std::collections::HashMap;
 use crate::beads;
 use crate::templates::*;
 
+enum MetricsData {
+    Issues(beads::Result<Vec<beads::Issue>>),
+    Activities(beads::Result<Vec<beads::Activity>>),
+    Summary(beads::Result<serde_json::Value>),
+}
+
 pub async fn metrics_handler(State(state): State<crate::SharedAppState>) -> crate::AppResult<MetricsTemplate> {
-    let all_issues = state.client.list_issues()?;
-    let activities = state.client.get_activity()?;
-    let summary = state.client.get_status_summary()?;
+    // Run all 3 CLI calls in parallel using JoinSet with spawn_blocking
+    let mut set: tokio::task::JoinSet<MetricsData> = tokio::task::JoinSet::new();
+
+    let client = state.client.clone();
+    set.spawn_blocking(move || MetricsData::Issues(client.list_issues()));
+
+    let client = state.client.clone();
+    set.spawn_blocking(move || MetricsData::Activities(client.get_activity()));
+
+    let client = state.client.clone();
+    set.spawn_blocking(move || MetricsData::Summary(client.get_status_summary()));
+
+    let mut all_issues = Vec::new();
+    let mut activities = Vec::new();
+    let mut summary = serde_json::Value::Null;
+
+    while let Some(res) = set.join_next().await {
+        match res.map_err(|e| crate::AppError::BadRequest(format!("Task join failed: {e}")))? {
+            MetricsData::Issues(data) => all_issues = data?,
+            MetricsData::Activities(data) => activities = data?,
+            MetricsData::Summary(data) => summary = data?,
+        }
+    }
 
     let avg_lead_time_hours = summary["summary"]["average_lead_time_hours"]
         .as_f64()
