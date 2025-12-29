@@ -838,7 +838,6 @@ main:has(.board) {
     gap: 32px;
     margin-bottom: 24px;
     padding: 16px 0;
-    border-bottom: 1px solid var(--border-color);
 }
 
 .control-group {
