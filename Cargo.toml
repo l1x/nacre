@@ -33,3 +33,6 @@ tracing-subscriber = { version = "0.3", features = ["env-filter", "time"] }
 criterion = "0.5"
 markdown = "1.0"
 minijinja = "2.0"
+
+[package.metadata.cargo-machete]
+ignored = ["askama_axum"]  # Provides IntoResponse trait impls for Askama+Axum

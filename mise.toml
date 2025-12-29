@@ -66,6 +66,18 @@ run = "cargo tarpaulin --out Stdout --skip-clean"
 description = "Run tests with coverage and generate HTML report"
 run = "cargo tarpaulin --out Html --skip-clean --output-dir target/tarpaulin"
 
+[tasks.audit]
+description = "Run security audit on dependencies"
+run = "cargo audit"
+
+[tasks.machete]
+description = "Find unused dependencies"
+run = "cargo machete"
+
+[tasks.check-deps]
+description = "Run security audit and find unused dependencies"
+depends = ["audit", "machete"]
+
 [tasks.start-dev-server]
 description = "Building the development version"
 run = "cargo run -- --open"
