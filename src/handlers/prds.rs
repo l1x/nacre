@@ -38,9 +38,8 @@ pub async fn prd_view(
         return Err(crate::AppError::BadRequest("Invalid filename".to_string()));
     }
 
-    let path = format!("docs/prds/{}", filename);
     let markdown_input =
-        std::fs::read_to_string(&path).map_err(|_| crate::AppError::NotFound(filename.clone()))?;
+        std::fs::read_to_string(&canonical_path).map_err(|_| crate::AppError::NotFound(filename.clone()))?;
 
     let parser = Parser::new(&markdown_input);
     let mut html_output = String::new();

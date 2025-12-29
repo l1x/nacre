@@ -1219,6 +1219,7 @@ dependencies = [
  "axum",
  "axum-test",
  "criterion",
+ "http-body-util",
  "kiters",
  "markdown",
  "minijinja",

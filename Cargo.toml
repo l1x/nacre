@@ -40,6 +40,7 @@ tracing-subscriber = { version = "0.3", features = ["env-filter", "time"] }
 [dev-dependencies]
 axum-test = "15"
 criterion = { version = "0.5" }
+http-body-util = "0.1"
 markdown = { version = "1.0" }
 minijinja = { version = "2.0" }
 serial_test = "3"
