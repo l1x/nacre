@@ -121,6 +121,24 @@ cargo clippy
 
 ## Version History
 
+### 0.6.0 (2025-12-29)
+
+**Security**
+- Fixed path traversal vulnerability in PRDs handler
+- Sanitized error messages to prevent information disclosure
+
+**New Features**
+- Added Activity Heat Map chart (hours on X-axis, days on Y-axis)
+- Implemented TypeScript error handling with toast notifications
+
+**Bug Fixes**
+- Fixed ToastManager DOM initialization race condition
+
+**Testing**
+- Added comprehensive API endpoint integration tests
+- Added cross-feature integration tests
+- Split integration tests into multi-file structure for parallel execution
+
 ### 0.5.1 (2025-12-28)
 
 **Charts & Dashboard**
