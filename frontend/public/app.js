@@ -614,6 +614,88 @@ function initGraph() {
   updateVisibility();
 }
 
+// frontend/src/modules/sorting.ts
+function initSorting() {
+  const sortButtons = document.querySelectorAll(".sort-btn");
+  if (sortButtons.length === 0)
+    return;
+  sortButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      const sortBy = button.getAttribute("data-sort");
+      if (sortBy) {
+        sortTreeNodes(sortBy);
+        updateActiveSortButton(button);
+      }
+    });
+  });
+}
+function sortTreeNodes(sortBy) {
+  const treeList = document.querySelector(".tree-list");
+  if (!treeList)
+    return;
+  const nodes = Array.from(treeList.querySelectorAll(".tree-node"));
+  const expandedStates = new Map;
+  nodes.forEach((node) => {
+    const toggleBtn = node.querySelector(".tree-toggle");
+    if (toggleBtn && toggleBtn.classList.contains("expanded")) {
+      expandedStates.set(node.dataset.id, true);
+    }
+  });
+  nodes.sort((a, b) => compareNodes(a, b, sortBy));
+  treeList.innerHTML = "";
+  nodes.forEach((node) => {
+    treeList.appendChild(node);
+    if (expandedStates.has(node.dataset.id)) {
+      const toggleBtn = node.querySelector(".tree-toggle");
+      if (toggleBtn) {
+        toggleBtn.classList.add("expanded");
+        const icon = toggleBtn.querySelector(".toggle-icon");
+        if (icon) {
+          icon.textContent = "−";
+        }
+      }
+    }
+  });
+}
+function compareNodes(a, b, sortBy) {
+  switch (sortBy) {
+    case "status":
+      return compareStatus(a.dataset.status, b.dataset.status);
+    case "type":
+      return compareType(a.dataset.type, b.dataset.type);
+    case "priority":
+      return comparePriority(a.dataset.priority, b.dataset.priority);
+    default:
+      return 0;
+  }
+}
+function compareStatus(statusA, statusB) {
+  const statusOrder = { open: 0, in_progress: 1, blocked: 2, closed: 3, deferred: 4 };
+  const orderA = statusOrder[statusA] ?? 999;
+  const orderB = statusOrder[statusB] ?? 999;
+  return orderA - orderB;
+}
+function compareType(typeA, typeB) {
+  const typeOrder = { epic: 0, feature: 1, bug: 2, task: 3, chore: 4 };
+  const orderA = typeOrder[typeA] ?? 999;
+  const orderB = typeOrder[typeB] ?? 999;
+  return orderA - orderB;
+}
+function comparePriority(priorityA, priorityB) {
+  const prioA = parseInt(priorityA) || 999;
+  const prioB = parseInt(priorityB) || 999;
+  return prioA - prioB;
+}
+function updateActiveSortButton(activeButton) {
+  const sortButtons = document.querySelectorAll(".sort-btn");
+  sortButtons.forEach((button) => {
+    button.classList.remove("btn-primary");
+    button.classList.add("btn-tertiary");
+  });
+  activeButton.classList.remove("btn-tertiary");
+  activeButton.classList.add("btn-primary");
+}
+
 // frontend/src/main.ts
 document.addEventListener("DOMContentLoaded", () => {
   initTheme();
@@ -624,5 +706,6 @@ document.addEventListener("DOMContentLoaded", () => {
   initDragAndDrop();
   initNavigation();
   initGraph();
+  initSorting();
   console.log("Nacre modular frontend initialized");
 });
