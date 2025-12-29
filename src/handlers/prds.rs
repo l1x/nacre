@@ -49,7 +49,7 @@ pub async fn prd_view(
     Ok(PrdViewTemplate {
         project_name: state.project_name.clone(),
         page_title: filename.clone(),
-        active_nav: "prds",
+        active_nav: "prds-view",
         app_version: state.app_version.clone(),
         filename,
         content: html_output,

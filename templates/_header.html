@@ -1,7 +1,9 @@
     <header>
         <a href="/" class="home-link"><h1>Nacre</h1></a>
         {% include "_nav.html" %}
+        {% if active_nav == "tasks" || active_nav == "board" || active_nav == "prds" || active_nav == "graph" %}
         <div class="search-container"><input type="text" id="filter-input" placeholder="Search issues..."></div>
+        {% endif %}
         <a href="/tasks/new" class="create-btn">+ Create</a>
         <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme"></button>
     </header>

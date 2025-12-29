@@ -7,7 +7,9 @@
     <header>
         <a href="/" class="home-link"><h1>Nacre</h1></a>
         {% include "_nav.html" %}
+        {% if active_nav == "tasks" || active_nav == "board" || active_nav == "prds" || active_nav == "graph" %}
         <div class="search-container"><input type="text" id="filter-input" placeholder="Search issues..."></div>
+        {% endif %}
         <div class="column-controls">
             <button class="columns-toggle" id="columns-toggle" aria-label="Toggle column visibility">Columns</button>
             <div class="columns-dropdown" id="columns-dropdown">

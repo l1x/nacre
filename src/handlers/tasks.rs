@@ -72,7 +72,7 @@ pub async fn task_detail(
     Ok(TaskDetailTemplate {
         project_name: state.project_name.clone(),
         page_title: id.clone(),
-        active_nav: "tasks",
+        active_nav: "tasks-detail",
         app_version: state.app_version.clone(),
         task: EpicWithProgress::from_epic(issue, &all_issues, false),
         children_tree: tree_nodes,
@@ -237,7 +237,7 @@ pub async fn edit_task(
     Ok(EditIssueTemplate {
         project_name: state.project_name.clone(),
         page_title: format!("Edit {}", id),
-        active_nav: "tasks",
+        active_nav: "tasks-edit",
         app_version: state.app_version.clone(),
         issue,
     })
@@ -247,7 +247,7 @@ pub async fn new_task_form(State(state): State<crate::SharedAppState>) -> NewIss
     NewIssueTemplate {
         project_name: state.project_name.clone(),
         page_title: "New Task".to_string(),
-        active_nav: "tasks",
+        active_nav: "tasks-new",
         app_version: state.app_version.clone(),
     }
 }
