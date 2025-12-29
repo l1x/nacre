@@ -538,7 +538,7 @@ main:has(.board) {
     gap: 20px;
     height: calc(100vh - var(--header-height) - 80px);
     overflow-x: auto;
-    padding-bottom: 20px;
+    padding-bottom: 24px;
 }
 
 .board-column {
@@ -1577,7 +1577,7 @@ main:has(.board) {
     padding: 16px 24px;
     border-radius: var(--radius);
     border: 1px solid var(--border-color);
-    margin-bottom: 20px;
+    margin-bottom: 24px;
 }
 
 .filter-group {
