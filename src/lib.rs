@@ -23,12 +23,6 @@ pub struct AppState {
 // Arc wrapper for shared state
 pub type SharedAppState = Arc<AppState>;
 
-impl Default for AppState {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
 impl AppState {
     pub fn new() -> Self {
         let project_name = std::env::current_dir()
@@ -41,14 +35,6 @@ impl AppState {
             project_name,
             app_version: env!("CARGO_PKG_VERSION").to_string(),
         }
-    }
-}
-
-impl Default for AppState {
-    fn default() -> Self {
-        Self::new()
-    }
-}
     }
 }
 
