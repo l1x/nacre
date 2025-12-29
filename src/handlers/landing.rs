@@ -40,8 +40,8 @@ fn create_chart(labels: Vec<String>, series: Vec<ChartSeries>, unit: &'static st
     }
 }
 
-pub async fn landing(State(state): State<crate::SharedAppState>) -> LandingTemplate {
-    let all_issues = state.client.list_issues().unwrap_or_default();
+pub async fn landing(State(state): State<crate::SharedAppState>) -> crate::AppResult<LandingTemplate> {
+    let all_issues = state.client.list_issues()?;
 
     // Calculate stats
     let stats = ProjectStats {
@@ -95,7 +95,7 @@ pub async fn landing(State(state): State<crate::SharedAppState>) -> LandingTempl
         .collect();
 
     // Build chart data for the last 7 days
-    let now_dt = chrono::Utc::now().with_timezone(&chrono::FixedOffset::east_opt(0).unwrap());
+    let now_dt = chrono::Utc::now();
     let start_dt = now_dt - chrono::Duration::days(6); // 7 days including today
 
     // Collect all dates
@@ -103,7 +103,11 @@ pub async fn landing(State(state): State<crate::SharedAppState>) -> LandingTempl
     let mut curr = start_dt.date_naive();
     while curr <= now_dt.date_naive() {
         dates.push(curr);
-        curr = curr.succ_opt().unwrap();
+        if let Some(next) = curr.succ_opt() {
+            curr = next;
+        } else {
+            break;
+        }
     }
     let labels: Vec<String> = dates.iter().map(|d| d.format("%m.%d").to_string()).collect();
 
@@ -138,7 +142,7 @@ pub async fn landing(State(state): State<crate::SharedAppState>) -> LandingTempl
         "",
     );
 
-    LandingTemplate {
+    Ok(LandingTemplate {
         project_name: state.project_name.clone(),
         page_title: String::new(),
         active_nav: "dashboard",
@@ -148,5 +152,5 @@ pub async fn landing(State(state): State<crate::SharedAppState>) -> LandingTempl
         blocked,
         in_progress,
         tickets_chart,
-    }
+    })
 }

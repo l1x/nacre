@@ -8,17 +8,17 @@ use std::collections::HashMap;
 use crate::beads;
 use crate::templates::{EditIssueTemplate, EpicWithProgress, NewIssueTemplate, TaskDetailTemplate, TasksTemplate, TreeNode};
 
-pub async fn tasks_list(State(state): State<crate::SharedAppState>) -> TasksTemplate {
-    let all_issues = state.client.list_issues().unwrap_or_default();
+pub async fn tasks_list(State(state): State<crate::SharedAppState>) -> crate::AppResult<TasksTemplate> {
+    let all_issues = state.client.list_issues()?;
     let nodes = build_issue_tree(&all_issues);
 
-    TasksTemplate {
+    Ok(TasksTemplate {
         project_name: state.project_name.clone(),
         page_title: "Tasks".to_string(),
         active_nav: "tasks",
         app_version: state.app_version.clone(),
         nodes,
-    }
+    })
 }
 
 pub async fn task_detail(

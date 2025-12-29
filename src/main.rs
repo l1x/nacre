@@ -57,7 +57,7 @@ struct Args {
 }
 
 #[tokio::main]
-async fn main() {
+async fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
     // Initialize tracing
     tracing_subscriber::registry()
         .with(
@@ -124,10 +124,10 @@ async fn main() {
         );
 
     let addr_str = format!("{}:{}", args.host, args.port);
-    let addr: SocketAddr = addr_str.parse().expect("Invalid host or port");
+    let addr: SocketAddr = addr_str.parse()?;
 
-    let listener = tokio::net::TcpListener::bind(addr).await.unwrap();
-    let actual_addr = listener.local_addr().unwrap();
+    let listener = tokio::net::TcpListener::bind(addr).await?;
+    let actual_addr = listener.local_addr()?;
     let url = format!("http://{}", actual_addr);
 
     tracing::info!("{}", url);
@@ -138,7 +138,8 @@ async fn main() {
         tracing::error!("Failed to open browser: {}", e);
     }
 
-    axum::serve(listener, app).await.unwrap();
+    axum::serve(listener, app).await?;
+    Ok(())
 }
 
 #[cfg(test)]

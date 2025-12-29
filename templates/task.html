@@ -20,8 +20,8 @@
                     <span class="meta-chip status-{{ task.issue.status.as_str() }}"><span class="meta-label">Status:</span> {{ task.issue.status }}</span>
                     <span class="meta-chip"><span class="meta-label">Priority:</span> P{{ task.issue.priority.unwrap_or(2) }}</span>
 
-                    {% if task.issue.assignee.is_some() %}
-                    <span class="meta-chip assignee"><span class="meta-label">Assignee:</span> {{ task.issue.assignee.as_ref().unwrap() }}</span>
+                    {% if let Some(assignee) = task.issue.assignee %}
+                    <span class="meta-chip assignee"><span class="meta-label">Assignee:</span> {{ assignee }}</span>
                     {% endif %}
                 </div>
             </div>
@@ -38,10 +38,10 @@
             </div>
             {% endif %}
 
-            {% if task.issue.description.is_some() %}
+            {% if let Some(description) = task.issue.description %}
             <div class="detail-section">
                 <h3>Description</h3>
-                <div class="description-content">{{ task.issue.description.as_ref().unwrap()|markdown|safe }}</div>
+                <div class="description-content">{{ description|markdown|safe }}</div>
             </div>
             {% endif %}
         </div>
@@ -105,10 +105,10 @@
                 <span class="timestamp-value">{{ task.issue.updated_at|format_date }}</span>
                 <span class="timestamp-label">Updated</span>
             </div>
-            {% if task.issue.closed_at.is_some() %}
+            {% if let Some(closed_at) = task.issue.closed_at %}
             <div class="separator"></div>
             <div class="timestamp-item">
-                <span class="timestamp-value">{{ task.issue.closed_at.as_ref().unwrap()|format_date }}</span>
+                <span class="timestamp-value">{{ closed_at|format_date }}</span>
                 <span class="timestamp-label">Closed</span>
             </div>
             {% endif %}

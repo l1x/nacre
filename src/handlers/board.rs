@@ -2,8 +2,8 @@ use axum::extract::State;
 use crate::beads;
 use crate::templates::*;
 
-pub async fn board(State(state): State<crate::SharedAppState>) -> BoardTemplate {
-    let all_issues = state.client.list_issues().unwrap_or_default();
+pub async fn board(State(state): State<crate::SharedAppState>) -> crate::AppResult<BoardTemplate> {
+    let all_issues = state.client.list_issues()?;
 
     let columns = vec![
         BoardColumn {
@@ -53,11 +53,11 @@ pub async fn board(State(state): State<crate::SharedAppState>) -> BoardTemplate 
         },
     ];
 
-    BoardTemplate {
+    Ok(BoardTemplate {
         project_name: state.project_name.clone(),
         page_title: "Board".to_string(),
         active_nav: "board",
         app_version: state.app_version.clone(),
         columns,
-    }
+    })
 }

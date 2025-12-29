@@ -41,10 +41,10 @@ fn create_chart(labels: Vec<String>, series: Vec<ChartSeries>, unit: &'static st
     }
 }
 
-pub async fn metrics_handler(State(state): State<crate::SharedAppState>) -> MetricsTemplate {
-    let all_issues = state.client.list_issues().unwrap_or_default();
-    let activities = state.client.get_activity().unwrap_or_default();
-    let summary = state.client.get_status_summary().unwrap_or_default();
+pub async fn metrics_handler(State(state): State<crate::SharedAppState>) -> crate::AppResult<MetricsTemplate> {
+    let all_issues = state.client.list_issues()?;
+    let activities = state.client.get_activity()?;
+    let summary = state.client.get_status_summary()?;
 
     let avg_lead_time_hours = summary["summary"]["average_lead_time_hours"]
         .as_f64()
@@ -125,7 +125,7 @@ pub async fn metrics_handler(State(state): State<crate::SharedAppState>) -> Metr
     let p100_cycle_time_mins = calculate_percentile(&sorted_cycle_times, 100.0);
 
     // Build chart data for the last 7 days
-    let now_dt = chrono::Utc::now().with_timezone(&chrono::FixedOffset::east_opt(0).unwrap());
+    let now_dt = chrono::Utc::now();
     let start_dt = now_dt - chrono::Duration::days(6); // 7 days including today
 
     // Collect all dates
@@ -133,7 +133,11 @@ pub async fn metrics_handler(State(state): State<crate::SharedAppState>) -> Metr
     let mut curr = start_dt.date_naive();
     while curr <= now_dt.date_naive() {
         dates.push(curr);
-        curr = curr.succ_opt().unwrap();
+        if let Some(next) = curr.succ_opt() {
+            curr = next;
+        } else {
+            break;
+        }
     }
     let labels: Vec<String> = dates.iter().map(|d| d.format("%m.%d").to_string()).collect();
 
@@ -277,7 +281,7 @@ pub async fn metrics_handler(State(state): State<crate::SharedAppState>) -> Metr
         "",
     );
 
-    MetricsTemplate {
+    Ok(MetricsTemplate {
         project_name: state.project_name.clone(),
         page_title: "Metrics".to_string(),
         active_nav: "metrics",
@@ -298,5 +302,5 @@ pub async fn metrics_handler(State(state): State<crate::SharedAppState>) -> Metr
         p50_cycle_time_mins,
         p90_cycle_time_mins,
         p100_cycle_time_mins,
-    }
+    })
 }
