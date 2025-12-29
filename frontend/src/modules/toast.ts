@@ -8,16 +8,24 @@ interface ToastConfig {
 class ToastManager {
     private container: HTMLElement | null = null;
     private activeToasts: Set<HTMLElement> = new Set();
+    private initialized: boolean = false;
 
     constructor() {
-        this.init();
+        // Defer initialization until DOM is ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => this.init());
+        } else {
+            this.init();
+        }
     }
 
     private init() {
+        if (this.initialized) return;
         this.container = document.createElement('div');
         this.container.id = 'toast-container';
         this.container.className = 'toast-container';
         document.body.appendChild(this.container);
+        this.initialized = true;
     }
 
     private createToast(config: ToastConfig): HTMLElement {
@@ -63,6 +71,7 @@ class ToastManager {
     }
 
     show(config: ToastConfig): void {
+        if (!this.initialized) return;
         if (!this.container) return;
         
         const toast = this.createToast(config);

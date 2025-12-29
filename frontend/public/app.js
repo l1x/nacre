@@ -75,14 +75,22 @@ function initListFeatures() {
 class ToastManager {
   container = null;
   activeToasts = new Set;
+  initialized = false;
   constructor() {
-    this.init();
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", () => this.init());
+    } else {
+      this.init();
+    }
   }
   init() {
+    if (this.initialized)
+      return;
     this.container = document.createElement("div");
     this.container.id = "toast-container";
     this.container.className = "toast-container";
     document.body.appendChild(this.container);
+    this.initialized = true;
   }
   createToast(config) {
     const toast = document.createElement("div");
@@ -120,6 +128,8 @@ class ToastManager {
     return toast;
   }
   show(config) {
+    if (!this.initialized)
+      return;
     if (!this.container)
       return;
     const toast = this.createToast(config);
