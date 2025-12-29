@@ -51,16 +51,11 @@
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding: 0 4px;">
                 <div style="display: flex; align-items: center; gap: 12px;">
                     <h3 style="margin: 0; color: var(--text-muted); font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px;">Child Issues ({{ task.total }})</h3>
-                    <div class="sort-controls" style="display: flex; gap: 4px;">
-                        <button class="sort-btn btn-tertiary" data-sort="status" title="Sort by Status">
-                            <span style="font-size: 0.8rem;">Status</span>
-                        </button>
-                        <button class="sort-btn btn-tertiary" data-sort="type" title="Sort by Type">
-                            <span style="font-size: 0.8rem;">Type</span>
-                        </button>
-                        <button class="sort-btn btn-tertiary" data-sort="priority" title="Sort by Priority">
-                            <span style="font-size: 0.8rem;">Priority</span>
-                        </button>
+                    <div class="sort-controls" style="display: flex; gap: 4px; align-items: center;">
+                        <span style="color: var(--text-muted); font-size: 0.75rem;">Sort:</span>
+                        <button class="btn btn-secondary sort-btn" data-sort="status" title="Sort by Status" style="padding: 4px 12px; font-size: 0.75rem;">Status</button>
+                        <button class="btn btn-secondary sort-btn" data-sort="type" title="Sort by Type" style="padding: 4px 12px; font-size: 0.75rem;">Type</button>
+                        <button class="btn btn-secondary sort-btn" data-sort="priority" title="Sort by Priority" style="padding: 4px 12px; font-size: 0.75rem;">Priority</button>
                     </div>
                 </div>
                 {% if can_expand %}

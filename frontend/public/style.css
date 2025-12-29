@@ -1144,14 +1144,16 @@ main:has(.board) {
     font-weight: 500;
 }
 
-.btn-tertiary:hover {
-    background-color: var(--bg-card-hover);
-    color: var(--text-primary);
+/* Sort buttons - uses btn-secondary styling, just adds active state */
+.sort-btn.active {
+    background-color: var(--accent);
+    color: white;
+    border-color: var(--accent);
 }
 
 .btn-tertiary:hover {
-    background-color: var(--status-blocked);
-    color: white;
+    background-color: var(--bg-card-hover);
+    color: var(--text-primary);
 }
 
 /* Create button in nav */
