@@ -21,6 +21,12 @@
             <button id="collapse-all" class="btn btn-secondary">Collapse All</button>
             <button id="expand-one-level" class="btn btn-secondary">Expand One Level</button>
             <button id="collapse-one-level" class="btn btn-secondary">Collapse One Level</button>
+            <div class="sort-controls" style="display: flex; gap: 4px; margin-left: 16px;">
+                <span style="color: var(--text-muted); font-size: 0.8rem; align-self: center;">Sort:</span>
+                <button class="sort-btn btn-tertiary" data-sort="status" title="Sort by Status">Status</button>
+                <button class="sort-btn btn-tertiary" data-sort="type" title="Sort by Type">Type</button>
+                <button class="sort-btn btn-tertiary" data-sort="priority" title="Sort by Priority">Priority</button>
+            </div>
         </div>
 
         <div class="tree-view">
@@ -30,6 +36,8 @@
                     data-id="{{ node.id }}"
                     data-depth="{{ node.depth }}"
                     data-type="{{ node.issue_type }}"
+                    data-status="{{ node.status }}"
+                    data-priority="{{ node.priority }}"
                     data-parent="{% if let Some(p) = node.parent_id %}{{ p }}{% endif %}"
                     data-has-children="{{ node.has_children }}"
                     data-filter-text="{{ node.title|lower }} {{ node.id|lower }}"
