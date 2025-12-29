@@ -1,3 +1,5 @@
+import { handleError, handleNetworkError } from './toast';
+
 export function initDragAndDrop() {
     const draggables = document.querySelectorAll('.issue-card[draggable="true"]') as NodeListOf<HTMLElement>;
     const droppables = document.querySelectorAll('.column-content') as NodeListOf<HTMLElement>;
@@ -37,17 +39,23 @@ export function initDragAndDrop() {
                 const id = draggable.getAttribute('data-id');
 
                 if (id && apiStatus) {
-                    try {
+                    const updateStatus = async () => {
                         const res = await fetch(`/api/issues/${id}`, {
                             method: 'POST',
                             headers: {'Content-Type': 'application/json'},
                             body: JSON.stringify({status: apiStatus})
                         });
                         if (!res.ok) throw new Error('Update failed');
+                    };
+
+                    try {
+                        await updateStatus();
                     } catch (err) {
-                        console.error(err);
-                        alert('Failed to update status');
-                        window.location.reload();
+                        if (err instanceof Error && err.message === 'Update failed') {
+                            handleNetworkError(new Response(null, { status: 500, statusText: 'Update failed' }), 'Failed to update status', updateStatus);
+                        } else {
+                            handleError(err, 'Failed to update status', updateStatus);
+                        }
                     }
                 }
             });

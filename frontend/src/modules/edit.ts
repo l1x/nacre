@@ -1,3 +1,5 @@
+import { handleError, handleNetworkError } from './toast';
+
 export function initInlineEdit() {
     document.addEventListener('click', (e) => {
         const target = e.target as HTMLElement;
@@ -30,7 +32,7 @@ export function initInlineEdit() {
             const id = issueItem ? issueItem.getAttribute('data-id') : null;
 
             if (newTitle && newTitle !== currentTitle && id) {
-                try {
+                const updateTitle = async () => {
                     const res = await fetch(`/api/issues/${id}`, {
                         method: 'POST',
                         headers: {'Content-Type': 'application/json'},
@@ -38,15 +40,21 @@ export function initInlineEdit() {
                     });
                     
                     if (!res.ok) throw new Error('Update failed');
+                };
+
+                try {
+                    await updateTitle();
 
                     const newTitleEl = document.createElement('div');
                     newTitleEl.classList.add('issue-title');
                     newTitleEl.innerText = newTitle;
                     input.replaceWith(newTitleEl);
                 } catch (err) {
-                    console.error(err);
-                    alert('Failed to update title');
-                    replaceWithOriginal();
+                    if (err instanceof Error && err.message === 'Update failed') {
+                        handleNetworkError(new Response(null, { status: 500, statusText: 'Update failed' }), 'Failed to update title', updateTitle);
+                    } else {
+                        handleError(err, 'Failed to update title', updateTitle);
+                    }
                 }
             } else {
                 replaceWithOriginal();
