@@ -4,7 +4,7 @@
 
 ## Objective
 
-Decompose a PRD into granular, actionable tickets with hierarchical structure suitable for iterative implementation.
+Decompose a PRD into granular, actionable tasks with hierarchical structure suitable for iterative implementation by multiple agents
 
 ## Input
 
@@ -24,7 +24,7 @@ Decompose a PRD into granular, actionable tickets with hierarchical structure su
 ## Ticket Hierarchy
 
 ```
-bd-a3f8        Epic: Feature scope (maps to PRD)
+bd-a3f8        Epic: Feature scope
 ├── bd-a3f8.1      Task: Logical grouping of related work (PR)
 └── bd-a3f8.2      Task: Logical grouping of related work (PR)
 ```
@@ -38,18 +38,17 @@ ID: bd-xxxx[.x]
 Title: [Action verb] + [Component/Feature]
 Type: Epic | Task
 Parent: [Parent ID or none for Epic]
-Status: backlog
+Status: open
 Description: [What needs to be done]
 Acceptance Criteria:
   - [ ] [Verifiable condition 1]
   - [ ] [Verifiable condition 2]
-Dependencies: [List of blocking ticket IDs or none]
 ```
 
 ## Task Granularity Rules
 
-- **Epic** — Full feature, multiple tasks, weeks of work
-- **Task** — Atomic unit, one PR, hours of work (max 1 day)
+- **Epic** — Full feature, multiple tasks
+- **Task** — Atomic unit, one PR, hours of work (max 2 hours)
 
 ## Output
 
