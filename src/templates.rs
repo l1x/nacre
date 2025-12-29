@@ -270,6 +270,15 @@ pub struct TaskDetailTemplate {
 }
 
 #[derive(Template)]
+#[template(path = "palette.html")]
+pub struct PaletteTemplate {
+    pub project_name: String,
+    pub page_title: String,
+    pub active_nav: &'static str,
+    pub app_version: String,
+}
+
+#[derive(Template)]
 #[template(path = "metrics.html")]
 pub struct MetricsTemplate {
     pub project_name: String,

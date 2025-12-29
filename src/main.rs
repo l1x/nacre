@@ -85,6 +85,7 @@ async fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
         .route("/board", get(handlers::board))
         .route("/graph", get(handlers::graph))
         .route("/metrics", get(handlers::metrics_handler))
+        .route("/palette", get(handlers::palette))
         .route("/prds", get(handlers::prds_list))
         .route("/prds/:filename", get(handlers::prd_view))
         .route("/api/issues", get(handlers::list_tasks))
@@ -255,6 +256,25 @@ mod tests {
             .oneshot(
                 Request::builder()
                     .uri("/graph")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::OK);
+    }
+
+    #[tokio::test]
+    async fn test_palette() {
+        let app = Router::new()
+            .route("/palette", get(handlers::palette))
+            .with_state(test_state());
+
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .uri("/palette")
                     .body(Body::empty())
                     .unwrap(),
             )

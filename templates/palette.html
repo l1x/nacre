@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% include "_head.html" %}
+    <style>
+        .palette-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0;
+            min-height: 100vh;
+        }
+        .theme-section {
+            padding: 40px;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            border-right: 1px solid var(--border-color);
+        }
+        .color-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 16px;
+            margin-bottom: 40px;
+        }
+        .color-swatch {
+            height: 60px;
+            border-radius: var(--radius);
+            margin-bottom: 8px;
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-sm);
+        }
+        .color-info {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+        .color-name {
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            font-family: monospace;
+        }
+        .typography-sample {
+            margin-bottom: 40px;
+            padding-bottom: 24px;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+        .component-sample {
+            margin-bottom: 32px;
+            padding: 32px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            background-color: var(--bg-card);
+        }
+        
+        h2 { margin-top: 0; color: var(--accent); }
+        h3 { font-size: 1rem; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); margin-bottom: 24px; }
+    </style>
+</head>
+<body>
+    {% include "_header.html" %}
+    <main style="max-width: none; padding: 0;">
+        <div class="palette-container">
+            <!-- Light Theme -->
+            <div class="theme-section" data-theme="light">
+                <h2>Light Theme</h2>
+                
+                <h3>Base Colors</h3>
+                <div class="color-grid">
+                    <div>
+                        <div class="color-swatch" style="background: var(--bg-primary)"></div>
+                        <div class="color-name">bg-primary</div>
+                    </div>
+                    <div>
+                        <div class="color-swatch" style="background: var(--bg-secondary)"></div>
+                        <div class="color-name">bg-secondary</div>
+                    </div>
+                    <div>
+                        <div class="color-swatch" style="background: var(--bg-card)"></div>
+                        <div class="color-name">bg-card</div>
+                    </div>
+                </div>
+
+                <h3>Text Colors</h3>
+                <div class="color-grid">
+                    <div>
+                        <div class="color-swatch" style="background: var(--text-primary)"></div>
+                        <div class="color-name">text-primary</div>
+                    </div>
+                    <div>
+                        <div class="color-swatch" style="background: var(--text-secondary)"></div>
+                        <div class="color-name">text-secondary</div>
+                    </div>
+                    <div>
+                        <div class="color-swatch" style="background: var(--text-muted)"></div>
+                        <div class="color-name">text-muted</div>
+                    </div>
+                    <div>
+                        <div class="color-swatch" style="background: var(--accent)"></div>
+                        <div class="color-name">accent</div>
+                    </div>
+                </div>
+
+                <h3>Status Colors</h3>
+                <div class="color-grid">
+                    <div><div class="color-swatch" style="background: var(--status-open)"></div><div class="color-name">open</div></div>
+                    <div><div class="color-swatch" style="background: var(--status-in-progress)"></div><div class="color-name">in-progress</div></div>
+                    <div><div class="color-swatch" style="background: var(--status-blocked)"></div><div class="color-name">blocked</div></div>
+                    <div><div class="color-swatch" style="background: var(--status-closed)"></div><div class="color-name">closed</div></div>
+                </div>
+
+                <h3>Typography</h3>
+                <div class="typography-sample">
+                    <h1>Heading 1 Display</h1>
+                    <h2>Heading 2 Title</h2>
+                    <h3>Heading 3 Section</h3>
+                    <p>Body text. The quick brown fox jumps over the lazy dog. <a href="#">Primary Link</a>.</p>
+                    <p class="text-muted">Muted text description sample.</p>
+                    <code>monospace code block</code>
+                </div>
+
+                <h3>Components</h3>
+                <div class="component-sample">
+                    <div style="display: flex; gap: 12px; margin-bottom: 24px;">
+                        <button class="btn btn-primary">Primary Action</button>
+                        <button class="btn btn-secondary">Secondary Action</button>
+                        <button class="btn btn-tertiary">Tertiary Action</button>
+                    </div>
+                    
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                        <span class="status-badge open">Open</span>
+                        <span class="status-badge in-progress">In Progress</span>
+                        <span class="status-badge blocked">Blocked</span>
+                        <span class="status-badge deferred">Deferred</span>
+                        <span class="status-badge closed">Closed</span>
+                    </div>
+
+                    <div style="margin-top: 24px;">
+                        <div class="issue-card issue-type-epic" style="max-width: 300px;">
+                            <div class="issue-title">Example Issue Card</div>
+                            <div class="issue-meta">
+                                <span>nacre-123 • P2</span>
+                                <span class="issue-type-badge">Epic</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dark Theme -->
+            <div class="theme-section" data-theme="dark">
+                <h2>Dark Theme</h2>
+                
+                <h3>Base Colors</h3>
+                <div class="color-grid">
+                    <div>
+                        <div class="color-swatch" style="background: var(--bg-primary)"></div>
+                        <div class="color-name">bg-primary</div>
+                    </div>
+                    <div>
+                        <div class="color-swatch" style="background: var(--bg-secondary)"></div>
+                        <div class="color-name">bg-secondary</div>
+                    </div>
+                    <div>
+                        <div class="color-swatch" style="background: var(--bg-card)"></div>
+                        <div class="color-name">bg-card</div>
+                    </div>
+                </div>
+
+                <h3>Text Colors</h3>
+                <div class="color-grid">
+                    <div>
+                        <div class="color-swatch" style="background: var(--text-primary)"></div>
+                        <div class="color-name">text-primary</div>
+                    </div>
+                    <div>
+                        <div class="color-swatch" style="background: var(--text-secondary)"></div>
+                        <div class="color-name">text-secondary</div>
+                    </div>
+                    <div>
+                        <div class="color-swatch" style="background: var(--text-muted)"></div>
+                        <div class="color-name">text-muted</div>
+                    </div>
+                    <div>
+                        <div class="color-swatch" style="background: var(--accent)"></div>
+                        <div class="color-name">accent</div>
+                    </div>
+                </div>
+
+                <h3>Status Colors</h3>
+                <div class="color-grid">
+                    <div><div class="color-swatch" style="background: var(--status-open)"></div><div class="color-name">open</div></div>
+                    <div><div class="color-swatch" style="background: var(--status-in-progress)"></div><div class="color-name">in-progress</div></div>
+                    <div><div class="color-swatch" style="background: var(--status-blocked)"></div><div class="color-name">blocked</div></div>
+                    <div><div class="color-swatch" style="background: var(--status-closed)"></div><div class="color-name">closed</div></div>
+                </div>
+
+                <h3>Typography</h3>
+                <div class="typography-sample">
+                    <h1>Heading 1 Display</h1>
+                    <h2>Heading 2 Title</h2>
+                    <h3>Heading 3 Section</h3>
+                    <p>Body text. The quick brown fox jumps over the lazy dog. <a href="#">Primary Link</a>.</p>
+                    <p class="text-muted">Muted text description sample.</p>
+                    <code>monospace code block</code>
+                </div>
+
+                <h3>Components</h3>
+                <div class="component-sample">
+                    <div style="display: flex; gap: 12px; margin-bottom: 24px;">
+                        <button class="btn btn-primary">Primary Action</button>
+                        <button class="btn btn-secondary">Secondary Action</button>
+                        <button class="btn btn-tertiary">Tertiary Action</button>
+                    </div>
+                    
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                        <span class="status-badge open">Open</span>
+                        <span class="status-badge in-progress">In Progress</span>
+                        <span class="status-badge blocked">Blocked</span>
+                        <span class="status-badge deferred">Deferred</span>
+                        <span class="status-badge closed">Closed</span>
+                    </div>
+
+                    <div style="margin-top: 24px;">
+                        <div class="issue-card issue-type-epic" style="max-width: 300px;">
+                            <div class="issue-title">Example Issue Card</div>
+                            <div class="issue-meta">
+                                <span>nacre-123 • P2</span>
+                                <span class="issue-type-badge">Epic</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+{% include "_footer.html" %}
+</body>
+</html>

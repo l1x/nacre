@@ -35,3 +35,12 @@ pub async fn graph(State(state): State<crate::SharedAppState>) -> GraphTemplate 
         app_version: state.app_version.clone(),
     }
 }
+
+pub async fn palette(State(state): State<crate::SharedAppState>) -> PaletteTemplate {
+    PaletteTemplate {
+        project_name: state.project_name.clone(),
+        page_title: "Design System".to_string(),
+        active_nav: "palette",
+        app_version: state.app_version.clone(),
+    }
+}
