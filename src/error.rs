@@ -20,15 +20,20 @@ pub enum AppError {
 
 impl IntoResponse for AppError {
     fn into_response(self) -> Response {
-        let status = match &self {
-            AppError::NotFound(_) => StatusCode::NOT_FOUND,
-            AppError::Beads(BeadsError::NotFound(_)) => StatusCode::NOT_FOUND,
-            AppError::Beads(_) => StatusCode::INTERNAL_SERVER_ERROR,
-            AppError::BadRequest(_) => StatusCode::BAD_REQUEST,
+        let (status, user_message) = match &self {
+            AppError::NotFound(msg) => (StatusCode::NOT_FOUND, format!("Not found: {}", msg)),
+            AppError::Beads(BeadsError::NotFound(msg)) => {
+                (StatusCode::NOT_FOUND, format!("Not found: {}", msg))
+            }
+            AppError::Beads(_) => (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                "An internal error occurred".to_string(),
+            ),
+            AppError::BadRequest(msg) => (StatusCode::BAD_REQUEST, format!("Bad request: {}", msg)),
         };
 
         tracing::error!("{}", self);
-        (status, self.to_string()).into_response()
+        (status, user_message).into_response()
     }
 }
 
