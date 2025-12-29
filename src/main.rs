@@ -11,6 +11,7 @@ use axum::routing::{get, post};
 use std::net::SocketAddr;
 use std::sync::atomic::{AtomicU64, Ordering};
 use tower_http::trace::TraceLayer;
+use tower_http::compression::CompressionLayer;
 use tracing::Span;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
@@ -121,7 +122,8 @@ async fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
                         );
                     },
                 ),
-        );
+        )
+        .layer(CompressionLayer::new());
 
     let addr_str = format!("{}:{}", args.host, args.port);
     let addr: SocketAddr = addr_str.parse()?;

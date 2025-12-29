@@ -3,43 +3,6 @@ use axum::extract::State;
 use crate::beads;
 use crate::templates::*;
 
-/// Helper to create a series of bars from values
-fn create_series(name: &str, color: &'static str, values: &[f64], max: f64, unit: &str) -> ChartSeries {
-    ChartSeries {
-        name: name.to_string(),
-        color,
-        bars: values
-            .iter()
-            .map(|&v| ChartBar {
-                value: v,
-                percent: if max > 0.0 { (v / max) * 100.0 } else { 0.0 },
-                display: if v.abs() < 0.001 {
-                    String::new()
-                } else if unit.is_empty() {
-                    format!("{}", v as i64)
-                } else {
-                    format!("{:.1}{}", v, unit)
-                },
-            })
-            .collect(),
-    }
-}
-
-/// Helper to create chart data from multiple series
-fn create_chart(labels: Vec<String>, series: Vec<ChartSeries>, unit: &'static str) -> ChartData {
-    let max_value = series
-        .iter()
-        .flat_map(|s| s.bars.iter().map(|b| b.value))
-        .fold(0.0_f64, |a, b| a.max(b));
-
-    ChartData {
-        labels,
-        series,
-        unit,
-        max_value,
-    }
-}
-
 pub async fn landing(State(state): State<crate::SharedAppState>) -> crate::AppResult<LandingTemplate> {
     let all_issues = state.client.list_issues()?;
 

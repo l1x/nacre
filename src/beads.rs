@@ -469,11 +469,64 @@ impl Client {
     }
 
     pub fn get_issue(&self, id: &str) -> Result<Issue> {
-        let issues = self.list_issues()?;
-        issues
+        let output = Command::new(&self.bin_path)
+            .arg("show")
+            .arg(id)
+            .arg("--json")
+            .output()?;
+
+        if !output.status.success() {
+            let error_msg = String::from_utf8_lossy(&output.stderr);
+            if error_msg.to_lowercase().contains("not found") {
+                return Err(BeadsError::NotFound(id.to_string()));
+            }
+            return Err(BeadsError::CommandError(error_msg.to_string()));
+        }
+
+        #[derive(Deserialize)]
+        struct IssueFromShow {
+            pub id: String,
+            pub title: String,
+            pub status: Status,
+            pub priority: Option<u8>,
+            pub issue_type: IssueType,
+            pub created_at: DateTime<FixedOffset>,
+            pub updated_at: DateTime<FixedOffset>,
+            pub closed_at: Option<DateTime<FixedOffset>>,
+            pub assignee: Option<String>,
+            pub labels: Option<Vec<String>>,
+            pub description: Option<String>,
+            pub acceptance_criteria: Option<String>,
+            pub close_reason: Option<String>,
+            pub estimate: Option<u32>,
+            #[serde(default)]
+            #[allow(dead_code)]
+            pub dependencies: Vec<serde_json::Value>,
+        }
+
+        let issues: Vec<IssueFromShow> = serde_json::from_slice(&output.stdout)?;
+        let issue_show = issues
             .into_iter()
-            .find(|i| i.id == id)
-            .ok_or_else(|| BeadsError::NotFound(id.to_string()))
+            .next()
+            .ok_or_else(|| BeadsError::NotFound(id.to_string()))?;
+
+        Ok(Issue {
+            id: issue_show.id,
+            title: issue_show.title,
+            status: issue_show.status,
+            priority: issue_show.priority,
+            issue_type: issue_show.issue_type,
+            created_at: issue_show.created_at,
+            updated_at: issue_show.updated_at,
+            closed_at: issue_show.closed_at,
+            assignee: issue_show.assignee,
+            labels: issue_show.labels,
+            description: issue_show.description,
+            acceptance_criteria: issue_show.acceptance_criteria,
+            close_reason: issue_show.close_reason,
+            estimate: issue_show.estimate,
+            dependencies: vec![],
+        })
     }
 
     pub fn update_issue(&self, id: &str, update: IssueUpdate) -> Result<()> {
