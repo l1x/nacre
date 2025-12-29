@@ -54,7 +54,7 @@ mod tests {
         let body_bytes = response.into_body().collect().await.unwrap().to_bytes();
         let body_str = String::from_utf8(body_bytes.to_vec()).unwrap();
         
-        assert_eq!(body_str, "Internal server error");
+        assert_eq!(body_str, "An internal error occurred");
     }
 
     #[tokio::test]
@@ -67,6 +67,6 @@ mod tests {
         let body_bytes = response.into_body().collect().await.unwrap().to_bytes();
         let body_str = String::from_utf8(body_bytes.to_vec()).unwrap();
         
-        assert_eq!(body_str, "Issue not found: Issue 123");
+        assert_eq!(body_str, "Not found: Issue 123");
     }
 }
