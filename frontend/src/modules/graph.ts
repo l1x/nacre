@@ -1,3 +1,5 @@
+import { ISSUE_TYPE } from '../constants';
+
 export function initGraph() {
     const treeView = document.querySelector('.tree-view');
     if (!treeView) return;
@@ -12,7 +14,7 @@ export function initGraph() {
 
     // Initial expansion for task view
     const issueType = treeView.getAttribute('data-issue-type');
-    if (issueType === 'task') {
+    if (issueType === ISSUE_TYPE.TASK) {
         getNodes().forEach(node => {
             const hasChildren = node.getAttribute('data-has-children') === 'true';
             if (hasChildren) {

@@ -1,3 +1,5 @@
+import { STATUS_ORDER, TYPE_ORDER, Status, IssueType } from '../constants';
+
 interface SortConfig {
     status: string;
     type: string;
@@ -107,16 +109,14 @@ function compareNodes(a: TreeNode, b: TreeNode, sortBy: keyof SortConfig): numbe
 }
 
 function compareStatus(statusA: string, statusB: string): number {
-    const statusOrder = { 'open': 0, 'in_progress': 1, 'blocked': 2, 'closed': 3, 'deferred': 4 };
-    const orderA = statusOrder[statusA as keyof typeof statusOrder] ?? 999;
-    const orderB = statusOrder[statusB as keyof typeof statusOrder] ?? 999;
+    const orderA = STATUS_ORDER[statusA as Status] ?? 999;
+    const orderB = STATUS_ORDER[statusB as Status] ?? 999;
     return orderA - orderB;
 }
 
 function compareType(typeA: string, typeB: string): number {
-    const typeOrder = { 'epic': 0, 'feature': 1, 'bug': 2, 'task': 3, 'chore': 4 };
-    const orderA = typeOrder[typeA as keyof typeof typeOrder] ?? 999;
-    const orderB = typeOrder[typeB as keyof typeof typeOrder] ?? 999;
+    const orderA = TYPE_ORDER[typeA as IssueType] ?? 999;
+    const orderB = TYPE_ORDER[typeB as IssueType] ?? 999;
     return orderA - orderB;
 }
 

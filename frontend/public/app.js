@@ -136,6 +136,36 @@ function initInlineEdit() {
   }
 }
 
+// frontend/src/constants.ts
+var STATUS = {
+  OPEN: "open",
+  IN_PROGRESS: "in_progress",
+  BLOCKED: "blocked",
+  CLOSED: "closed",
+  DEFERRED: "deferred"
+};
+var STATUS_ORDER = {
+  [STATUS.OPEN]: 0,
+  [STATUS.IN_PROGRESS]: 1,
+  [STATUS.BLOCKED]: 2,
+  [STATUS.CLOSED]: 3,
+  [STATUS.DEFERRED]: 4
+};
+var ISSUE_TYPE = {
+  EPIC: "epic",
+  FEATURE: "feature",
+  BUG: "bug",
+  TASK: "task",
+  CHORE: "chore"
+};
+var TYPE_ORDER = {
+  [ISSUE_TYPE.EPIC]: 0,
+  [ISSUE_TYPE.FEATURE]: 1,
+  [ISSUE_TYPE.BUG]: 2,
+  [ISSUE_TYPE.TASK]: 3,
+  [ISSUE_TYPE.CHORE]: 4
+};
+
 // frontend/src/modules/board.ts
 function initBoardFeatures() {
   const columnsToggle = document.getElementById("columns-toggle");
@@ -163,7 +193,7 @@ function initBoardFeatures() {
       if (!status)
         return;
       if (visibilityState === null) {
-        checkbox.checked = status !== "deferred";
+        checkbox.checked = status !== STATUS.DEFERRED;
       } else {
         checkbox.checked = visibilityState[status] !== false;
       }
@@ -413,7 +443,7 @@ function initGraph() {
   const getNodes = () => treeView.querySelectorAll(".tree-node");
   const getTypeFilters = () => document.querySelectorAll(".type-filter");
   const issueType = treeView.getAttribute("data-issue-type");
-  if (issueType === "task") {
+  if (issueType === ISSUE_TYPE.TASK) {
     getNodes().forEach((node) => {
       const hasChildren = node.getAttribute("data-has-children") === "true";
       if (hasChildren) {
@@ -675,15 +705,13 @@ function compareNodes(a, b, sortBy) {
   }
 }
 function compareStatus(statusA, statusB) {
-  const statusOrder = { open: 0, in_progress: 1, blocked: 2, closed: 3, deferred: 4 };
-  const orderA = statusOrder[statusA] ?? 999;
-  const orderB = statusOrder[statusB] ?? 999;
+  const orderA = STATUS_ORDER[statusA] ?? 999;
+  const orderB = STATUS_ORDER[statusB] ?? 999;
   return orderA - orderB;
 }
 function compareType(typeA, typeB) {
-  const typeOrder = { epic: 0, feature: 1, bug: 2, task: 3, chore: 4 };
-  const orderA = typeOrder[typeA] ?? 999;
-  const orderB = typeOrder[typeB] ?? 999;
+  const orderA = TYPE_ORDER[typeA] ?? 999;
+  const orderB = TYPE_ORDER[typeB] ?? 999;
   return orderA - orderB;
 }
 function comparePriority(priorityA, priorityB) {

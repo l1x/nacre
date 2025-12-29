@@ -1,3 +1,5 @@
+import { STATUS } from '../constants';
+
 export function initBoardFeatures() {
     // Column Visibility Toggle
     const columnsToggle = document.getElementById('columns-toggle');
@@ -18,7 +20,7 @@ export function initBoardFeatures() {
 
             // Default: deferred is hidden, others are visible
             if (visibilityState === null) {
-                checkbox.checked = status !== 'deferred';
+                checkbox.checked = status !== STATUS.DEFERRED;
             } else {
                 checkbox.checked = visibilityState[status] !== false;
             }
