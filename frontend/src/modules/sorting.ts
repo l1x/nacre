@@ -53,6 +53,12 @@ function sortTreeNodes(sortBy: keyof SortConfig) {
     // Enable flat list view (removes tree indentation)
     treeList.classList.add('sorting-active');
 
+    // Disable expand controls (they don't apply to flat view)
+    const expandButtons = document.querySelectorAll('#expand-all, #collapse-all, #expand-one-level, #collapse-one-level');
+    expandButtons.forEach(btn => {
+        (btn as HTMLButtonElement).disabled = true;
+    });
+
     // Clear and re-append sorted nodes
     treeList.innerHTML = '';
     nodes.forEach(node => {

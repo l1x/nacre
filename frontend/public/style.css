@@ -2477,6 +2477,11 @@ main:has(.board) {
     display: none;
 }
 
+.tree-list.sorting-active .tree-toggle,
+.tree-list.sorting-active .tree-toggle-placeholder {
+    display: none;
+}
+
 /* Graph Placeholder */
 .graph-placeholder {
     background-color: var(--bg-card);
