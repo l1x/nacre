@@ -5,3 +5,5 @@ opencode/
 gemini-cli/
 # bd worktree
 claude-code/
+# beads temporary files
+.beads/redirect
