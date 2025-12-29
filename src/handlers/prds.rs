@@ -34,7 +34,7 @@ pub async fn prd_view(
     State(state): State<crate::SharedAppState>,
     Path(filename): Path<String>,
 ) -> crate::AppResult<PrdViewTemplate> {
-    if filename.contains("..") || filename.contains('/') || filename.contains('\\') {
+    if filename.contains("..") || filename.contains('/') || filename.contains('\\') || !filename.ends_with(".md") {
         return Err(crate::AppError::BadRequest("Invalid filename".to_string()));
     }
 
