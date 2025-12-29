@@ -1410,8 +1410,19 @@ main:has(.board) {
 .dashboard-columns {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
+    grid-auto-rows: 1fr;
     gap: 24px;
     margin-bottom: 24px;
+}
+
+.dashboard-columns > .dashboard-section {
+    margin-bottom: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.dashboard-columns > .dashboard-section > *:last-child {
+    flex: 1;
 }
 
 .dashboard-section {
