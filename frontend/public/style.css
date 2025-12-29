@@ -854,6 +854,7 @@ main:has(.board) {
     display: flex;
     gap: 8px;
     align-items: center;
+    min-height: 36px;
 }
 
 .control-items label {
