@@ -1,7 +1,0 @@
-{
-  "last_failure": "2025-12-29T00:49:55.020737+01:00",
-  "failure_count": 2,
-  "backoff_until": "2025-12-29T00:50:55.020737+01:00",
-  "needs_manual_sync": false,
-  "failure_reason": "git pull failed in worktree: exit status 1\nerror: cannot open '/Users/l1x/code/home/nacre/.git/worktrees/main/FETCH_HEAD': No such file or directory\nfatal: not a git repository: '/Users/l1x/code/home/nacre/.git/worktrees/main'\n"
-}
