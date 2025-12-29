@@ -49,7 +49,20 @@
         {% if !children_tree.is_empty() %}
         <div style="margin-top: 40px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding: 0 4px;">
-                <h3 style="margin: 0; color: var(--text-muted); font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px;">Child Issues ({{ task.total }})</h3>
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <h3 style="margin: 0; color: var(--text-muted); font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px;">Child Issues ({{ task.total }})</h3>
+                    <div class="sort-controls" style="display: flex; gap: 4px;">
+                        <button class="sort-btn btn-tertiary" data-sort="status" title="Sort by Status">
+                            <span style="font-size: 0.8rem;">Status</span>
+                        </button>
+                        <button class="sort-btn btn-tertiary" data-sort="type" title="Sort by Type">
+                            <span style="font-size: 0.8rem;">Type</span>
+                        </button>
+                        <button class="sort-btn btn-tertiary" data-sort="priority" title="Sort by Priority">
+                            <span style="font-size: 0.8rem;">Priority</span>
+                        </button>
+                    </div>
+                </div>
                 {% if can_expand %}
                 <div style="display: flex; gap: 8px;">
                     <button id="detail-expand" class="btn btn-secondary" style="padding: 4px 12px; font-size: 0.75rem;">Expand</button>
@@ -65,6 +78,8 @@
                         data-id="{{ node.id }}"
                         data-depth="{{ node.depth }}"
                         data-type="{{ node.issue_type }}"
+                        data-status="{{ node.status }}"
+                        data-priority="{{ node.priority }}"
                         data-parent="{% if let Some(p) = node.parent_id %}{{ p }}{% endif %}"
                         data-has-children="{{ node.has_children }}"
                         data-filter-text="{{ node.title|lower }} {{ node.id|lower }}"
