@@ -6,26 +6,35 @@
 <body>
     {% include "_header.html" %}
     <main id="content">
-        <div class="graph-controls">
-            <div class="filter-group">
-                <label>Show Types:</label>
-                <div class="checkbox-group">
+        <div class="controls-grid">
+            <div class="control-group">
+                <div class="control-items">
                     <label><input type="checkbox" class="type-filter" value="epic" checked> Epics</label>
                     <label><input type="checkbox" class="type-filter" value="feature" checked> Features</label>
                     <label><input type="checkbox" class="type-filter" value="bug" checked> Bugs</label>
                     <label><input type="checkbox" class="type-filter" value="task" checked> Tasks</label>
                     <label><input type="checkbox" class="type-filter" value="chore" checked> Chores</label>
                 </div>
+                <span class="control-label">Types</span>
             </div>
-            <button id="expand-all" class="btn btn-secondary">Expand All</button>
-            <button id="collapse-all" class="btn btn-secondary">Collapse All</button>
-            <button id="expand-one-level" class="btn btn-secondary">Expand One Level</button>
-            <button id="collapse-one-level" class="btn btn-secondary">Collapse One Level</button>
-            <div class="sort-controls" style="display: flex; gap: 4px; margin-left: 16px; align-items: center;">
-                <span style="color: var(--text-muted); font-size: 0.75rem;">Sort:</span>
-                <button class="btn btn-secondary sort-btn" data-sort="status" title="Sort by Status">Status</button>
-                <button class="btn btn-secondary sort-btn" data-sort="type" title="Sort by Type">Type</button>
-                <button class="btn btn-secondary sort-btn" data-sort="priority" title="Sort by Priority">Priority</button>
+            <div class="separator"></div>
+            <div class="control-group">
+                <div class="control-items">
+                    <button id="expand-all" class="btn btn-secondary">All</button>
+                    <button id="collapse-all" class="btn btn-secondary">None</button>
+                    <button id="expand-one-level" class="btn btn-secondary">+ Level</button>
+                    <button id="collapse-one-level" class="btn btn-secondary">- Level</button>
+                </div>
+                <span class="control-label">Expand</span>
+            </div>
+            <div class="separator"></div>
+            <div class="control-group">
+                <div class="control-items">
+                    <button class="btn btn-secondary sort-btn" data-sort="status" title="Sort by Status">Status</button>
+                    <button class="btn btn-secondary sort-btn" data-sort="type" title="Sort by Type">Type</button>
+                    <button class="btn btn-secondary sort-btn" data-sort="priority" title="Sort by Priority">Priority</button>
+                </div>
+                <span class="control-label">Sort</span>
             </div>
         </div>
 

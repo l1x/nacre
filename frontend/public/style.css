@@ -830,7 +830,50 @@ main:has(.board) {
     background-color: var(--border-color);
 }
 
+/* Controls grid - follows timestamp styling pattern */
+.controls-grid {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 32px;
+    margin-bottom: 24px;
+    padding: 16px 0;
+    border-bottom: 1px solid var(--border-color);
+}
 
+.control-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.control-items {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.control-items label {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    cursor: pointer;
+}
+
+.control-items label:hover {
+    color: var(--text-primary);
+}
+
+.control-label {
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    opacity: 0.8;
+}
 
 /* PRDs View */
 .prd-list {
