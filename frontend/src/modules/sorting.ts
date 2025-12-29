@@ -37,7 +37,7 @@ function sortTreeNodes(sortBy: keyof SortConfig) {
     if (!treeList) return;
 
     const nodes = Array.from(treeList.querySelectorAll('.tree-node')) as TreeNode[];
-    
+
     // Store current expand/collapse state
     const expandedStates = new Map<string, boolean>();
     nodes.forEach(node => {
@@ -50,11 +50,16 @@ function sortTreeNodes(sortBy: keyof SortConfig) {
     // Sort nodes based on the selected criteria
     nodes.sort((a, b) => compareNodes(a, b, sortBy));
 
+    // Enable flat list view (removes tree indentation)
+    treeList.classList.add('sorting-active');
+
     // Clear and re-append sorted nodes
     treeList.innerHTML = '';
     nodes.forEach(node => {
+        // Show all nodes (sorting flattens the tree)
+        node.classList.remove('hidden');
         treeList.appendChild(node);
-        
+
         // Restore expand/collapse state
         if (expandedStates.has(node.dataset.id)) {
             const toggleBtn = node.querySelector('.tree-toggle') as HTMLButtonElement;

@@ -2468,6 +2468,15 @@ main:has(.board) {
     position: relative;
 }
 
+/* Flat list view when sorting is active */
+.tree-list.sorting-active .tree-node-content {
+    padding-left: 12px;
+}
+
+.tree-list.sorting-active .tree-node-content::before {
+    display: none;
+}
+
 /* Graph Placeholder */
 .graph-placeholder {
     background-color: var(--bg-card);
