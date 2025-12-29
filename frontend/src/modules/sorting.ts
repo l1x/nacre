@@ -23,6 +23,13 @@ export function initSorting() {
 
     sortButtons.forEach(button => {
         button.addEventListener('click', () => {
+            // If clicking the already-active sort button, restore tree view
+            if (button.classList.contains('active')) {
+                restoreTreeView();
+                button.classList.remove('active');
+                return;
+            }
+
             const sortBy = button.getAttribute('data-sort');
             if (sortBy) {
                 sortTreeNodes(sortBy);
@@ -30,6 +37,12 @@ export function initSorting() {
             }
         });
     });
+}
+
+function restoreTreeView() {
+    // Reload the page to restore original tree structure
+    // This preserves any URL parameters (filters, etc.)
+    window.location.reload();
 }
 
 function sortTreeNodes(sortBy: keyof SortConfig) {
