@@ -3,7 +3,7 @@ use pulldown_cmark::{Parser, html};
 
 use crate::templates::*;
 
-pub async fn prds_list(State(state): State<crate::AppState>) -> PrdsListTemplate {
+pub async fn prds_list(State(state): State<crate::SharedAppState>) -> PrdsListTemplate {
     let mut files_with_time: Vec<(String, std::time::SystemTime)> = Vec::new();
     if let Ok(entries) = std::fs::read_dir("docs/prds") {
         for entry in entries.flatten() {
@@ -31,7 +31,7 @@ pub async fn prds_list(State(state): State<crate::AppState>) -> PrdsListTemplate
 }
 
 pub async fn prd_view(
-    State(state): State<crate::AppState>,
+    State(state): State<crate::SharedAppState>,
     Path(filename): Path<String>,
 ) -> crate::AppResult<PrdViewTemplate> {
     if filename.contains("..") || filename.contains('/') || filename.contains('\\') {

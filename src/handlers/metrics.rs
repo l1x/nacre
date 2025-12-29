@@ -41,7 +41,7 @@ fn create_chart(labels: Vec<String>, series: Vec<ChartSeries>, unit: &'static st
     }
 }
 
-pub async fn metrics_handler(State(state): State<crate::AppState>) -> MetricsTemplate {
+pub async fn metrics_handler(State(state): State<crate::SharedAppState>) -> MetricsTemplate {
     let all_issues = state.client.list_issues().unwrap_or_default();
     let activities = state.client.get_activity().unwrap_or_default();
     let summary = state.client.get_status_summary().unwrap_or_default();

@@ -40,7 +40,7 @@ fn create_chart(labels: Vec<String>, series: Vec<ChartSeries>, unit: &'static st
     }
 }
 
-pub async fn landing(State(state): State<crate::AppState>) -> LandingTemplate {
+pub async fn landing(State(state): State<crate::SharedAppState>) -> LandingTemplate {
     let all_issues = state.client.list_issues().unwrap_or_default();
 
     // Calculate stats

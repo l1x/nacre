@@ -14,12 +14,16 @@ use tower_http::trace::TraceLayer;
 use tracing::Span;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
-#[derive(Clone)]
+use std::sync::Arc;
+
 pub struct AppState {
     pub client: beads::Client,
     pub project_name: String,
     pub app_version: String,
 }
+
+// Arc wrapper for shared state
+pub type SharedAppState = Arc<AppState>;
 
 impl AppState {
     fn new() -> Self {
@@ -69,7 +73,7 @@ async fn main() {
         .init();
 
     let args: Args = argh::from_env();
-    let state = AppState::new();
+    let state = Arc::new(AppState::new());
 
     let app = Router::new()
         .route("/", get(handlers::landing))
@@ -146,8 +150,8 @@ mod tests {
     };
     use tower::ServiceExt;
 
-    fn test_state() -> AppState {
-        AppState::new()
+    fn test_state() -> SharedAppState {
+        Arc::new(AppState::new())
     }
 
     #[tokio::test]

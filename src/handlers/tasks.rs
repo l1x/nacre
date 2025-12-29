@@ -8,7 +8,7 @@ use std::collections::HashMap;
 use crate::beads;
 use crate::templates::{EditIssueTemplate, EpicWithProgress, NewIssueTemplate, TaskDetailTemplate, TasksTemplate, TreeNode};
 
-pub async fn tasks_list(State(state): State<crate::AppState>) -> TasksTemplate {
+pub async fn tasks_list(State(state): State<crate::SharedAppState>) -> TasksTemplate {
     let all_issues = state.client.list_issues().unwrap_or_default();
     let nodes = build_issue_tree(&all_issues);
 
@@ -22,7 +22,7 @@ pub async fn tasks_list(State(state): State<crate::AppState>) -> TasksTemplate {
 }
 
 pub async fn task_detail(
-    State(state): State<crate::AppState>,
+    State(state): State<crate::SharedAppState>,
     Path(id): Path<String>,
 ) -> crate::AppResult<TaskDetailTemplate> {
     let all_issues = state.client.list_issues()?;
@@ -227,7 +227,7 @@ fn build_issue_tree(all_issues: &[beads::Issue]) -> Vec<TreeNode> {
 // Form handlers
 
 pub async fn edit_task(
-    State(state): State<crate::AppState>,
+    State(state): State<crate::SharedAppState>,
     Path(id): Path<String>,
 ) -> crate::AppResult<EditIssueTemplate> {
     let issue = state.client.get_issue(&id)?;
@@ -240,7 +240,7 @@ pub async fn edit_task(
     })
 }
 
-pub async fn new_task_form(State(state): State<crate::AppState>) -> NewIssueTemplate {
+pub async fn new_task_form(State(state): State<crate::SharedAppState>) -> NewIssueTemplate {
     NewIssueTemplate {
         project_name: state.project_name.clone(),
         page_title: "New Task".to_string(),
@@ -252,14 +252,14 @@ pub async fn new_task_form(State(state): State<crate::AppState>) -> NewIssueTemp
 // API handlers
 
 pub async fn list_tasks(
-    State(state): State<crate::AppState>,
+    State(state): State<crate::SharedAppState>,
 ) -> crate::AppResult<Json<Vec<beads::Issue>>> {
     let issues = state.client.list_issues()?;
     Ok(Json(issues))
 }
 
 pub async fn update_task(
-    State(state): State<crate::AppState>,
+    State(state): State<crate::SharedAppState>,
     Path(id): Path<String>,
     Json(update): Json<beads::IssueUpdate>,
 ) -> crate::AppResult<StatusCode> {
@@ -268,7 +268,7 @@ pub async fn update_task(
 }
 
 pub async fn create_task(
-    State(state): State<crate::AppState>,
+    State(state): State<crate::SharedAppState>,
     Json(create): Json<beads::IssueCreate>,
 ) -> crate::AppResult<Json<serde_json::Value>> {
     let id = state.client.create_issue(create)?;

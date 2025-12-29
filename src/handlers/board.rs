@@ -2,7 +2,7 @@ use axum::extract::State;
 use crate::beads;
 use crate::templates::*;
 
-pub async fn board(State(state): State<crate::AppState>) -> BoardTemplate {
+pub async fn board(State(state): State<crate::SharedAppState>) -> BoardTemplate {
     let all_issues = state.client.list_issues().unwrap_or_default();
 
     let columns = vec![

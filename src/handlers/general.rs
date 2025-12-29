@@ -27,7 +27,7 @@ pub async fn serve_favicon() -> impl IntoResponse {
     ([(header::CONTENT_TYPE, "image/svg+xml")], FAVICON_SVG)
 }
 
-pub async fn graph(State(state): State<crate::AppState>) -> GraphTemplate {
+pub async fn graph(State(state): State<crate::SharedAppState>) -> GraphTemplate {
     GraphTemplate {
         project_name: state.project_name.clone(),
         page_title: "Graph".to_string(),
