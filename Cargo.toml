@@ -3,6 +3,9 @@ name = "nacre"
 version = "0.5.1"
 edition = "2024"
 
+[package.metadata.cargo-machete]
+ignored = ["askama_axum"]  # Provides IntoResponse trait impls for Askama+Axum
+
 [[bench]]
 harness = false
 name = "markdown_comparison"
@@ -16,28 +19,25 @@ harness = false
 name = "tree_building"
 
 [dependencies]
-argh = "0.1"
+argh = { version = "0.1" }
 askama = { version = "0.12", features = ["markdown"] }
-askama_axum = "0.4"
-axum = "0.7"
+askama_axum = { version = "0.4" }
+axum = { version = "0.7" }
 chrono = { version = "0.4.42", features = ["serde"] }
-kiters = { git = "https://github.com/l1x/kiters.git", tag = "v0.1.0" }
-open = "5.0"
-pulldown-cmark = "0.10"
+kiters = { version = "0.1.0" }
+open = { version = "5.0" }
+pulldown-cmark = { version = "0.13" }
 serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0"
-sqids = "0.4.2"
-thiserror = "2"
+serde_json = { version = "1.0" }
+sqids = { version = "0.4.2" }
+thiserror = { version = "2" }
 tokio = { version = "1", features = ["macros", "net", "rt-multi-thread"] }
 tower = { version = "0.5", features = ["util"] }
-tower-http = { version = "0.5", features = ["trace", "compression-full"] }
-tracing = "0.1"
+tower-http = { version = "0.5", features = ["compression-full", "trace"] }
+tracing = { version = "0.1" }
 tracing-subscriber = { version = "0.3", features = ["env-filter", "time"] }
 
 [dev-dependencies]
-criterion = "0.5"
-markdown = "1.0"
-minijinja = "2.0"
-
-[package.metadata.cargo-machete]
-ignored = ["askama_axum"]  # Provides IntoResponse trait impls for Askama+Axum
+criterion = { version = "0.5" }
+markdown = { version = "1.0" }
+minijinja = { version = "2.0" }
