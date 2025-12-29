@@ -689,11 +689,9 @@ function comparePriority(priorityA, priorityB) {
 function updateActiveSortButton(activeButton) {
   const sortButtons = document.querySelectorAll(".sort-btn");
   sortButtons.forEach((button) => {
-    button.classList.remove("btn-primary");
-    button.classList.add("btn-tertiary");
+    button.classList.remove("active");
   });
-  activeButton.classList.remove("btn-tertiary");
-  activeButton.classList.add("btn-primary");
+  activeButton.classList.add("active");
 }
 
 // frontend/src/main.ts

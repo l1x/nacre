@@ -105,10 +105,8 @@ function comparePriority(priorityA: string, priorityB: string): number {
 function updateActiveSortButton(activeButton: Element) {
     const sortButtons = document.querySelectorAll('.sort-btn');
     sortButtons.forEach(button => {
-        button.classList.remove('btn-primary');
-        button.classList.add('btn-tertiary');
+        button.classList.remove('active');
     });
-    
-    activeButton.classList.remove('btn-tertiary');
-    activeButton.classList.add('btn-primary');
+
+    activeButton.classList.add('active');
 }
