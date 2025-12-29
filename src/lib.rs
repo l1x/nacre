@@ -38,6 +38,12 @@ impl AppState {
     }
 }
 
+impl Default for AppState {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 pub fn create_app(state: SharedAppState) -> Router {
     Router::new()
         .route("/", get(handlers::landing))

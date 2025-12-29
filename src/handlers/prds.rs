@@ -34,13 +34,18 @@ pub async fn prd_view(
     State(state): State<crate::SharedAppState>,
     Path(filename): Path<String>,
 ) -> crate::AppResult<PrdViewTemplate> {
-    if filename.contains("..") || filename.contains('/') || filename.contains('\\') {
+    let base_dir = std::env::current_dir().unwrap_or_else(|_| std::path::PathBuf::from(".")).join("docs/prds");
+    let base_canonical = base_dir.canonicalize().map_err(|_| crate::AppError::NotFound("PRD directory not found".to_string()))?;
+    
+    let requested_path = base_dir.join(&filename);
+    let canonical_path = requested_path.canonicalize().map_err(|_| crate::AppError::NotFound(filename.clone()))?;
+
+    if !canonical_path.starts_with(&base_canonical) {
         return Err(crate::AppError::BadRequest("Invalid filename".to_string()));
     }
 
-    let path = format!("docs/prds/{}", filename);
     let markdown_input =
-        std::fs::read_to_string(&path).map_err(|_| crate::AppError::NotFound(filename.clone()))?;
+        std::fs::read_to_string(&canonical_path).map_err(|_| crate::AppError::NotFound(filename.clone()))?;
 
     let parser = Parser::new(&markdown_input);
     let mut html_output = String::new();
