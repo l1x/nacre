@@ -30,8 +30,8 @@ pub async fn metrics_handler(State(state): State<crate::SharedAppState>) -> crat
     while let Some(res) = set.join_next().await {
         match res.map_err(|e| crate::AppError::BadRequest(format!("Task join failed: {e}")))? {
             MetricsData::Issues(data) => all_issues = data?,
-            MetricsData::Activities(data) => activities = data?,
-            MetricsData::Summary(data) => summary = data?,
+            MetricsData::Activities(data) => activities = data.unwrap_or_default(),
+            MetricsData::Summary(data) => summary = data.unwrap_or(serde_json::Value::Null),
         }
     }
 

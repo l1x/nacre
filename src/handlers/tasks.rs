@@ -269,11 +269,10 @@ pub async fn list_tasks(
         format!("\"{}\"", issues.len())
     };
 
-    if let Some(if_none_match) = headers.get(header::IF_NONE_MATCH) {
-        if if_none_match == etag.as_str() {
+    if let Some(if_none_match) = headers.get(header::IF_NONE_MATCH)
+        && if_none_match == etag.as_str() {
             return Ok(StatusCode::NOT_MODIFIED.into_response());
         }
-    }
 
     let mut response_headers = HeaderMap::new();
     response_headers.insert(header::CACHE_CONTROL, "no-cache".parse().unwrap());

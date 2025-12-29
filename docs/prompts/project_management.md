@@ -38,10 +38,9 @@ bd create --id="nacre-xyz.3" --title="Update security docs" --type=task
 - The parent ID must exist before creating children
 - Children inherit context from parent epic
 - Always use description field
+- Use your ID as Assignee, if you are not sure ask
+- Epics are broken down into multiple tasks with consideration to repo layout to avoid merge conflicts
 - Try to use labels (backend, frontend, docs, infra, etc.)
-- When breaking a task into sub-tasks use these:
-  - implementation, creating a pull request
-  - reviewing the pull request
 - Make these items depend on each other
 
 ## Dependencies: Execution Order

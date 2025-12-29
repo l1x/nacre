@@ -429,6 +429,7 @@ impl IssueType {
 #[derive(Clone)]
 pub struct Client {
     bin_path: String,
+    db_path: Option<String>,
 }
 
 impl Default for Client {
@@ -456,11 +457,25 @@ pub struct IssueCreate {
 impl Client {
     pub fn new() -> Self {
         let bin_path = std::env::var("BD_BIN").unwrap_or_else(|_| "bd".to_string());
-        Self { bin_path }
+        let db_path = std::env::var("BEADS_DB").ok();
+        Self { bin_path, db_path }
+    }
+
+    pub fn with_db(mut self, path: String) -> Self {
+        self.db_path = Some(path);
+        self
+    }
+
+    fn base_command(&self) -> Command {
+        let mut cmd = Command::new(&self.bin_path);
+        if let Some(db) = &self.db_path {
+            cmd.arg("--db").arg(db);
+        }
+        cmd
     }
 
     pub fn list_issues(&self) -> Result<Vec<Issue>> {
-        let output = Command::new(&self.bin_path)
+        let output = self.base_command()
             .args(["list", "--json"])
             .output()?;
 
@@ -474,7 +489,7 @@ impl Client {
     }
 
     pub fn get_issue(&self, id: &str) -> Result<Issue> {
-        let output = Command::new(&self.bin_path)
+        let output = self.base_command()
             .arg("show")
             .arg(id)
             .arg("--json")
@@ -538,7 +553,7 @@ impl Client {
     }
 
     pub fn update_issue(&self, id: &str, update: IssueUpdate) -> Result<()> {
-        let mut cmd = Command::new(&self.bin_path);
+        let mut cmd = self.base_command();
         cmd.arg("update").arg(id);
 
         if let Some(title) = &update.title {
@@ -565,7 +580,7 @@ impl Client {
     }
 
     pub fn create_issue(&self, create: IssueCreate) -> Result<String> {
-        let mut cmd = Command::new(&self.bin_path);
+        let mut cmd = self.base_command();
         cmd.arg("create")
             .arg("--title")
             .arg(&create.title)
@@ -594,7 +609,7 @@ impl Client {
     }
 
     pub fn get_activity(&self) -> Result<Vec<Activity>> {
-        let output = Command::new(&self.bin_path)
+        let output = self.base_command()
             .arg("activity")
             .arg("--json")
             .output()?;
@@ -609,7 +624,7 @@ impl Client {
     }
 
     pub fn get_status_summary(&self) -> Result<serde_json::Value> {
-        let output = Command::new(&self.bin_path)
+        let output = self.base_command()
             .arg("status")
             .arg("--json")
             .output()?;
