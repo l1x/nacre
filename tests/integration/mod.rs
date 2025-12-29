@@ -5,6 +5,7 @@
 
 pub mod api_tests;
 pub mod board_tests;
+pub mod cross_feature_tests;
 pub mod general_tests;
 pub mod metrics_tests;
 pub mod prd_tests;
