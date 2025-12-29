@@ -1423,6 +1423,9 @@ main:has(.board) {
 
 .dashboard-columns > .dashboard-section > *:last-child {
     flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
 }
 
 .dashboard-section {
