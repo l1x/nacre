@@ -100,10 +100,14 @@ async fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
             TraceLayer::new_for_http()
                 .make_span_with(|request: &axum::http::Request<_>| {
                     static REQUEST_ID: AtomicU64 = AtomicU64::new(1);
-                    let request_id = REQUEST_ID.fetch_add(1, Ordering::Relaxed);
+                    let request_id_num = REQUEST_ID.fetch_add(1, Ordering::Relaxed);
+                    let sqids = sqids::Sqids::default();
+                    let request_id = sqids
+                        .encode(&[request_id_num])
+                        .unwrap_or_else(|_| request_id_num.to_string());
                     tracing::info_span!(
                         "request",
-                        id = request_id,
+                        id = %request_id,
                         method = %request.method(),
                         uri = %request.uri(),
                     )
