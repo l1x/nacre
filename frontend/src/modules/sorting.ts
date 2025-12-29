@@ -18,24 +18,24 @@ interface TreeNode extends HTMLElement {
 }
 
 export function initSorting() {
-    const sortButtons = document.querySelectorAll('.sort-btn');
-    if (sortButtons.length === 0) return;
+    // Event delegation: handle sort button clicks at document level
+    document.addEventListener('click', (e) => {
+        const target = e.target as HTMLElement;
+        const button = target.closest('.sort-btn');
+        if (!button) return;
 
-    sortButtons.forEach(button => {
-        button.addEventListener('click', () => {
-            // If clicking the already-active sort button, restore tree view
-            if (button.classList.contains('active')) {
-                restoreTreeView();
-                button.classList.remove('active');
-                return;
-            }
+        // If clicking the already-active sort button, restore tree view
+        if (button.classList.contains('active')) {
+            restoreTreeView();
+            button.classList.remove('active');
+            return;
+        }
 
-            const sortBy = button.getAttribute('data-sort');
-            if (sortBy) {
-                sortTreeNodes(sortBy);
-                updateActiveSortButton(button);
-            }
-        });
+        const sortBy = button.getAttribute('data-sort');
+        if (sortBy) {
+            sortTreeNodes(sortBy);
+            updateActiveSortButton(button);
+        }
     });
 }
 

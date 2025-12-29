@@ -621,6 +621,11 @@ function initSorting() {
     return;
   sortButtons.forEach((button) => {
     button.addEventListener("click", () => {
+      if (button.classList.contains("active")) {
+        restoreTreeView();
+        button.classList.remove("active");
+        return;
+      }
       const sortBy = button.getAttribute("data-sort");
       if (sortBy) {
         sortTreeNodes(sortBy);
@@ -628,6 +633,9 @@ function initSorting() {
       }
     });
   });
+}
+function restoreTreeView() {
+  window.location.reload();
 }
 function sortTreeNodes(sortBy) {
   const treeList = document.querySelector(".tree-list");
@@ -642,8 +650,14 @@ function sortTreeNodes(sortBy) {
     }
   });
   nodes.sort((a, b) => compareNodes(a, b, sortBy));
+  treeList.classList.add("sorting-active");
+  const expandButtons = document.querySelectorAll("#expand-all, #collapse-all, #expand-one-level, #collapse-one-level");
+  expandButtons.forEach((btn) => {
+    btn.disabled = true;
+  });
   treeList.innerHTML = "";
   nodes.forEach((node) => {
+    node.classList.remove("hidden");
     treeList.appendChild(node);
     if (expandedStates.has(node.dataset.id)) {
       const toggleBtn = node.querySelector(".tree-toggle");

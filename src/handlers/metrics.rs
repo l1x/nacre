@@ -41,7 +41,7 @@ pub async fn metrics_handler(State(state): State<crate::SharedAppState>) -> crat
 
     // Calculate Cycle Time
     // Map issue_id to first in_progress timestamp
-    let mut started_times: HashMap<String, chrono::DateTime<chrono::FixedOffset>> = HashMap::new();
+    let mut started_times: HashMap<String, time::OffsetDateTime> = HashMap::new();
     for act in &activities {
         if act.new_status == Some(beads::Status::InProgress) {
             started_times
@@ -51,19 +51,19 @@ pub async fn metrics_handler(State(state): State<crate::SharedAppState>) -> crat
     }
 
     let mut cycle_times = Vec::new();
-    let now = chrono::Utc::now();
-    let seven_days_ago = now - chrono::Duration::days(7);
+    let now = time::OffsetDateTime::now_utc();
+    let seven_days_ago = now - time::Duration::days(7);
     let mut closed_last_7_days = 0;
 
     for issue in &all_issues {
         if let Some(closed_at) = issue.closed_at {
-            if closed_at.with_timezone(&chrono::Utc) >= seven_days_ago {
+            if closed_at >= seven_days_ago {
                 closed_last_7_days += 1;
             }
 
             let started_at = started_times.get(&issue.id).unwrap_or(&issue.created_at);
             let duration = closed_at - *started_at;
-            cycle_times.push(duration.num_minutes() as f64);
+            cycle_times.push(duration.whole_minutes() as f64);
         }
     }
 
@@ -92,7 +92,7 @@ pub async fn metrics_handler(State(state): State<crate::SharedAppState>) -> crat
         .iter()
         .filter_map(|i| {
             i.closed_at
-                .map(|closed| (closed - i.created_at).num_minutes() as f64 / 60.0)
+                .map(|closed| (closed - i.created_at).whole_minutes() as f64 / 60.0)
         })
         .collect();
     all_lead_times.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
@@ -114,37 +114,38 @@ pub async fn metrics_handler(State(state): State<crate::SharedAppState>) -> crat
     let p100_cycle_time_mins = calculate_percentile(&sorted_cycle_times, 100.0);
 
     // Build chart data for the last 7 days
-    let now_dt = chrono::Utc::now();
-    let start_dt = now_dt - chrono::Duration::days(6); // 7 days including today
+    let now_dt = time::OffsetDateTime::now_utc();
+    let start_dt = now_dt - time::Duration::days(6); // 7 days including today
 
     // Collect all dates
-    let mut dates: Vec<chrono::NaiveDate> = Vec::new();
-    let mut curr = start_dt.date_naive();
-    while curr <= now_dt.date_naive() {
+    let mut dates: Vec<time::Date> = Vec::new();
+    let mut curr = start_dt.date();
+    while curr <= now_dt.date() {
         dates.push(curr);
-        if let Some(next) = curr.succ_opt() {
+        if let Some(next) = curr.next_day() {
             curr = next;
         } else {
             break;
         }
     }
-    let labels: Vec<String> = dates.iter().map(|d| d.format("%m.%d").to_string()).collect();
+    let date_format = time::format_description::parse("[month].[day]").unwrap();
+    let labels: Vec<String> = dates.iter().map(|d| d.format(&date_format).unwrap()).collect();
 
     // --- Tickets Activity Chart ---
-    let mut created_by_day: HashMap<chrono::NaiveDate, usize> = HashMap::new();
-    let mut resolved_by_day: HashMap<chrono::NaiveDate, usize> = HashMap::new();
+    let mut created_by_day: HashMap<time::Date, usize> = HashMap::new();
+    let mut resolved_by_day: HashMap<time::Date, usize> = HashMap::new();
     for d in &dates {
         created_by_day.insert(*d, 0);
         resolved_by_day.insert(*d, 0);
     }
     for issue in &all_issues {
-        let created_date = issue.created_at.date_naive();
-        if created_date >= start_dt.date_naive() && created_date <= now_dt.date_naive() {
+        let created_date = issue.created_at.date();
+        if created_date >= start_dt.date() && created_date <= now_dt.date() {
             *created_by_day.entry(created_date).or_insert(0) += 1;
         }
         if let Some(closed_at) = issue.closed_at {
-            let resolved_date = closed_at.date_naive();
-            if resolved_date >= start_dt.date_naive() && resolved_date <= now_dt.date_naive() {
+            let resolved_date = closed_at.date();
+            if resolved_date >= start_dt.date() && resolved_date <= now_dt.date() {
                 *resolved_by_day.entry(resolved_date).or_insert(0) += 1;
             }
         }
@@ -162,15 +163,15 @@ pub async fn metrics_handler(State(state): State<crate::SharedAppState>) -> crat
     );
 
     // --- Lead Time Chart (p50, p90, p100 per day) ---
-    let mut lead_times_by_day: HashMap<chrono::NaiveDate, Vec<f64>> = HashMap::new();
+    let mut lead_times_by_day: HashMap<time::Date, Vec<f64>> = HashMap::new();
     for d in &dates {
         lead_times_by_day.insert(*d, Vec::new());
     }
     for issue in &all_issues {
         if let Some(closed_at) = issue.closed_at {
-            let close_date = closed_at.date_naive();
-            if close_date >= start_dt.date_naive() && close_date <= now_dt.date_naive() {
-                let lead_time_hours = (closed_at - issue.created_at).num_minutes() as f64 / 60.0;
+            let close_date = closed_at.date();
+            if close_date >= start_dt.date() && close_date <= now_dt.date() {
+                let lead_time_hours = (closed_at - issue.created_at).whole_minutes() as f64 / 60.0;
                 lead_times_by_day.entry(close_date).or_default().push(lead_time_hours);
             }
         }
@@ -204,16 +205,16 @@ pub async fn metrics_handler(State(state): State<crate::SharedAppState>) -> crat
     );
 
     // --- Cycle Time Chart (p50, p90, p100 per day) ---
-    let mut cycle_times_by_day: HashMap<chrono::NaiveDate, Vec<f64>> = HashMap::new();
+    let mut cycle_times_by_day: HashMap<time::Date, Vec<f64>> = HashMap::new();
     for d in &dates {
         cycle_times_by_day.insert(*d, Vec::new());
     }
     for issue in &all_issues {
         if let Some(closed_at) = issue.closed_at {
-            let close_date = closed_at.date_naive();
-            if close_date >= start_dt.date_naive() && close_date <= now_dt.date_naive() {
+            let close_date = closed_at.date();
+            if close_date >= start_dt.date() && close_date <= now_dt.date() {
                 let started_at = started_times.get(&issue.id).unwrap_or(&issue.created_at);
-                let duration_mins = (closed_at - *started_at).num_minutes() as f64;
+                let duration_mins = (closed_at - *started_at).whole_minutes() as f64;
                 cycle_times_by_day.entry(close_date).or_default().push(duration_mins);
             }
         }

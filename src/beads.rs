@@ -1,8 +1,8 @@
-use chrono::{DateTime, FixedOffset};
 use serde::{Deserialize, Serialize};
 use std::fmt;
 use std::process::Command;
 use thiserror::Error;
+use time::OffsetDateTime;
 
 #[derive(Error, Debug)]
 pub enum BeadsError {
@@ -28,9 +28,12 @@ pub struct Issue {
     pub status: Status,
     pub priority: Option<u8>,
     pub issue_type: IssueType,
-    pub created_at: DateTime<FixedOffset>,
-    pub updated_at: DateTime<FixedOffset>,
-    pub closed_at: Option<DateTime<FixedOffset>>,
+    #[serde(with = "time::serde::rfc3339")]
+    pub created_at: OffsetDateTime,
+    #[serde(with = "time::serde::rfc3339")]
+    pub updated_at: OffsetDateTime,
+    #[serde(default, with = "time::serde::rfc3339::option")]
+    pub closed_at: Option<OffsetDateTime>,
     pub assignee: Option<String>,
     pub labels: Option<Vec<String>>,
     pub description: Option<String>,
@@ -43,7 +46,8 @@ pub struct Issue {
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Activity {
-    pub timestamp: DateTime<FixedOffset>,
+    #[serde(with = "time::serde::rfc3339")]
+    pub timestamp: OffsetDateTime,
     #[serde(rename = "type")]
     pub r#type: EventType,
     pub issue_id: String,
@@ -243,7 +247,8 @@ pub struct Dependency {
     pub depends_on_id: String,
     #[serde(rename = "type")]
     pub dep_type: DependencyType,
-    pub created_at: Option<DateTime<FixedOffset>>,
+    #[serde(default, with = "time::serde::rfc3339::option")]
+    pub created_at: Option<OffsetDateTime>,
     pub created_by: Option<String>,
 }
 
@@ -490,9 +495,12 @@ impl Client {
             pub status: Status,
             pub priority: Option<u8>,
             pub issue_type: IssueType,
-            pub created_at: DateTime<FixedOffset>,
-            pub updated_at: DateTime<FixedOffset>,
-            pub closed_at: Option<DateTime<FixedOffset>>,
+            #[serde(with = "time::serde::rfc3339")]
+            pub created_at: OffsetDateTime,
+            #[serde(with = "time::serde::rfc3339")]
+            pub updated_at: OffsetDateTime,
+            #[serde(default, with = "time::serde::rfc3339::option")]
+            pub closed_at: Option<OffsetDateTime>,
             pub assignee: Option<String>,
             pub labels: Option<Vec<String>>,
             pub description: Option<String>,
@@ -856,8 +864,8 @@ mod tests {
             status: Status::InProgress,
             priority: Some(2),
             issue_type: IssueType::Feature,
-            created_at: chrono::DateTime::parse_from_rfc3339("2023-01-01T00:00:00Z").unwrap(),
-            updated_at: chrono::DateTime::parse_from_rfc3339("2023-01-02T00:00:00Z").unwrap(),
+            created_at: time::macros::datetime!(2023-01-01 00:00:00 UTC),
+            updated_at: time::macros::datetime!(2023-01-02 00:00:00 UTC),
             closed_at: None,
             assignee: Some("test-user".to_string()),
             labels: Some(vec!["urgent".to_string(), "backend".to_string()]),
@@ -879,7 +887,7 @@ mod tests {
     #[test]
     fn test_activity_serialization_roundtrip() {
         let activity = Activity {
-            timestamp: chrono::DateTime::parse_from_rfc3339("2023-01-01T12:00:00Z").unwrap(),
+            timestamp: time::macros::datetime!(2023-01-01 12:00:00 UTC),
             r#type: EventType::StatusChanged,
             issue_id: "test-123".to_string(),
             message: "Status changed from Open to In Progress".to_string(),
@@ -901,7 +909,7 @@ mod tests {
             issue_id: "child-123".to_string(),
             depends_on_id: "parent-456".to_string(),
             dep_type: DependencyType::Blocks,
-            created_at: Some(chrono::DateTime::parse_from_rfc3339("2023-01-01T12:00:00Z").unwrap()),
+            created_at: Some(time::macros::datetime!(2023-01-01 12:00:00 UTC)),
             created_by: Some("test-user".to_string()),
         };
 

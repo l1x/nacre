@@ -12,8 +12,11 @@ pub mod filters {
     pub fn format_decimal(val: &f64) -> askama::Result<String> {
         Ok(format!("{:.2}", val))
     }
-    pub fn format_date(date: &chrono::DateTime<chrono::FixedOffset>) -> askama::Result<String> {
-        Ok(date.format("%Y-%m-%d %H:%M").to_string())
+    pub fn format_date(date: &time::OffsetDateTime) -> askama::Result<String> {
+        let format = time::format_description::parse("[year]-[month]-[day] [hour]:[minute]")
+            .map_err(|e| askama::Error::Custom(Box::new(e)))?;
+        date.format(&format)
+            .map_err(|e| askama::Error::Custom(Box::new(e)))
     }
     pub fn round(val: &f64) -> askama::Result<i64> {
         Ok(val.round() as i64)

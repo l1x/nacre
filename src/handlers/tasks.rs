@@ -4,7 +4,6 @@ use axum::{
     http::{StatusCode, header, HeaderMap},
     response::IntoResponse,
 };
-use chrono::Utc;
 use std::collections::{HashMap, HashSet};
 
 use crate::beads;
@@ -265,7 +264,7 @@ pub async fn list_tasks(
     let max_updated_at = issues.iter().map(|i| i.updated_at).max();
 
     let etag = if let Some(last_mod) = max_updated_at {
-        format!("\"{:x}-{}\"", last_mod.timestamp(), issues.len())
+        format!("\"{:x}-{}\"", last_mod.unix_timestamp(), issues.len())
     } else {
         format!("\"{}\"", issues.len())
     };
@@ -281,10 +280,11 @@ pub async fn list_tasks(
     response_headers.insert(header::ETAG, etag.parse().unwrap());
 
     if let Some(last_mod) = max_updated_at {
+        let format = time::format_description::well_known::Rfc2822;
         let last_mod_str = last_mod
-            .with_timezone(&Utc)
-            .format("%a, %d %b %Y %H:%M:%S GMT")
-            .to_string();
+            .to_offset(time::UtcOffset::UTC)
+            .format(&format)
+            .unwrap();
         response_headers.insert(header::LAST_MODIFIED, last_mod_str.parse().unwrap());
     }
 

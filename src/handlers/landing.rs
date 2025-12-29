@@ -58,37 +58,38 @@ pub async fn landing(State(state): State<crate::SharedAppState>) -> crate::AppRe
         .collect();
 
     // Build chart data for the last 7 days
-    let now_dt = chrono::Utc::now();
-    let start_dt = now_dt - chrono::Duration::days(6); // 7 days including today
+    let now_dt = time::OffsetDateTime::now_utc();
+    let start_dt = now_dt - time::Duration::days(6); // 7 days including today
 
     // Collect all dates
-    let mut dates: Vec<chrono::NaiveDate> = Vec::new();
-    let mut curr = start_dt.date_naive();
-    while curr <= now_dt.date_naive() {
+    let mut dates: Vec<time::Date> = Vec::new();
+    let mut curr = start_dt.date();
+    while curr <= now_dt.date() {
         dates.push(curr);
-        if let Some(next) = curr.succ_opt() {
+        if let Some(next) = curr.next_day() {
             curr = next;
         } else {
             break;
         }
     }
-    let labels: Vec<String> = dates.iter().map(|d| d.format("%m.%d").to_string()).collect();
+    let date_format = time::format_description::parse("[month].[day]").unwrap();
+    let labels: Vec<String> = dates.iter().map(|d| d.format(&date_format).unwrap()).collect();
 
     // --- Tickets Activity Chart ---
-    let mut created_by_day: std::collections::HashMap<chrono::NaiveDate, usize> = std::collections::HashMap::new();
-    let mut resolved_by_day: std::collections::HashMap<chrono::NaiveDate, usize> = std::collections::HashMap::new();
+    let mut created_by_day: std::collections::HashMap<time::Date, usize> = std::collections::HashMap::new();
+    let mut resolved_by_day: std::collections::HashMap<time::Date, usize> = std::collections::HashMap::new();
     for d in &dates {
         created_by_day.insert(*d, 0);
         resolved_by_day.insert(*d, 0);
     }
     for issue in &all_issues {
-        let created_date = issue.created_at.date_naive();
-        if created_date >= start_dt.date_naive() && created_date <= now_dt.date_naive() {
+        let created_date = issue.created_at.date();
+        if created_date >= start_dt.date() && created_date <= now_dt.date() {
             *created_by_day.entry(created_date).or_insert(0) += 1;
         }
         if let Some(closed_at) = issue.closed_at {
-            let resolved_date = closed_at.date_naive();
-            if resolved_date >= start_dt.date_naive() && resolved_date <= now_dt.date_naive() {
+            let resolved_date = closed_at.date();
+            if resolved_date >= start_dt.date() && resolved_date <= now_dt.date() {
                 *resolved_by_day.entry(resolved_date).or_insert(0) += 1;
             }
         }
