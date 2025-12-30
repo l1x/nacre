@@ -121,6 +121,23 @@ cargo clippy
 
 ## Version History
 
+### 0.7.0 (2025-12-30)
+
+**New Features**
+- Syntax highlighting for code blocks in PRDs and task descriptions
+- Dynamic light/dark theme switching for code blocks (follows theme toggle)
+- Dark theme: Monokai Pro
+- Light theme: Ayu Light
+
+**Supported Languages**
+- Rust, Python, JavaScript, TypeScript
+- JSON, HTML, CSS
+- Bash/Shell, TOML, YAML
+
+**Dependencies**
+- Added `autumnus` crate for tree-sitter based syntax highlighting
+- Added `pulldown-cmark` for markdown parsing with code block detection
+
 ### 0.6.0 (2025-12-29)
 
 **Security**
