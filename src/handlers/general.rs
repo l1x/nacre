@@ -8,11 +8,15 @@ use crate::templates::*;
 
 // Embed static assets at compile time
 const STYLE_CSS: &str = include_str!("../../frontend/public/style.css");
+const AUTUMNUS_DARK_CSS: &str = include_str!("../../frontend/public/autumnus.dark.css");
+const AUTUMNUS_LIGHT_CSS: &str = include_str!("../../frontend/public/autumnus.light.css");
 const APP_JS: &str = include_str!("../../frontend/public/app.js");
 const FAVICON_SVG: &str = include_str!("../../frontend/public/favicon.svg");
 
 // Generate ETags at compile time based on version
 const CSS_ETAG: &str = concat!("\"", env!("CARGO_PKG_VERSION"), "-css\"");
+const AUTUMNUS_DARK_ETAG: &str = concat!("\"", env!("CARGO_PKG_VERSION"), "-autumnus-dark\"");
+const AUTUMNUS_LIGHT_ETAG: &str = concat!("\"", env!("CARGO_PKG_VERSION"), "-autumnus-light\"");
 const JS_ETAG: &str = concat!("\"", env!("CARGO_PKG_VERSION"), "-js\"");
 const FAVICON_ETAG: &str = concat!("\"", env!("CARGO_PKG_VERSION"), "-favicon\"");
 
@@ -36,6 +40,40 @@ pub async fn serve_css(headers: HeaderMap) -> impl IntoResponse {
             (header::ETAG, CSS_ETAG),
         ],
         STYLE_CSS,
+    )
+        .into_response()
+}
+
+pub async fn serve_autumnus_dark(headers: HeaderMap) -> impl IntoResponse {
+    if let Some(if_none_match) = headers.get(header::IF_NONE_MATCH)
+        && if_none_match.as_bytes() == AUTUMNUS_DARK_ETAG.as_bytes()
+    {
+        return (StatusCode::NOT_MODIFIED, HeaderMap::new(), "").into_response();
+    }
+    (
+        [
+            (header::CONTENT_TYPE, "text/css"),
+            (header::CACHE_CONTROL, CACHE_CONTROL),
+            (header::ETAG, AUTUMNUS_DARK_ETAG),
+        ],
+        AUTUMNUS_DARK_CSS,
+    )
+        .into_response()
+}
+
+pub async fn serve_autumnus_light(headers: HeaderMap) -> impl IntoResponse {
+    if let Some(if_none_match) = headers.get(header::IF_NONE_MATCH)
+        && if_none_match.as_bytes() == AUTUMNUS_LIGHT_ETAG.as_bytes()
+    {
+        return (StatusCode::NOT_MODIFIED, HeaderMap::new(), "").into_response();
+    }
+    (
+        [
+            (header::CONTENT_TYPE, "text/css"),
+            (header::CACHE_CONTROL, CACHE_CONTROL),
+            (header::ETAG, AUTUMNUS_LIGHT_ETAG),
+        ],
+        AUTUMNUS_LIGHT_CSS,
     )
         .into_response()
 }

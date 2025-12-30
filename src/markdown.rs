@@ -1,7 +1,8 @@
-use autumnus::{FormatterOption, Options, themes};
+use autumnus::{FormatterOption, Options};
 use pulldown_cmark::{CodeBlockKind, CowStr, Event, Parser, Tag, TagEnd};
 
 /// Renders markdown to HTML with syntax highlighting for code blocks.
+/// Uses CSS classes (HtmlLinked) for dynamic light/dark theme switching.
 pub fn render(markdown_input: &str) -> String {
     let parser = Parser::new(markdown_input);
     let mut html_output = String::new();
@@ -57,17 +58,13 @@ fn parse_language(lang: &CowStr) -> Option<&'static str> {
 
 fn highlight_code(code: &str, lang: Option<&str>) -> String {
     let lang_class = lang.unwrap_or("text");
-    let theme = themes::get("github_dark").ok();
 
     match lang {
         Some(language) => {
             let options = Options {
                 lang_or_file: Some(language),
-                formatter: FormatterOption::HtmlInline {
-                    theme,
+                formatter: FormatterOption::HtmlLinked {
                     pre_class: Some(lang_class),
-                    italic: false,
-                    include_highlights: false,
                     highlight_lines: None,
                     header: None,
                 },
@@ -77,7 +74,7 @@ fn highlight_code(code: &str, lang: Option<&str>) -> String {
         None => {
             let escaped = escape_html(code);
             format!(
-                "<pre><code class=\"language-{}\">{}</code></pre>\n",
+                "<pre class=\"athl\"><code class=\"language-{}\">{}</code></pre>\n",
                 lang_class, escaped
             )
         }
