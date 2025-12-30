@@ -1,5 +1,4 @@
 use axum::extract::{Path, State};
-use pulldown_cmark::{Parser, html};
 
 use crate::templates::*;
 
@@ -42,9 +41,7 @@ pub async fn prd_view(
     let markdown_input =
         std::fs::read_to_string(&path).map_err(|_| crate::AppError::NotFound(filename.clone()))?;
 
-    let parser = Parser::new(&markdown_input);
-    let mut html_output = String::new();
-    html::push_html(&mut html_output, parser);
+    let html_output = crate::markdown::render(&markdown_input);
 
     Ok(PrdViewTemplate {
         project_name: state.project_name.clone(),

@@ -1,6 +1,7 @@
 pub mod beads;
 pub mod error;
 pub mod handlers;
+pub mod markdown;
 pub mod templates;
 
 pub use error::{AppError, AppResult};
