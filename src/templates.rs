@@ -36,6 +36,7 @@ pub struct EpicWithProgress {
     pub total: usize,
     pub closed: usize,
     pub percent: f64,
+    pub description_html: Option<String>,
 }
 
 impl EpicWithProgress {
@@ -69,11 +70,17 @@ impl EpicWithProgress {
             0.0
         };
 
+        let description_html = epic
+            .description
+            .as_ref()
+            .map(|d| crate::markdown::render(d));
+
         Self {
             issue: epic.clone(),
             total: children_count,
             closed,
             percent,
+            description_html,
         }
     }
 }

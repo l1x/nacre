@@ -38,10 +38,10 @@
             </div>
             {% endif %}
 
-            {% if let Some(description) = task.issue.description %}
+            {% if let Some(description_html) = task.description_html %}
             <div class="detail-section">
                 <h3>Description</h3>
-                <div class="description-content">{{ description|markdown|safe }}</div>
+                <div class="description-content">{{ description_html|safe }}</div>
             </div>
             {% endif %}
         </div>
