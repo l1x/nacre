@@ -6,6 +6,12 @@ interface SortConfig {
     priority: string;
 }
 
+const VALID_SORT_KEYS: readonly (keyof SortConfig)[] = ['status', 'type', 'priority'];
+
+function isValidSortKey(key: string): key is keyof SortConfig {
+    return VALID_SORT_KEYS.includes(key as keyof SortConfig);
+}
+
 interface TreeNode extends HTMLElement {
     dataset: {
         id: string;
@@ -34,7 +40,7 @@ export function initSorting() {
         }
 
         const sortBy = button.getAttribute('data-sort');
-        if (sortBy) {
+        if (sortBy && isValidSortKey(sortBy)) {
             sortTreeNodes(sortBy);
             updateActiveSortButton(button);
         }
