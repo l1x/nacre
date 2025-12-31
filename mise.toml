@@ -6,8 +6,16 @@ rust = "1.90.0"
 
 # tasks
 [tasks.lint]
-description = "Lint with Clippy, failing on warnings"
+description = "Lint Rust with Clippy, failing on warnings"
 run = "cargo clippy -- -D warnings"
+
+[tasks.lint-ts]
+description = "Lint TypeScript with ESLint (security plugin)"
+run = "bun run lint"
+
+[tasks.lint-all]
+description = "Run all linters (Rust + TypeScript)"
+depends = ["lint", "lint-ts"]
 
 [tasks.fmt]
 description = "Format code with cargo fmt"
