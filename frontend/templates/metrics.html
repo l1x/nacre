@@ -25,6 +25,10 @@
                     <span class="chart-nav-icon">📈</span>
                     <span class="chart-nav-label">Throughput</span>
                 </a>
+                <a href="#activity-heatmap" class="chart-nav-link">
+                    <span class="chart-nav-icon">🗓️</span>
+                    <span class="chart-nav-label">Activity Heatmap</span>
+                </a>
             </nav>
 
             <div class="metrics-grid">
@@ -287,8 +291,8 @@
 
             <!-- Activity Heat Map -->
             {% if activity_heatmap.has_data() %}
-            <section class="metrics-section" id="activity-heatmap">
-                <h2>Activity Heat Map <span class="chart-desc">When work happens (day × hour)</span></h2>
+            <section class="metrics-section">
+                <h2 id="activity-heatmap">Activity Heat Map <span class="chart-desc">When work happens (day × hour)</span></h2>
                 <div class="heatmap-container">
                     <div class="heatmap">
                         <div class="heatmap-corner"></div>

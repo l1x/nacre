@@ -2002,9 +2002,9 @@ main:has(.board) {
 /* Chart Navigation Bar */
 .chart-nav {
     display: flex;
-    gap: 12px;
-    margin: 32px 0;
-    padding: 16px;
+    gap: 8px;
+    margin-bottom: 24px;
+    padding: 12px;
     background-color: var(--bg-card);
     border: 1px solid var(--border-color);
     border-radius: var(--radius);
@@ -2013,8 +2013,8 @@ main:has(.board) {
 .chart-nav-link {
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 12px 20px;
+    gap: 6px;
+    padding: 8px 12px;
     background-color: var(--bg-elevated);
     border: 1px solid var(--border-subtle);
     border-radius: var(--radius);
@@ -2032,11 +2032,11 @@ main:has(.board) {
 }
 
 .chart-nav-icon {
-    font-size: 1.2rem;
+    font-size: 1rem;
 }
 
 .chart-nav-label {
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     font-weight: 500;
 }
 
