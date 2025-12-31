@@ -2004,27 +2004,23 @@ main:has(.board) {
     display: flex;
     width: 100%;
     box-sizing: border-box;
-    gap: 6px;
+    gap: 16px;
     margin-bottom: 24px;
-    padding: 8px;
-    background-color: var(--bg-card);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius);
 }
 
 .chart-nav-link {
     display: flex;
     align-items: center;
-    gap: 5px;
-    padding: 6px 10px;
-    background-color: var(--bg-elevated);
-    border: 1px solid var(--border-subtle);
+    justify-content: center;
+    gap: 6px;
+    padding: 12px 16px;
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
     border-radius: var(--radius);
     text-decoration: none;
     color: var(--text-primary);
     transition: transform 0.15s ease, border-color 0.15s ease, background-color 0.15s ease;
     flex: 1;
-    justify-content: center;
 }
 
 .chart-nav-link:hover {
@@ -2034,11 +2030,11 @@ main:has(.board) {
 }
 
 .chart-nav-icon {
-    font-size: 0.9rem;
+    font-size: 1rem;
 }
 
 .chart-nav-label {
-    font-size: 0.8rem;
+    font-size: 0.85rem;
     font-weight: 500;
 }
 

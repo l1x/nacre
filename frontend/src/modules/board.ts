@@ -7,7 +7,7 @@ export function initBoardFeatures() {
 
     if (columnsToggle && columnsDropdown) {
         const savedVisibility = localStorage.getItem('board-column-visibility');
-        let visibilityState = savedVisibility ? JSON.parse(savedVisibility) : null;
+        const visibilityState = savedVisibility ? JSON.parse(savedVisibility) : null;
 
         // Helper to get checkboxes (supports dynamic DOM)
         const getColumnCheckboxes = () =>
