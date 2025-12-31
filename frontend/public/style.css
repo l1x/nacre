@@ -2001,9 +2001,8 @@ main:has(.board) {
 
 /* Chart Navigation Bar */
 .chart-nav {
-    display: flex;
-    width: 100%;
-    box-sizing: border-box;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
     gap: 16px;
     margin-bottom: 24px;
 }
@@ -2020,7 +2019,6 @@ main:has(.board) {
     text-decoration: none;
     color: var(--text-primary);
     transition: transform 0.15s ease, border-color 0.15s ease, background-color 0.15s ease;
-    flex: 1;
 }
 
 .chart-nav-link:hover {
@@ -2040,17 +2038,13 @@ main:has(.board) {
 
 @media (max-width: 768px) {
     .chart-nav {
-        flex-wrap: wrap;
-    }
-
-    .chart-nav-link {
-        flex: 1 1 calc(50% - 6px);
+        grid-template-columns: repeat(3, 1fr);
     }
 }
 
 @media (max-width: 480px) {
-    .chart-nav-link {
-        flex: 1 1 100%;
+    .chart-nav {
+        grid-template-columns: repeat(2, 1fr);
     }
 }
 
