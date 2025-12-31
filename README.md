@@ -117,9 +117,30 @@ cargo clippy
 - **[Axum](https://github.com/tokio-rs/axum)** - Web framework
 - **[Askama](https://github.com/djc/askama)** - Type-safe HTML templates
 - **[Tokio](https://tokio.rs/)** - Async runtime
-- **[pulldown-cmark](https://github.com/raphlinus/pulldown-cmark)** - Markdown rendering
+- **[pulldown-cmark](https://github.com/raphlinus/pulldown-cmark)** - Markdown rendering (GFM tables, strikethrough)
+- **[include_dir](https://crates.io/crates/include_dir)** - Embed static assets at compile time
 
 ## Version History
+
+### 0.8.0 (2026-01-01)
+
+**New Features**
+- GFM tables and strikethrough support in Markdown rendering
+- XML syntax highlighting for code blocks
+- Chart navigation bar on `/metrics` page with anchor links
+- Human-readable latency formatting in logs (µs/ms/s)
+- ESLint configuration with security plugin for TypeScript
+- TypeScript lint tasks in mise (`lint-ts`, `lint-all`)
+
+**Refactoring**
+- Static assets now use `include_dir` crate for cleaner code
+- Reduced static asset handling from ~80 lines to ~30 lines
+
+**Bug Fixes**
+- Fixed object injection warnings in `navigation.ts` (use `.at()`)
+- Fixed type guard for sort key validation in `sorting.ts`
+- Fixed object injection warnings in `board.ts`
+- Fixed chart nav alignment with metrics grid
 
 ### 0.7.0 (2025-12-30)
 
