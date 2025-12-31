@@ -1,4 +1,10 @@
-import { STATUS } from '../constants';
+import { STATUS, Status } from '../constants';
+
+const VALID_STATUSES = Object.values(STATUS);
+
+function isValidStatus(value: string): value is Status {
+    return VALID_STATUSES.includes(value as Status);
+}
 
 export function initBoardFeatures() {
     // Column Visibility Toggle
@@ -16,12 +22,14 @@ export function initBoardFeatures() {
         // Initialize visibility state
         getColumnCheckboxes().forEach((checkbox) => {
             const status = checkbox.getAttribute('data-status');
-            if (!status) return;
+            if (!status || !isValidStatus(status)) return;
 
             // Default: deferred is hidden, others are visible
             if (visibilityState === null) {
                 checkbox.checked = status !== STATUS.DEFERRED;
             } else {
+                // Safe: status validated via isValidStatus(), data from user's own localStorage
+                // eslint-disable-next-line security/detect-object-injection
                 checkbox.checked = visibilityState[status] !== false;
             }
 
@@ -36,10 +44,14 @@ export function initBoardFeatures() {
         }
 
         function saveVisibilityState() {
-            const newState: Record<string, boolean> = {};
+            const newState: Record<Status, boolean> = {} as Record<Status, boolean>;
             getColumnCheckboxes().forEach((checkbox) => {
                 const status = checkbox.getAttribute('data-status');
-                if (status) newState[status] = checkbox.checked;
+                // Safe: status validated via isValidStatus() before using as object key
+                if (status && isValidStatus(status)) {
+                    // eslint-disable-next-line security/detect-object-injection
+                    newState[status] = checkbox.checked;
+                }
             });
             localStorage.setItem('board-column-visibility', JSON.stringify(newState));
         }
