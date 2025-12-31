@@ -1,115 +1,88 @@
 use axum::{
-    extract::State,
-    http::{HeaderMap, StatusCode, header},
-    response::IntoResponse,
+    extract::{Path, State},
+    http::{HeaderMap, HeaderValue, StatusCode, header},
+    response::{IntoResponse, Response},
 };
+use include_dir::{Dir, include_dir};
 
 use crate::templates::*;
 
-// Embed static assets at compile time
-const STYLE_CSS: &str = include_str!("../../frontend/public/style.css");
-const AUTUMNUS_DARK_CSS: &str = include_str!("../../frontend/public/autumnus.dark.css");
-const AUTUMNUS_LIGHT_CSS: &str = include_str!("../../frontend/public/autumnus.light.css");
-const APP_JS: &str = include_str!("../../frontend/public/app.js");
-const FAVICON_SVG: &str = include_str!("../../frontend/public/favicon.svg");
-
-// Generate ETags at compile time based on version
-const CSS_ETAG: &str = concat!("\"", env!("CARGO_PKG_VERSION"), "-css\"");
-const AUTUMNUS_DARK_ETAG: &str = concat!("\"", env!("CARGO_PKG_VERSION"), "-autumnus-dark\"");
-const AUTUMNUS_LIGHT_ETAG: &str = concat!("\"", env!("CARGO_PKG_VERSION"), "-autumnus-light\"");
-const JS_ETAG: &str = concat!("\"", env!("CARGO_PKG_VERSION"), "-js\"");
-const FAVICON_ETAG: &str = concat!("\"", env!("CARGO_PKG_VERSION"), "-favicon\"");
+// Embed entire frontend/public directory at compile time
+static ASSETS: Dir = include_dir!("$CARGO_MANIFEST_DIR/frontend/public");
 
 // Cache for 1 year (immutable content versioned by ETag)
 const CACHE_CONTROL: &str = "public, max-age=31536000, immutable";
+
+fn content_type(filename: &str) -> &'static str {
+    match filename.rsplit('.').next() {
+        Some("css") => "text/css",
+        Some("js") => "application/javascript",
+        Some("svg") => "image/svg+xml",
+        Some("html") => "text/html",
+        Some("png") => "image/png",
+        Some("ico") => "image/x-icon",
+        _ => "application/octet-stream",
+    }
+}
+
+fn make_etag(filename: &str) -> String {
+    format!("\"{}-{}\"", env!("CARGO_PKG_VERSION"), filename)
+}
+
+/// Serve a static file from the embedded ASSETS directory
+fn serve_asset(filename: &str, headers: &HeaderMap) -> Response {
+    let Some(file) = ASSETS.get_file(filename) else {
+        return (StatusCode::NOT_FOUND, "Not found").into_response();
+    };
+
+    let etag = make_etag(filename);
+
+    // Check If-None-Match for caching
+    if let Some(if_none_match) = headers.get(header::IF_NONE_MATCH)
+        && if_none_match.as_bytes() == etag.as_bytes()
+    {
+        return (StatusCode::NOT_MODIFIED, HeaderMap::new(), "").into_response();
+    }
+
+    let content = file.contents_utf8().unwrap_or("");
+    let mut response_headers = HeaderMap::new();
+    response_headers.insert(header::CONTENT_TYPE, HeaderValue::from_static(content_type(filename)));
+    response_headers.insert(header::CACHE_CONTROL, HeaderValue::from_static(CACHE_CONTROL));
+    if let Ok(etag_value) = HeaderValue::from_str(&etag) {
+        response_headers.insert(header::ETAG, etag_value);
+    }
+
+    (response_headers, content).into_response()
+}
 
 pub async fn health_check() -> &'static str {
     "OK"
 }
 
-pub async fn serve_css(headers: HeaderMap) -> impl IntoResponse {
-    if let Some(if_none_match) = headers.get(header::IF_NONE_MATCH)
-        && if_none_match.as_bytes() == CSS_ETAG.as_bytes()
-    {
-        return (StatusCode::NOT_MODIFIED, HeaderMap::new(), "").into_response();
-    }
-    (
-        [
-            (header::CONTENT_TYPE, "text/css"),
-            (header::CACHE_CONTROL, CACHE_CONTROL),
-            (header::ETAG, CSS_ETAG),
-        ],
-        STYLE_CSS,
-    )
-        .into_response()
+pub async fn serve_css(headers: HeaderMap) -> Response {
+    serve_asset("style.css", &headers)
 }
 
-pub async fn serve_autumnus_dark(headers: HeaderMap) -> impl IntoResponse {
-    if let Some(if_none_match) = headers.get(header::IF_NONE_MATCH)
-        && if_none_match.as_bytes() == AUTUMNUS_DARK_ETAG.as_bytes()
-    {
-        return (StatusCode::NOT_MODIFIED, HeaderMap::new(), "").into_response();
-    }
-    (
-        [
-            (header::CONTENT_TYPE, "text/css"),
-            (header::CACHE_CONTROL, CACHE_CONTROL),
-            (header::ETAG, AUTUMNUS_DARK_ETAG),
-        ],
-        AUTUMNUS_DARK_CSS,
-    )
-        .into_response()
+pub async fn serve_autumnus_dark(headers: HeaderMap) -> Response {
+    serve_asset("autumnus.dark.css", &headers)
 }
 
-pub async fn serve_autumnus_light(headers: HeaderMap) -> impl IntoResponse {
-    if let Some(if_none_match) = headers.get(header::IF_NONE_MATCH)
-        && if_none_match.as_bytes() == AUTUMNUS_LIGHT_ETAG.as_bytes()
-    {
-        return (StatusCode::NOT_MODIFIED, HeaderMap::new(), "").into_response();
-    }
-    (
-        [
-            (header::CONTENT_TYPE, "text/css"),
-            (header::CACHE_CONTROL, CACHE_CONTROL),
-            (header::ETAG, AUTUMNUS_LIGHT_ETAG),
-        ],
-        AUTUMNUS_LIGHT_CSS,
-    )
-        .into_response()
+pub async fn serve_autumnus_light(headers: HeaderMap) -> Response {
+    serve_asset("autumnus.light.css", &headers)
 }
 
-pub async fn serve_js(headers: HeaderMap) -> impl IntoResponse {
-    if let Some(if_none_match) = headers.get(header::IF_NONE_MATCH)
-        && if_none_match.as_bytes() == JS_ETAG.as_bytes()
-    {
-        return (StatusCode::NOT_MODIFIED, HeaderMap::new(), "").into_response();
-    }
-    (
-        [
-            (header::CONTENT_TYPE, "application/javascript"),
-            (header::CACHE_CONTROL, CACHE_CONTROL),
-            (header::ETAG, JS_ETAG),
-        ],
-        APP_JS,
-    )
-        .into_response()
+pub async fn serve_js(headers: HeaderMap) -> Response {
+    serve_asset("app.js", &headers)
 }
 
-pub async fn serve_favicon(headers: HeaderMap) -> impl IntoResponse {
-    if let Some(if_none_match) = headers.get(header::IF_NONE_MATCH)
-        && if_none_match.as_bytes() == FAVICON_ETAG.as_bytes()
-    {
-        return (StatusCode::NOT_MODIFIED, HeaderMap::new(), "").into_response();
-    }
-    (
-        [
-            (header::CONTENT_TYPE, "image/svg+xml"),
-            (header::CACHE_CONTROL, CACHE_CONTROL),
-            (header::ETAG, FAVICON_ETAG),
-        ],
-        FAVICON_SVG,
-    )
-        .into_response()
+pub async fn serve_favicon(headers: HeaderMap) -> Response {
+    serve_asset("favicon.svg", &headers)
+}
+
+/// Generic static file handler for future use with wildcard routes
+#[allow(dead_code)]
+pub async fn serve_static(Path(filename): Path<String>, headers: HeaderMap) -> Response {
+    serve_asset(&filename, &headers)
 }
 
 pub async fn graph(State(state): State<crate::SharedAppState>) -> GraphTemplate {
