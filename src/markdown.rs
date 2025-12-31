@@ -1,10 +1,13 @@
 use autumnus::{FormatterOption, Options};
-use pulldown_cmark::{CodeBlockKind, CowStr, Event, Parser, Tag, TagEnd};
+use pulldown_cmark::{CodeBlockKind, CowStr, Event, Options as CmarkOptions, Parser, Tag, TagEnd};
 
 /// Renders markdown to HTML with syntax highlighting for code blocks.
 /// Uses CSS classes (HtmlLinked) for dynamic light/dark theme switching.
 pub fn render(markdown_input: &str) -> String {
-    let parser = Parser::new(markdown_input);
+    let mut options = CmarkOptions::empty();
+    options.insert(CmarkOptions::ENABLE_TABLES);
+    options.insert(CmarkOptions::ENABLE_STRIKETHROUGH);
+    let parser = Parser::new_ext(markdown_input, options);
     let mut html_output = String::new();
     let mut code_buffer = String::new();
     let mut current_lang: Option<&str> = None;
@@ -52,6 +55,7 @@ fn parse_language(lang: &CowStr) -> Option<&'static str> {
         "bash" | "sh" | "shell" | "zsh" => Some("bash"),
         "toml" => Some("toml"),
         "yaml" | "yml" => Some("yaml"),
+        "xml" => Some("xml"),
         _ => None,
     }
 }
@@ -130,6 +134,27 @@ plain code
         assert_eq!(parse_language(&"py".into()), Some("python"));
         assert_eq!(parse_language(&"js".into()), Some("javascript"));
         assert_eq!(parse_language(&"sh".into()), Some("bash"));
+        assert_eq!(parse_language(&"xml".into()), Some("xml"));
         assert!(parse_language(&"unknown".into()).is_none());
+    }
+
+    #[test]
+    fn test_render_gfm_table() {
+        let md = r#"| Col A | Col B |
+|-------|-------|
+| foo   | bar   |"#;
+        let html = render(md);
+        assert!(html.contains("<table>"));
+        assert!(html.contains("<thead>"));
+        assert!(html.contains("<tbody>"));
+        assert!(html.contains("<th>Col A</th>"));
+        assert!(html.contains("foo"));
+    }
+
+    #[test]
+    fn test_render_gfm_strikethrough() {
+        let md = "This is ~~deleted~~ text.";
+        let html = render(md);
+        assert!(html.contains("<del>deleted</del>"));
     }
 }

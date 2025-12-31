@@ -18,6 +18,4 @@ document.addEventListener('DOMContentLoaded', () => {
     initNavigation();
     initGraph();
     initSorting();
-
-    console.log("Nacre modular frontend initialized");
 });

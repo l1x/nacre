@@ -38,11 +38,13 @@ export function initNavigation() {
 
         if (e.key === 'j' || e.key === 'ArrowDown') {
             selectedIndex = Math.min(selectedIndex + 1, items.length - 1);
-            selectItem(items[selectedIndex]);
+            const item = items.at(selectedIndex);
+            if (item) selectItem(item);
             e.preventDefault();
         } else if (e.key === 'k' || e.key === 'ArrowUp') {
             selectedIndex = Math.max(selectedIndex - 1, 0);
-            selectItem(items[selectedIndex]);
+            const item = items.at(selectedIndex);
+            if (item) selectItem(item);
             e.preventDefault();
         } else if (e.key === 'Enter' || e.key === 'o') {
             if (current) {
@@ -57,7 +59,8 @@ export function initNavigation() {
         if (columns.length === 0) return;
 
         if (e.key === 'j' || e.key === 'ArrowDown') {
-            const col = columns[selectedColumnIndex];
+            const col = columns.at(selectedColumnIndex);
+            if (!col) return;
             const cards = getVisibleCards(col);
             if (cards.length > 0) {
                 selectedCardIndex = Math.min(selectedCardIndex + 1, cards.length - 1);
@@ -70,14 +73,16 @@ export function initNavigation() {
             e.preventDefault();
         } else if (e.key === 'h' || e.key === 'ArrowLeft') {
             selectedColumnIndex = Math.max(selectedColumnIndex - 1, 0);
-            const col = columns[selectedColumnIndex];
+            const col = columns.at(selectedColumnIndex);
+            if (!col) return;
             const cards = getVisibleCards(col);
             selectedCardIndex = Math.min(selectedCardIndex, Math.max(0, cards.length - 1));
             updateBoardSelection();
             e.preventDefault();
         } else if (e.key === 'l' || e.key === 'ArrowRight') {
             selectedColumnIndex = Math.min(selectedColumnIndex + 1, columns.length - 1);
-            const col = columns[selectedColumnIndex];
+            const col = columns.at(selectedColumnIndex);
+            if (!col) return;
             const cards = getVisibleCards(col);
             selectedCardIndex = Math.min(selectedCardIndex, Math.max(0, cards.length - 1));
             updateBoardSelection();
@@ -109,16 +114,19 @@ export function initNavigation() {
         if (columns.length === 0) return;
 
         selectedColumnIndex = Math.max(0, Math.min(selectedColumnIndex, columns.length - 1));
-        const col = columns[selectedColumnIndex];
+        const col = columns.at(selectedColumnIndex);
+        if (!col) return;
         const cards = getVisibleCards(col);
-        
+
         document.querySelectorAll('.issue-card.selected').forEach(el => el.classList.remove('selected'));
-        
+
         if (cards.length > 0) {
             selectedCardIndex = Math.max(0, Math.min(selectedCardIndex, cards.length - 1));
-            const card = cards[selectedCardIndex];
-            card.classList.add('selected');
-            card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            const card = cards.at(selectedCardIndex);
+            if (card) {
+                card.classList.add('selected');
+                card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
         }
     }
 }

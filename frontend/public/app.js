@@ -111,7 +111,7 @@ class ToastManager {
           await config.retryAction();
           this.remove(toast);
           this.show({ message: "Success!", type: "success", duration: 2000 });
-        } catch (err) {
+        } catch {
           retryBtn.disabled = false;
           retryBtn.textContent = "Retry";
         }
@@ -280,6 +280,10 @@ var TYPE_ORDER = {
 };
 
 // frontend/src/modules/board.ts
+var VALID_STATUSES = Object.values(STATUS);
+function isValidStatus(value) {
+  return VALID_STATUSES.includes(value);
+}
 function initBoardFeatures() {
   const columnsToggle = document.getElementById("columns-toggle");
   const columnsDropdown = document.getElementById("columns-dropdown");
@@ -293,17 +297,18 @@ function initBoardFeatures() {
       const newState = {};
       getColumnCheckboxes().forEach((checkbox) => {
         const status = checkbox.getAttribute("data-status");
-        if (status)
+        if (status && isValidStatus(status)) {
           newState[status] = checkbox.checked;
+        }
       });
       localStorage.setItem("board-column-visibility", JSON.stringify(newState));
     };
     const savedVisibility = localStorage.getItem("board-column-visibility");
-    let visibilityState = savedVisibility ? JSON.parse(savedVisibility) : null;
+    const visibilityState = savedVisibility ? JSON.parse(savedVisibility) : null;
     const getColumnCheckboxes = () => columnsDropdown.querySelectorAll('input[type="checkbox"]');
     getColumnCheckboxes().forEach((checkbox) => {
       const status = checkbox.getAttribute("data-status");
-      if (!status)
+      if (!status || !isValidStatus(status))
         return;
       if (visibilityState === null) {
         checkbox.checked = status !== STATUS.DEFERRED;
@@ -468,11 +473,15 @@ function initNavigation() {
     }
     if (e.key === "j" || e.key === "ArrowDown") {
       selectedIndex = Math.min(selectedIndex + 1, items.length - 1);
-      selectItem(items[selectedIndex]);
+      const item = items.at(selectedIndex);
+      if (item)
+        selectItem(item);
       e.preventDefault();
     } else if (e.key === "k" || e.key === "ArrowUp") {
       selectedIndex = Math.max(selectedIndex - 1, 0);
-      selectItem(items[selectedIndex]);
+      const item = items.at(selectedIndex);
+      if (item)
+        selectItem(item);
       e.preventDefault();
     } else if (e.key === "Enter" || e.key === "o") {
       if (current) {
@@ -487,7 +496,9 @@ function initNavigation() {
     if (columns.length === 0)
       return;
     if (e.key === "j" || e.key === "ArrowDown") {
-      const col = columns[selectedColumnIndex];
+      const col = columns.at(selectedColumnIndex);
+      if (!col)
+        return;
       const cards = getVisibleCards(col);
       if (cards.length > 0) {
         selectedCardIndex = Math.min(selectedCardIndex + 1, cards.length - 1);
@@ -500,14 +511,18 @@ function initNavigation() {
       e.preventDefault();
     } else if (e.key === "h" || e.key === "ArrowLeft") {
       selectedColumnIndex = Math.max(selectedColumnIndex - 1, 0);
-      const col = columns[selectedColumnIndex];
+      const col = columns.at(selectedColumnIndex);
+      if (!col)
+        return;
       const cards = getVisibleCards(col);
       selectedCardIndex = Math.min(selectedCardIndex, Math.max(0, cards.length - 1));
       updateBoardSelection();
       e.preventDefault();
     } else if (e.key === "l" || e.key === "ArrowRight") {
       selectedColumnIndex = Math.min(selectedColumnIndex + 1, columns.length - 1);
-      const col = columns[selectedColumnIndex];
+      const col = columns.at(selectedColumnIndex);
+      if (!col)
+        return;
       const cards = getVisibleCards(col);
       selectedCardIndex = Math.min(selectedCardIndex, Math.max(0, cards.length - 1));
       updateBoardSelection();
@@ -538,14 +553,18 @@ function initNavigation() {
     if (columns.length === 0)
       return;
     selectedColumnIndex = Math.max(0, Math.min(selectedColumnIndex, columns.length - 1));
-    const col = columns[selectedColumnIndex];
+    const col = columns.at(selectedColumnIndex);
+    if (!col)
+      return;
     const cards = getVisibleCards(col);
     document.querySelectorAll(".issue-card.selected").forEach((el) => el.classList.remove("selected"));
     if (cards.length > 0) {
       selectedCardIndex = Math.max(0, Math.min(selectedCardIndex, cards.length - 1));
-      const card = cards[selectedCardIndex];
-      card.classList.add("selected");
-      card.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      const card = cards.at(selectedCardIndex);
+      if (card) {
+        card.classList.add("selected");
+        card.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      }
     }
   }
 }
@@ -755,6 +774,10 @@ function initGraph() {
 }
 
 // frontend/src/modules/sorting.ts
+var VALID_SORT_KEYS = ["status", "type", "priority"];
+function isValidSortKey(key) {
+  return VALID_SORT_KEYS.includes(key);
+}
 function initSorting() {
   document.addEventListener("click", (e) => {
     const target = e.target;
@@ -767,7 +790,7 @@ function initSorting() {
       return;
     }
     const sortBy = button.getAttribute("data-sort");
-    if (sortBy) {
+    if (sortBy && isValidSortKey(sortBy)) {
       sortTreeNodes(sortBy);
       updateActiveSortButton(button);
     }
@@ -856,5 +879,4 @@ document.addEventListener("DOMContentLoaded", () => {
   initNavigation();
   initGraph();
   initSorting();
-  console.log("Nacre modular frontend initialized");
 });

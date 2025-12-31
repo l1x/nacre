@@ -108,7 +108,7 @@ export const toast = new ToastManager();
 
 export function handleError(error: Error | unknown, context: string, retryAction?: () => Promise<void>) {
     const message = error instanceof Error ? error.message : 'Unknown error occurred';
-    console.error(`[${context}] ${message}`, error);
+    console.error(`[${context}] ${message}`, error); // eslint-disable-line no-console
     
     toast.show({
         message: `${context}: ${message}`,
@@ -120,7 +120,7 @@ export function handleError(error: Error | unknown, context: string, retryAction
 
 export function handleNetworkError(response: Response, context: string, retryAction?: () => Promise<void>) {
     const message = `HTTP ${response.status}: ${response.statusText}`;
-    console.error(`[${context}] ${message}`, response);
+    console.error(`[${context}] ${message}`, response); // eslint-disable-line no-console
     
     toast.show({
         message: `${context}: ${message}`,
