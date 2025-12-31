@@ -50,7 +50,7 @@ class ToastManager {
                     await config.retryAction!();
                     this.remove(toast);
                     this.show({ message: 'Success!', type: 'success', duration: 2000 });
-                } catch (err) {
+                } catch {
                     retryBtn.disabled = false;
                     retryBtn.textContent = 'Retry';
                 }
