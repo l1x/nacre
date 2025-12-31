@@ -7,6 +7,26 @@
     {% include "_header.html" %}
     <main id="content">
         <div class="metrics-container">
+            <!-- Chart Navigation Bar -->
+            <nav class="chart-nav">
+                <a href="#ticket-activity" class="chart-nav-link">
+                    <span class="chart-nav-icon">📊</span>
+                    <span class="chart-nav-label">Ticket Activity</span>
+                </a>
+                <a href="#lead-time" class="chart-nav-link">
+                    <span class="chart-nav-icon">⏱️</span>
+                    <span class="chart-nav-label">Lead Time</span>
+                </a>
+                <a href="#cycle-time" class="chart-nav-link">
+                    <span class="chart-nav-icon">🔄</span>
+                    <span class="chart-nav-label">Cycle Time</span>
+                </a>
+                <a href="#throughput" class="chart-nav-link">
+                    <span class="chart-nav-icon">📈</span>
+                    <span class="chart-nav-label">Throughput</span>
+                </a>
+            </nav>
+
             <div class="metrics-grid">
                 <div class="metric-card">
                     <h3>Avg Lead Time</h3>
@@ -79,29 +99,9 @@
                 </div>
             </div>
 
-            <!-- Chart Navigation Bar -->
-            <nav class="chart-nav">
-                <a href="#ticket-activity" class="chart-nav-link">
-                    <span class="chart-nav-icon">📊</span>
-                    <span class="chart-nav-label">Ticket Activity</span>
-                </a>
-                <a href="#lead-time" class="chart-nav-link">
-                    <span class="chart-nav-icon">⏱️</span>
-                    <span class="chart-nav-label">Lead Time</span>
-                </a>
-                <a href="#cycle-time" class="chart-nav-link">
-                    <span class="chart-nav-icon">🔄</span>
-                    <span class="chart-nav-label">Cycle Time</span>
-                </a>
-                <a href="#throughput" class="chart-nav-link">
-                    <span class="chart-nav-icon">📈</span>
-                    <span class="chart-nav-label">Throughput</span>
-                </a>
-            </nav>
-
             <!-- Ticket Activity Chart -->
-            <section class="metrics-section" id="ticket-activity">
-                <h2>Ticket Activity <span class="chart-desc">Opened and Resolved tickets over time</span></h2>
+            <section class="metrics-section">
+                <h2 id="ticket-activity">Ticket Activity <span class="chart-desc">Opened and Resolved tickets over time</span></h2>
                 <div class="chart-container">
                     <div class="html-chart html-chart--show-values">
                         <div class="html-chart__legend">
@@ -146,8 +146,8 @@
 
             <!-- Lead Time Chart -->
             {% if lead_time_chart.has_data() %}
-            <section class="metrics-section" id="lead-time">
-                <h2>Lead Time <span class="chart-desc">Time from creation to close</span></h2>
+            <section class="metrics-section">
+                <h2 id="lead-time">Lead Time <span class="chart-desc">Time from creation to close</span></h2>
                 <div class="chart-container">
                     <div class="html-chart html-chart--show-values">
                         <div class="html-chart__legend">
@@ -193,8 +193,8 @@
 
             <!-- Cycle Time Chart -->
             {% if cycle_time_chart.has_data() %}
-            <section class="metrics-section" id="cycle-time">
-                <h2>Cycle Time <span class="chart-desc">Time spent in progress</span></h2>
+            <section class="metrics-section">
+                <h2 id="cycle-time">Cycle Time <span class="chart-desc">Time spent in progress</span></h2>
                 <div class="chart-container">
                     <div class="html-chart html-chart--show-values">
                         <div class="html-chart__legend">
@@ -240,8 +240,8 @@
 
             <!-- Throughput Chart -->
             {% if throughput_chart.has_data() %}
-            <section class="metrics-section" id="throughput">
-                <h2>Throughput <span class="chart-desc">Issues closed per day</span></h2>
+            <section class="metrics-section">
+                <h2 id="throughput">Throughput <span class="chart-desc">Issues closed per day</span></h2>
                 <div class="chart-container">
                     <div class="html-chart html-chart--show-values">
                         <div class="html-chart__legend">
