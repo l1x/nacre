@@ -1,6 +1,7 @@
 # tools
 [tools]
 rust = "1.90.0"
+bun = "latest"
 
 # env
 
@@ -40,6 +41,7 @@ run = "cargo build"
 [tasks.build-js-prod]
 description = "Build frontend TypeScript into bundled app.js"
 run = "bun build ./frontend/src/main.ts --outfile ./frontend/public/app.js --target browser"
+depends = ["lint-ts"]
 
 [tasks.build-prod]
 description = "Building the release version"
