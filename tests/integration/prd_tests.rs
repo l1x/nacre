@@ -7,7 +7,7 @@ use crate::common::test_server;
 
 #[tokio::test]
 async fn test_prds_list() {
-    let (server, _temp) = test_server().await;
+    let server = test_server().await;
 
     let response = server.get("/prds").await;
 
@@ -16,7 +16,7 @@ async fn test_prds_list() {
 
 #[tokio::test]
 async fn test_prd_detail_not_found() {
-    let (server, _temp) = test_server().await;
+    let server = test_server().await;
 
     let response = server.get("/prds/nonexistent-prd.md").await;
 

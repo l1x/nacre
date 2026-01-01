@@ -7,7 +7,7 @@ use crate::common::test_server;
 
 #[tokio::test]
 async fn test_static_assets() {
-    let (server, _temp) = test_server().await;
+    let server = test_server().await;
 
     // Test CSS endpoint with ETag
     let css_response = server.get("/style.css").await;
@@ -39,7 +39,7 @@ async fn test_static_assets() {
 
 #[tokio::test]
 async fn test_css_caching() {
-    let (server, _temp) = test_server().await;
+    let server = test_server().await;
 
     // First request should return full content
     let first_response = server.get("/style.css").await;
@@ -58,7 +58,7 @@ async fn test_css_caching() {
 
 #[tokio::test]
 async fn test_js_content_type() {
-    let (server, _temp) = test_server().await;
+    let server = test_server().await;
 
     let response = server.get("/app.js").await;
 
@@ -69,7 +69,7 @@ async fn test_js_content_type() {
 
 #[tokio::test]
 async fn test_favicon_svg() {
-    let (server, _temp) = test_server().await;
+    let server = test_server().await;
 
     let response = server.get("/favicon.svg").await;
 

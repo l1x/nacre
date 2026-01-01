@@ -22,7 +22,7 @@ async fn test_health_check() {
 
 #[tokio::test]
 async fn test_landing_page() {
-    let (server, _temp) = test_server().await;
+    let server = test_server().await;
 
     let response = server.get("/").await;
 
@@ -32,7 +32,7 @@ async fn test_landing_page() {
 
 #[tokio::test]
 async fn test_graph_view() {
-    let (server, _temp) = test_server().await;
+    let server = test_server().await;
 
     let response = server.get("/graph").await;
 
@@ -41,7 +41,7 @@ async fn test_graph_view() {
 
 #[tokio::test]
 async fn test_palette_view() {
-    let (server, _temp) = test_server().await;
+    let server = test_server().await;
 
     let response = server.get("/palette").await;
 

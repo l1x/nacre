@@ -7,7 +7,7 @@ use crate::common::test_server;
 
 #[tokio::test]
 async fn test_metrics_view() {
-    let (server, _temp) = test_server().await;
+    let server = test_server().await;
 
     let response = server.get("/metrics").await;
 
