@@ -169,6 +169,13 @@ pub struct EditIssueTemplate {
     pub issue: beads::Issue,
 }
 
+/// Epic summary for graph selector
+pub struct EpicSummary {
+    pub id: String,
+    pub title: String,
+    pub selected: bool,
+}
+
 #[derive(Template)]
 #[template(path = "graph.html")]
 pub struct GraphTemplate {
@@ -176,6 +183,8 @@ pub struct GraphTemplate {
     pub page_title: String,
     pub active_nav: &'static str,
     pub app_version: String,
+    pub epics: Vec<EpicSummary>,
+    pub tree: Vec<TreeNode>,
 }
 
 /// A single bar in a chart series

@@ -85,13 +85,70 @@ pub async fn serve_static(Path(filename): Path<String>, headers: HeaderMap) -> R
     serve_asset(&filename, &headers)
 }
 
-pub async fn graph(State(state): State<crate::SharedAppState>) -> GraphTemplate {
-    GraphTemplate {
+pub async fn graph(
+    State(state): State<crate::SharedAppState>,
+) -> crate::AppResult<GraphTemplate> {
+    let all_issues = state.client.list_issues()?;
+
+    // Get all epics for the selector
+    let epics: Vec<EpicSummary> = all_issues
+        .iter()
+        .filter(|i| i.issue_type == crate::beads::IssueType::Epic && i.status != crate::beads::Status::Tombstone)
+        .map(|i| EpicSummary {
+            id: i.id.clone(),
+            title: i.title.clone(),
+            selected: false,
+        })
+        .collect();
+
+    Ok(GraphTemplate {
         project_name: state.project_name.clone(),
         page_title: "Graph".to_string(),
         active_nav: "graph",
         app_version: state.app_version.clone(),
-    }
+        epics,
+        tree: vec![],
+    })
+}
+
+pub async fn graph_epic(
+    State(state): State<crate::SharedAppState>,
+    Path(epic_id): Path<String>,
+) -> crate::AppResult<GraphTemplate> {
+    let all_issues = state.client.list_issues()?;
+
+    // Get all epics for the selector
+    let epics: Vec<EpicSummary> = all_issues
+        .iter()
+        .filter(|i| i.issue_type == crate::beads::IssueType::Epic && i.status != crate::beads::Status::Tombstone)
+        .map(|i| EpicSummary {
+            id: i.id.clone(),
+            title: i.title.clone(),
+            selected: i.id == epic_id,
+        })
+        .collect();
+
+    // Filter to just this epic and its descendants
+    let prefix = format!("{}.", epic_id);
+    let descendants: Vec<crate::beads::Issue> = all_issues
+        .into_iter()
+        .filter(|i| {
+            i.status != crate::beads::Status::Tombstone
+                && (i.id == epic_id || i.id.starts_with(&prefix))
+        })
+        .collect();
+
+    // Build tree
+    let tree = super::tasks::build_issue_tree(&descendants);
+
+    Ok(GraphTemplate {
+        project_name: state.project_name.clone(),
+        page_title: "Graph".to_string(),
+        active_nav: "graph",
+        app_version: state.app_version.clone(),
+        epics,
+        tree,
+    })
 }
 
 pub async fn palette(State(state): State<crate::SharedAppState>) -> PaletteTemplate {

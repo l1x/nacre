@@ -60,6 +60,7 @@ pub fn create_app(state: SharedAppState) -> Router {
         .route("/tasks/:id/edit", get(handlers::edit_task))
         .route("/board", get(handlers::board))
         .route("/graph", get(handlers::graph))
+        .route("/graph/:id", get(handlers::graph_epic))
         .route("/metrics", get(handlers::metrics_handler))
         .route("/palette", get(handlers::palette))
         .route("/prds", get(handlers::prds_list))

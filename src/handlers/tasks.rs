@@ -87,7 +87,7 @@ pub async fn task_detail(
 }
 
 /// Build a hierarchical tree of issues for display
-fn build_issue_tree(all_issues: &[beads::Issue]) -> Vec<TreeNode> {
+pub fn build_issue_tree(all_issues: &[beads::Issue]) -> Vec<TreeNode> {
     // Build ID set for O(1) parent lookups (optimization from O(n²) to O(n))
     let id_set: HashSet<&str> = all_issues.iter().map(|i| i.id.as_str()).collect();
 
