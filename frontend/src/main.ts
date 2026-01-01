@@ -6,6 +6,7 @@ import { initBoardFeatures } from './modules/board';
 import { initDragAndDrop } from './modules/dragdrop';
 import { initNavigation } from './modules/navigation';
 import { initGraph } from './modules/graph';
+import { initDependencyGraph } from './modules/dependency-graph';
 import { initSorting } from './modules/sorting';
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -17,5 +18,6 @@ document.addEventListener('DOMContentLoaded', () => {
     initDragAndDrop();
     initNavigation();
     initGraph();
+    initDependencyGraph();
     initSorting();
 });

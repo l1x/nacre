@@ -1949,6 +1949,46 @@ main:has(.board) {
 .legend-color.status-blocked { background-color: var(--status-blocked); }
 .legend-color.status-closed { background-color: var(--status-closed); opacity: 0.5; }
 
+.legend-color.type-epic { background-color: var(--type-epic); }
+.legend-color.type-feature { background-color: var(--type-feature); }
+.legend-color.type-task { background-color: var(--status-open); }
+.legend-color.type-bug { background-color: var(--type-bug); }
+
+.legend-section {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.legend-section h4 {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+    margin: 0;
+    min-width: 50px;
+}
+
+.legend-line {
+    width: 24px;
+    height: 2px;
+    flex-shrink: 0;
+}
+
+.legend-line.solid {
+    background-color: #666;
+}
+
+.legend-line.dashed {
+    background: repeating-linear-gradient(
+        90deg,
+        #d48a8a 0px,
+        #d48a8a 4px,
+        transparent 4px,
+        transparent 8px
+    );
+}
+
 /* Metrics View */
 .metrics-container {
     max-width: 1000px;
@@ -2780,37 +2820,80 @@ main:has(.board) {
     display: none;
 }
 
-/* Graph Placeholder */
-.graph-placeholder {
-    background-color: var(--bg-card);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius);
-    padding: 40px;
-    text-align: center;
+/* Graph Page */
+.graph-page {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    height: calc(100vh - 180px);
+    min-height: 500px;
 }
 
-.graph-placeholder h2 {
+.graph-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.graph-header h2 {
     font-family: 'Georgia', 'Times New Roman', serif;
     font-size: 1.5rem;
     font-style: italic;
     color: var(--text-primary);
-    margin: 0 0 16px 0;
+    margin: 0;
 }
 
-.placeholder-message {
-    color: var(--text-muted);
-    margin-bottom: 32px;
+.graph-select {
+    padding: 8px 12px;
+    font-size: 0.9rem;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    background-color: var(--bg-card);
+    color: var(--text-primary);
+    min-width: 250px;
+    cursor: pointer;
 }
 
-.graph-mockup {
+.graph-select:hover {
+    border-color: var(--border-hover);
+}
+
+.graph-select:focus {
+    outline: none;
+    border-color: var(--accent);
+}
+
+/* Cytoscape container */
+.graph-container {
+    flex: 1;
+    min-height: 400px;
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    cursor: grab;
+}
+
+.graph-container:active {
+    cursor: grabbing;
+}
+
+.graph-container .error {
     display: flex;
+    align-items: center;
     justify-content: center;
-    overflow-x: auto;
+    height: 100%;
+    color: var(--status-blocked);
 }
 
-.graph-mockup svg {
-    max-width: 100%;
-    height: auto;
+.graph-empty-state {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: var(--text-muted);
+    font-size: 1.1rem;
 }
 
 .chart-desc {
