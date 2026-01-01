@@ -775,7 +775,7 @@ function initGraph() {
 
 // frontend/src/modules/dependency-graph.ts
 function initDependencyGraph() {
-  const container = document.querySelector(".graph-tree-view");
+  const container = document.querySelector(".graph-tree-container");
   const epicSelect = document.getElementById("epic-select");
   if (!container)
     return;
