@@ -38,11 +38,11 @@ async fn test_valid_prd_access() {
     let server = TestServer::new(app).unwrap();
 
     // Try to access a known existing PRD
-    // We need to pick one that exists in the repo. 
-    // From file listing: docs/prds/prd-foundation-v1-2025-12-15.md
-    
-    let response = server.get("/prds/prd-foundation-v1-2025-12-15.md").await;
-    
+    // We need to pick one that exists in the repo.
+    // From file listing: docs/prds/prd-nacre-v1-2025-12-15.md
+
+    let response = server.get("/prds/prd-nacre-v1-2025-12-15.md").await;
+
     assert_eq!(response.status_code(), StatusCode::OK);
     assert!(response.text().contains("PRD: Nacre"));
 }

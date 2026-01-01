@@ -80,10 +80,14 @@ pub fn create_app(state: SharedAppState) -> Router {
                 .make_span_with(|request: &axum::http::Request<_>| {
                     static REQUEST_ID: AtomicU64 = AtomicU64::new(1);
                     let request_id_num = REQUEST_ID.fetch_add(1, Ordering::Relaxed);
-                    let sqids = sqids::Sqids::default();
-                    let request_id = sqids
-                        .encode(&[request_id_num])
-                        .unwrap_or_else(|_| request_id_num.to_string());
+                    let generator = block_id::BlockId::new(
+                        block_id::Alphabet::alphanumeric(),
+                        1234,
+                        5,
+                    );
+                    let request_id = generator
+                        .encode_string(request_id_num)
+                        .unwrap_or_else(|| request_id_num.to_string());
                     tracing::info_span!(
                         "request",
                         id = %request_id,
