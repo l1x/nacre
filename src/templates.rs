@@ -91,7 +91,7 @@ pub struct BoardColumn {
     pub issues: Vec<beads::Issue>,
 }
 
-/// Tree node for hierarchical graph view
+/// Tree node for hierarchical graph view (flat list with depth)
 pub struct TreeNode {
     pub id: String,
     pub title: String,
@@ -102,6 +102,66 @@ pub struct TreeNode {
     pub has_children: bool,
     pub depth: usize,
     pub parent_id: Option<String>,
+}
+
+/// Nested tree node for org-chart visualization (recursive structure)
+pub struct NestedTreeNode {
+    pub id: String,
+    pub title: String,
+    pub status: String,
+    pub issue_type: String,
+    pub priority: u8,
+    pub blocked_by_count: usize,
+    pub children: Vec<NestedTreeNode>,
+}
+
+impl NestedTreeNode {
+    /// Render this node and its children as HTML for the org-chart tree
+    pub fn render_html(&self) -> String {
+        let blocked_badge = if self.blocked_by_count > 0 {
+            r#"<span class="org-node-blocked">blocked</span>"#
+        } else {
+            ""
+        };
+
+        let children_html = if self.children.is_empty() {
+            String::new()
+        } else {
+            let children: String = self.children.iter().map(|c| c.render_html()).collect();
+            format!("<ul>{}</ul>", children)
+        };
+
+        format!(
+            r#"<li>
+    <a href="/tasks/{id}" class="org-node status-{status} type-{issue_type}">
+        <span class="org-node-priority">P{priority}</span>
+        <div class="org-node-content">
+            <span class="org-node-type">{issue_type}</span>
+            <span class="org-node-title">{title}</span>
+            <span class="org-node-id">{id}</span>
+            {blocked_badge}
+        </div>
+    </a>
+    {children_html}
+</li>"#,
+            id = askama::MarkupDisplay::new_unsafe(&self.id, askama::Html),
+            status = self.status,
+            issue_type = self.issue_type,
+            priority = self.priority,
+            title = askama::MarkupDisplay::new_unsafe(&self.title, askama::Html),
+            blocked_badge = blocked_badge,
+            children_html = children_html,
+        )
+    }
+}
+
+/// Render a list of nested tree nodes as HTML
+pub fn render_tree_html(nodes: &[NestedTreeNode]) -> String {
+    if nodes.is_empty() {
+        return String::new();
+    }
+    let inner: String = nodes.iter().map(|n| n.render_html()).collect();
+    format!(r#"<div class="org-tree"><ul>{}</ul></div>"#, inner)
 }
 
 #[derive(Template)]
@@ -184,7 +244,8 @@ pub struct GraphTemplate {
     pub active_nav: &'static str,
     pub app_version: String,
     pub epics: Vec<EpicSummary>,
-    pub tree: Vec<TreeNode>,
+    /// Pre-rendered HTML for the org-chart tree (use |safe filter in template)
+    pub tree_html: String,
 }
 
 /// A single bar in a chart series

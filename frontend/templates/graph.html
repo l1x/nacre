@@ -22,43 +22,11 @@
                 </div>
             </div>
 
-            <div class="graph-tree-view">
-                {% if tree.is_empty() %}
+            <div class="graph-tree-container">
+                {% if tree_html.is_empty() %}
                 <div class="graph-empty-state">Select an epic to view its dependency tree</div>
                 {% else %}
-                <ul class="tree-list">
-                    {% for node in tree %}
-                    <li class="tree-node{% if node.depth > 0 %} hidden{% endif %}"
-                        data-id="{{ node.id }}"
-                        data-depth="{{ node.depth }}"
-                        data-type="{{ node.issue_type }}"
-                        data-status="{{ node.status }}"
-                        data-priority="{{ node.priority }}"
-                        data-parent="{% if let Some(p) = node.parent_id %}{{ p }}{% endif %}"
-                        data-has-children="{{ node.has_children }}"
-                        style="--depth: {{ node.depth }}">
-                        <div class="tree-node-content">
-                            {% if node.has_children %}
-                            <button class="tree-toggle" aria-label="Toggle children">
-                                <span class="toggle-icon">+</span>
-                            </button>
-                            {% else %}
-                            <span class="tree-toggle-placeholder"></span>
-                            {% endif %}
-                            <span class="tree-status status-{{ node.status }}"></span>
-                            <span class="tree-type type-{{ node.issue_type }}">{{ node.issue_type }}</span>
-                            <a href="/tasks/{{ node.id }}" class="tree-title">{{ node.title }}</a>
-                            <span class="tree-id">{{ node.id }}</span>
-                            <span class="tree-priority">P{{ node.priority }}</span>
-                            {% if node.blocked_by_count > 0 %}
-                            <span class="tree-blocked" title="Blocked by {{ node.blocked_by_count }} issue(s)">
-                                blocked
-                            </span>
-                            {% endif %}
-                        </div>
-                    </li>
-                    {% endfor %}
-                </ul>
+                {{ tree_html|safe }}
                 {% endif %}
             </div>
 

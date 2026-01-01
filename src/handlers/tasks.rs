@@ -8,8 +8,8 @@ use std::collections::{HashMap, HashSet};
 
 use crate::beads;
 use crate::templates::{
-    EditIssueTemplate, EpicWithProgress, NewIssueTemplate, TaskDetailTemplate, TasksTemplate,
-    TreeNode,
+    EditIssueTemplate, EpicWithProgress, NestedTreeNode, NewIssueTemplate, TaskDetailTemplate,
+    TasksTemplate, TreeNode,
 };
 
 pub async fn tasks_list(
@@ -231,6 +231,129 @@ pub fn build_issue_tree(all_issues: &[beads::Issue]) -> Vec<TreeNode> {
     }
 
     nodes
+}
+
+/// Build a nested tree of issues for org-chart visualization
+pub fn build_nested_tree(all_issues: &[beads::Issue]) -> Vec<NestedTreeNode> {
+    // Build ID set for O(1) parent lookups
+    let id_set: HashSet<&str> = all_issues.iter().map(|i| i.id.as_str()).collect();
+
+    // Build parent-child relationships
+    let mut children_map: HashMap<String, Vec<String>> = HashMap::new();
+    let mut parent_map: HashMap<String, String> = HashMap::new();
+
+    for issue in all_issues {
+        // Check explicit parent-child dependency
+        for dep in &issue.dependencies {
+            if dep.dep_type == beads::DependencyType::ParentChild {
+                children_map
+                    .entry(dep.depends_on_id.clone())
+                    .or_default()
+                    .push(issue.id.clone());
+                parent_map.insert(issue.id.clone(), dep.depends_on_id.clone());
+            }
+        }
+
+        // Check dot-notation for implicit parent-child (e.g., nacre-3hd.1 -> nacre-3hd)
+        if !parent_map.contains_key(&issue.id)
+            && let Some(dot_pos) = issue.id.rfind('.')
+        {
+            let potential_parent = &issue.id[..dot_pos];
+            if id_set.contains(potential_parent) {
+                children_map
+                    .entry(potential_parent.to_string())
+                    .or_default()
+                    .push(issue.id.clone());
+                parent_map.insert(issue.id.clone(), potential_parent.to_string());
+            }
+        }
+    }
+
+    // Count blocking dependencies (non-parent-child) for each issue
+    let mut blocked_by_count: HashMap<String, usize> = HashMap::new();
+    for issue in all_issues {
+        let count = issue
+            .dependencies
+            .iter()
+            .filter(|d| d.dep_type != beads::DependencyType::ParentChild)
+            .count();
+        blocked_by_count.insert(issue.id.clone(), count);
+    }
+
+    // Build issue lookup
+    let issue_map: HashMap<String, &beads::Issue> =
+        all_issues.iter().map(|i| (i.id.clone(), i)).collect();
+
+    // Recursive function to build nested tree node
+    fn build_node(
+        issue_id: &str,
+        issue_map: &HashMap<String, &beads::Issue>,
+        children_map: &HashMap<String, Vec<String>>,
+        blocked_by_count: &HashMap<String, usize>,
+    ) -> Option<NestedTreeNode> {
+        let issue = issue_map.get(issue_id)?;
+
+        // Build children recursively
+        let children = children_map
+            .get(issue_id)
+            .map(|child_ids| {
+                let mut child_nodes: Vec<_> = child_ids
+                    .iter()
+                    .filter_map(|id| {
+                        build_node(id, issue_map, children_map, blocked_by_count)
+                    })
+                    .collect();
+                // Sort children by status then id
+                child_nodes.sort_by(|a, b| {
+                    let a_issue = issue_map.get(&a.id);
+                    let b_issue = issue_map.get(&b.id);
+                    match (a_issue, b_issue) {
+                        (Some(a), Some(b)) => a
+                            .status
+                            .sort_order()
+                            .cmp(&b.status.sort_order())
+                            .then_with(|| a.id.cmp(&b.id)),
+                        _ => a.id.cmp(&b.id),
+                    }
+                });
+                child_nodes
+            })
+            .unwrap_or_default();
+
+        Some(NestedTreeNode {
+            id: issue.id.clone(),
+            title: issue.title.clone(),
+            status: issue.status.as_str().to_string(),
+            issue_type: issue.issue_type.as_css_class().to_string(),
+            priority: issue.priority.unwrap_or(2),
+            blocked_by_count: blocked_by_count.get(&issue.id).copied().unwrap_or(0),
+            children,
+        })
+    }
+
+    // Find top-level nodes (no parent)
+    let mut top_level: Vec<&beads::Issue> = all_issues
+        .iter()
+        .filter(|i| !parent_map.contains_key(&i.id))
+        .collect();
+
+    // Sort top-level: epics first, then by status, then by id
+    top_level.sort_by(|a, b| {
+        let a_is_epic = a.issue_type == beads::IssueType::Epic;
+        let b_is_epic = b.issue_type == beads::IssueType::Epic;
+        b_is_epic
+            .cmp(&a_is_epic)
+            .then_with(|| a.status.sort_order().cmp(&b.status.sort_order()))
+            .then_with(|| a.id.cmp(&b.id))
+    });
+
+    // Build nested tree from top-level nodes
+    top_level
+        .iter()
+        .filter_map(|issue| {
+            build_node(&issue.id, &issue_map, &children_map, &blocked_by_count)
+        })
+        .collect()
 }
 
 // Form handlers

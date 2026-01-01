@@ -107,7 +107,7 @@ pub async fn graph(
         active_nav: "graph",
         app_version: state.app_version.clone(),
         epics,
-        tree: vec![],
+        tree_html: String::new(),
     })
 }
 
@@ -138,8 +138,9 @@ pub async fn graph_epic(
         })
         .collect();
 
-    // Build tree
-    let tree = super::tasks::build_issue_tree(&descendants);
+    // Build nested tree for org-chart visualization
+    let tree = super::tasks::build_nested_tree(&descendants);
+    let tree_html = render_tree_html(&tree);
 
     Ok(GraphTemplate {
         project_name: state.project_name.clone(),
@@ -147,7 +148,7 @@ pub async fn graph_epic(
         active_nav: "graph",
         app_version: state.app_version.clone(),
         epics,
-        tree,
+        tree_html,
     })
 }
 

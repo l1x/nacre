@@ -2903,3 +2903,221 @@ main:has(.board) {
     font-style: normal;
     margin-left: 12px;
 }
+
+/* ===========================================
+   Horizontal Org-Chart Tree
+   Root at top, children spread horizontally
+   =========================================== */
+
+.org-tree {
+    overflow-x: auto;
+    padding: 20px;
+}
+
+.org-tree ul {
+    position: relative;
+    padding: 1em 0;
+    white-space: nowrap;
+    margin: 0 auto;
+    text-align: center;
+    list-style: none;
+}
+
+.org-tree ul::after {
+    content: '';
+    display: table;
+    clear: both;
+}
+
+.org-tree li {
+    display: inline-block;
+    vertical-align: top;
+    text-align: center;
+    list-style-type: none;
+    position: relative;
+    padding: 1em 0.5em 0 0.5em;
+}
+
+/* Horizontal connector lines */
+.org-tree li::before,
+.org-tree li::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 50%;
+    border-top: 1px solid var(--border-color);
+    width: 50%;
+    height: 1em;
+}
+
+.org-tree li::after {
+    right: auto;
+    left: 50%;
+    border-left: 1px solid var(--border-color);
+}
+
+/* Hide connectors for only-child */
+.org-tree li:only-child::after,
+.org-tree li:only-child::before {
+    display: none;
+}
+
+.org-tree li:only-child {
+    padding-top: 0;
+}
+
+/* First/last child - hide outer borders, add rounded corners */
+.org-tree li:first-child::before,
+.org-tree li:last-child::after {
+    border: 0 none;
+}
+
+.org-tree li:last-child::before {
+    border-right: 1px solid var(--border-color);
+    border-radius: 0 5px 0 0;
+}
+
+.org-tree li:first-child::after {
+    border-radius: 5px 0 0 0;
+}
+
+/* Vertical connector from parent to children */
+.org-tree ul ul::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 50%;
+    border-left: 1px solid var(--border-color);
+    width: 0;
+    height: 1em;
+}
+
+/* Node styling */
+.org-tree li > a,
+.org-tree li > .org-node {
+    border: 1px solid var(--border-color);
+    padding: 8px 12px;
+    text-decoration: none;
+    display: inline-block;
+    border-radius: var(--radius);
+    color: var(--text-primary);
+    background-color: var(--bg-card);
+    position: relative;
+    top: 1px;
+    transition: all 0.2s ease;
+    min-width: 120px;
+    max-width: 200px;
+}
+
+.org-tree li > a:hover,
+.org-tree li > .org-node:hover {
+    background-color: var(--accent);
+    color: white;
+    border-color: var(--accent);
+}
+
+/* Hover effect - highlight path connectors */
+.org-tree li > a:hover + ul li::after,
+.org-tree li > a:hover + ul li::before,
+.org-tree li > a:hover + ul::before,
+.org-tree li > a:hover + ul ul::before,
+.org-tree li > .org-node:hover + ul li::after,
+.org-tree li > .org-node:hover + ul li::before,
+.org-tree li > .org-node:hover + ul::before,
+.org-tree li > .org-node:hover + ul ul::before {
+    border-color: var(--accent);
+}
+
+/* Node content layout */
+.org-node-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+.org-node-type {
+    font-size: 0.6rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+}
+
+.org-node-title {
+    font-size: 0.85rem;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 180px;
+}
+
+.org-node-id {
+    font-size: 0.7rem;
+    font-family: monospace;
+    color: var(--text-muted);
+}
+
+/* Status indicators on nodes */
+.org-node.status-open {
+    border-left: 3px solid var(--status-open);
+}
+
+.org-node.status-in_progress {
+    border-left: 3px solid var(--status-in-progress);
+}
+
+.org-node.status-blocked {
+    border-left: 3px solid var(--status-blocked);
+}
+
+.org-node.status-closed {
+    border-left: 3px solid var(--status-closed);
+    opacity: 0.6;
+}
+
+/* Type-specific styling */
+.org-node.type-epic {
+    background-color: rgba(155, 89, 182, 0.1);
+}
+
+.org-node.type-feature {
+    background-color: rgba(52, 152, 219, 0.1);
+}
+
+.org-node.type-bug {
+    background-color: rgba(231, 76, 60, 0.1);
+}
+
+/* Blocked badge */
+.org-node-blocked {
+    font-size: 0.55rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 1px 6px;
+    border-radius: 8px;
+    background-color: rgba(212, 138, 138, 0.2);
+    color: var(--status-blocked);
+    margin-top: 2px;
+}
+
+/* Priority indicator */
+.org-node-priority {
+    font-size: 0.6rem;
+    color: var(--text-muted);
+    position: absolute;
+    top: 2px;
+    right: 4px;
+}
+
+/* Graph tree container */
+.graph-tree-container {
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    min-height: 300px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    overflow: auto;
+}
