@@ -3,7 +3,7 @@
  */
 
 export function initDependencyGraph() {
-    const container = document.querySelector('.graph-tree-view');
+    const container = document.querySelector('.graph-tree-container');
     const epicSelect = document.getElementById('epic-select') as HTMLSelectElement | null;
 
     if (!container) return;
