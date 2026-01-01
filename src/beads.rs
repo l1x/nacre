@@ -630,6 +630,70 @@ impl Client {
         let summary: serde_json::Value = serde_json::from_slice(&output.stdout)?;
         Ok(summary)
     }
+
+    /// List all dependencies by reading the JSONL file directly.
+    ///
+    /// This is necessary because `bd list --json` does not include dependencies.
+    /// The JSONL file contains the full dependency information for each issue.
+    pub fn list_all_dependencies(&self) -> Result<Vec<Dependency>> {
+        // Find the .beads directory
+        let beads_dir = self.find_beads_dir()?;
+        let jsonl_path = beads_dir.join("issues.jsonl");
+
+        if !jsonl_path.exists() {
+            return Ok(vec![]);
+        }
+
+        let content = std::fs::read_to_string(&jsonl_path)
+            .map_err(|e| BeadsError::CommandError(format!("Failed to read JSONL: {}", e)))?;
+
+        let mut all_dependencies = Vec::new();
+
+        for line in content.lines() {
+            if line.trim().is_empty() {
+                continue;
+            }
+
+            // Parse each line as a JSON object with dependencies
+            #[derive(Deserialize)]
+            struct IssueWithDeps {
+                #[serde(default)]
+                dependencies: Vec<Dependency>,
+            }
+
+            if let Ok(issue) = serde_json::from_str::<IssueWithDeps>(line) {
+                all_dependencies.extend(issue.dependencies);
+            }
+        }
+
+        Ok(all_dependencies)
+    }
+
+    /// Find the .beads directory by walking up from the current directory
+    fn find_beads_dir(&self) -> Result<std::path::PathBuf> {
+        if let Some(db_path) = &self.db_path {
+            let path = std::path::Path::new(db_path);
+            if let Some(parent) = path.parent() {
+                return Ok(parent.to_path_buf());
+            }
+        }
+
+        let mut current = std::env::current_dir()
+            .map_err(|e| BeadsError::CommandError(format!("Failed to get current dir: {}", e)))?;
+
+        loop {
+            let beads_dir = current.join(".beads");
+            if beads_dir.is_dir() {
+                return Ok(beads_dir);
+            }
+
+            if !current.pop() {
+                return Err(BeadsError::CommandError(
+                    "No .beads directory found".to_string(),
+                ));
+            }
+        }
+    }
 }
 
 #[cfg(test)]

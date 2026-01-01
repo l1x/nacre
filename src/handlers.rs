@@ -1,5 +1,6 @@
 pub mod board;
 pub mod general;
+pub mod graph;
 pub mod landing;
 pub mod metrics;
 pub mod prds;
@@ -10,6 +11,7 @@ pub use general::{
     graph, health_check, palette, serve_autumnus_dark, serve_autumnus_light, serve_css,
     serve_favicon, serve_js,
 };
+pub use graph::graph_data;
 pub use landing::landing;
 pub use metrics::metrics_handler;
 pub use prds::{prd_view, prds_list};

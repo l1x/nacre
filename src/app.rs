@@ -67,6 +67,7 @@ pub fn create_app(state: SharedAppState) -> Router {
         .route("/api/issues", get(handlers::list_tasks))
         .route("/api/issues/:id", post(handlers::update_task))
         .route("/api/issues", post(handlers::create_task))
+        .route("/api/graph", get(handlers::graph_data))
         .route("/health", get(handlers::health_check))
         .route("/style.css", get(handlers::serve_css))
         .route("/autumnus.dark.css", get(handlers::serve_autumnus_dark))
