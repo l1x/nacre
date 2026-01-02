@@ -1,5 +1,6 @@
 use axum::extract::State;
 use std::collections::HashMap;
+use tracing::debug;
 
 use crate::beads;
 use crate::templates::*;
@@ -32,7 +33,15 @@ pub async fn metrics_handler(
     while let Some(res) = set.join_next().await {
         match res.map_err(|e| crate::AppError::BadRequest(format!("Task join failed: {e}")))? {
             MetricsData::Issues(data) => all_issues = data?,
-            MetricsData::Activities(data) => activities = data.unwrap_or_default(),
+            MetricsData::Activities(data) => {
+                match data {
+                    Ok(acts) => activities = acts,
+                    Err(e) => {
+                        debug!(error = %e, "Failed to fetch activities");
+                        activities = Vec::new();
+                    }
+                }
+            }
             MetricsData::Summary(data) => summary = data.unwrap_or(serde_json::Value::Null),
         }
     }
@@ -51,14 +60,21 @@ pub async fn metrics_handler(
                 .or_insert(act.timestamp);
         }
     }
+    debug!(
+        total_activities = activities.len(),
+        in_progress_count = started_times.len(),
+        "Cycle time: parsed activities"
+    );
 
     let mut cycle_times = Vec::new();
     let now = time::OffsetDateTime::now_utc();
     let seven_days_ago = now - time::Duration::days(7);
     let mut closed_last_7_days = 0;
 
+    let mut closed_issues_count = 0;
     for issue in &all_issues {
         if let Some(closed_at) = issue.closed_at {
+            closed_issues_count += 1;
             if closed_at >= seven_days_ago {
                 closed_last_7_days += 1;
             }
@@ -70,6 +86,13 @@ pub async fn metrics_handler(
             }
         }
     }
+    debug!(
+        total_issues = all_issues.len(),
+        closed_issues = closed_issues_count,
+        closed_last_7_days = closed_last_7_days,
+        cycle_times_count = cycle_times.len(),
+        "Cycle time: matched issues"
+    );
 
     let avg_cycle_time_mins = if !cycle_times.is_empty() {
         cycle_times.iter().sum::<f64>() / cycle_times.len() as f64

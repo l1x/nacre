@@ -215,6 +215,9 @@ pub enum EventType {
     LabelRemoved,
     /// Database compaction event
     Compacted,
+    /// Issue was deleted
+    #[serde(rename = "delete")]
+    Deleted,
 }
 
 impl EventType {
@@ -232,6 +235,7 @@ impl EventType {
             EventType::LabelAdded => "label_added",
             EventType::LabelRemoved => "label_removed",
             EventType::Compacted => "compacted",
+            EventType::Deleted => "delete",
         }
     }
 
