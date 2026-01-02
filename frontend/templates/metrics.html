@@ -196,7 +196,6 @@
             {% endif %}
 
             <!-- Cycle Time Chart -->
-            {% if cycle_time_chart.has_data() %}
             <section class="metrics-section">
                 <h2 id="cycle-time">Cycle Time <span class="chart-desc">Time spent in progress</span></h2>
                 <div class="chart-container">
@@ -240,7 +239,6 @@
                     </div>
                 </div>
             </section>
-            {% endif %}
 
             <!-- Throughput Chart -->
             {% if throughput_chart.has_data() %}
