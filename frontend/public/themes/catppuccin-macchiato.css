@@ -40,8 +40,16 @@
     --type-feature: #8aadf4;    /* blue */
     --type-bug: #ed8796;        /* red */
 
+    /* Semantic Colors */
+    --color-red: #ed8796;
+    --color-green: #a6da95;
+    --color-yellow: #eed49f;
+    --color-blue: #8aadf4;
+    --color-pink: #f5bde6;
+    --color-teal: #8bd5ca;
+
     /* Chart colors */
-    --chart-blue: #8aadf4;
-    --chart-green: #a6da95;
-    --chart-orange: #f5a97f;
+    --chart-blue: var(--color-blue);
+    --chart-green: var(--color-green);
+    --chart-orange: var(--accent);
 }

@@ -485,9 +485,9 @@ main:has(.board) {
 
 /* Column status colors */
 .board-column[data-status="open"] { border-top: 3px solid var(--accent); }
-.board-column[data-status="in_progress"] { border-top: 3px solid #7eb8da; }
-.board-column[data-status="blocked"] { border-top: 3px solid #d48a8a; }
-.board-column[data-status="deferred"] { border-top: 3px solid #b8a9c9; }
+.board-column[data-status="in_progress"] { border-top: 3px solid var(--status-in-progress); }
+.board-column[data-status="blocked"] { border-top: 3px solid var(--status-blocked); }
+.board-column[data-status="deferred"] { border-top: 3px solid var(--status-deferred); }
 .board-column[data-status="closed"] { border-top: 3px solid var(--text-muted); }
 
 /* Column count badge colors */
@@ -1809,7 +1809,7 @@ main:has(.board) {
 }
 
 .graph-node.node-in_progress .node-bg {
-    stroke: #7eb8da;
+    stroke: var(--chart-blue);
     stroke-width: 2;
 }
 
@@ -2347,14 +2347,14 @@ main:has(.board) {
 }
 
 /* Bar colors - Project Palette */
-.html-chart__bar--blue { background: #7eb8da; }
-.html-chart__bar--green { background: #9bbb59; }
+.html-chart__bar--blue { background: var(--chart-blue); }
+.html-chart__bar--green { background: var(--chart-green); }
 .html-chart__bar--orange { background: var(--accent); }
 .html-chart__bar--grey { background: var(--text-muted); }
 
 /* Legend Dots */
-.html-chart__legend-dot--blue { background: #7eb8da; }
-.html-chart__legend-dot--green { background: #9bbb59; }
+.html-chart__legend-dot--blue { background: var(--chart-blue); }
+.html-chart__legend-dot--green { background: var(--chart-green); }
 .html-chart__legend-dot--orange { background: var(--accent); }
 .html-chart__legend-dot--grey { background: var(--text-muted); }
 
