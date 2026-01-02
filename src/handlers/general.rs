@@ -79,6 +79,11 @@ pub async fn serve_favicon(headers: HeaderMap) -> Response {
     serve_asset("favicon.svg", &headers)
 }
 
+/// Serve theme CSS files from /themes/ directory
+pub async fn serve_theme(Path(filename): Path<String>, headers: HeaderMap) -> Response {
+    serve_asset(&format!("themes/{}", filename), &headers)
+}
+
 /// Generic static file handler for future use with wildcard routes
 #[allow(dead_code)]
 pub async fn serve_static(Path(filename): Path<String>, headers: HeaderMap) -> Response {

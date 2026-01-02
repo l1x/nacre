@@ -1,0 +1,46 @@
+/* Nacre Dark Theme */
+:root, [data-theme="nacre-dark"] {
+    /* Color palette */
+    --bg-primary: #141414;
+    --bg-secondary: #1c1a19;
+    --bg-card: #231f1d;
+    --bg-card-hover: #2a2523;
+
+    /* Accent colors - warm orange */
+    --accent: #e07a4a;
+    --accent-muted: #b8623c;
+    --accent-glow: rgba(224, 122, 74, 0.15);
+
+    /* Text colors */
+    --text-primary: #e8e4e0;
+    --text-secondary: #9a9590;
+    --text-muted: #6a6560;
+
+    /* Borders */
+    --border-color: #2a2624;
+    --border-subtle: #222020;
+
+    /* Shadows */
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
+
+    /* Chart Grid */
+    --chart-grid-color: rgba(255, 255, 255, 0.08);
+
+    /* Status Colors */
+    --status-open: #e07a4a;
+    --status-in-progress: #7eb8da;
+    --status-blocked: #d48a8a;
+    --status-deferred: #b8a9c9;
+    --status-closed: #6a6560;
+
+    /* Type Colors */
+    --type-epic: #9b59b6;
+    --type-feature: #3498db;
+    --type-bug: #e74c3c;
+
+    /* Chart colors */
+    --chart-blue: #4f81bd;
+    --chart-green: #9bbb59;
+    --chart-orange: #f79646;
+}

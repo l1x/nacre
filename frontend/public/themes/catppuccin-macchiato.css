@@ -1,0 +1,47 @@
+/* Catppuccin Macchiato Theme (Dark) */
+/* https://catppuccin.com/palette */
+[data-theme="catppuccin-macchiato"] {
+    /* Color palette */
+    --bg-primary: #24273a;      /* base */
+    --bg-secondary: #1e2030;    /* mantle */
+    --bg-card: #363a4f;         /* surface0 */
+    --bg-card-hover: #494d64;   /* surface1 */
+
+    /* Accent colors - peach */
+    --accent: #f5a97f;
+    --accent-muted: #ee99a0;    /* maroon */
+    --accent-glow: rgba(245, 169, 127, 0.15);
+
+    /* Text colors */
+    --text-primary: #cad3f5;    /* text */
+    --text-secondary: #b8c0e0;  /* subtext1 */
+    --text-muted: #a5adcb;      /* subtext0 */
+
+    /* Borders */
+    --border-color: #5b6078;    /* surface2 */
+    --border-subtle: #494d64;   /* surface1 */
+
+    /* Shadows */
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
+
+    /* Chart Grid */
+    --chart-grid-color: rgba(255, 255, 255, 0.08);
+
+    /* Status Colors */
+    --status-open: #f5a97f;     /* peach */
+    --status-in-progress: #8aadf4; /* blue */
+    --status-blocked: #ed8796;  /* red */
+    --status-deferred: #c6a0f6; /* mauve */
+    --status-closed: #8087a2;   /* overlay1 */
+
+    /* Type Colors */
+    --type-epic: #c6a0f6;       /* mauve */
+    --type-feature: #8aadf4;    /* blue */
+    --type-bug: #ed8796;        /* red */
+
+    /* Chart colors */
+    --chart-blue: #8aadf4;
+    --chart-green: #a6da95;
+    --chart-orange: #f5a97f;
+}

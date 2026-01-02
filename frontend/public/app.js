@@ -1,24 +1,24 @@
 // frontend/src/modules/theme.ts
+var LIGHT_THEMES = ["nacre-light", "catppuccin-latte"];
 (function() {
   const stored = localStorage.getItem("theme");
   const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-  const theme = stored || (prefersDark ? "dark" : "light");
+  const theme = stored || (prefersDark ? "nacre-dark" : "nacre-light");
   document.documentElement.setAttribute("data-theme", theme);
+  const syntaxTheme = LIGHT_THEMES.includes(theme) ? "light" : "dark";
+  document.documentElement.setAttribute("data-syntax", syntaxTheme);
 })();
 function initTheme() {
-  const themeToggle = document.getElementById("theme-toggle");
-  if (themeToggle) {
-    const updateIcon = () => {
-      const current = document.documentElement.getAttribute("data-theme");
-      themeToggle.textContent = current === "dark" ? "☀️" : "\uD83C\uDF19";
-    };
-    updateIcon();
-    themeToggle.addEventListener("click", () => {
-      const current = document.documentElement.getAttribute("data-theme");
-      const next = current === "dark" ? "light" : "dark";
-      document.documentElement.setAttribute("data-theme", next);
-      localStorage.setItem("theme", next);
-      updateIcon();
+  const themeSelect = document.getElementById("theme-select");
+  if (themeSelect) {
+    const current = document.documentElement.getAttribute("data-theme") || "nacre-dark";
+    themeSelect.value = current;
+    themeSelect.addEventListener("change", () => {
+      const newTheme = themeSelect.value;
+      document.documentElement.setAttribute("data-theme", newTheme);
+      localStorage.setItem("theme", newTheme);
+      const syntaxTheme = LIGHT_THEMES.includes(newTheme) ? "light" : "dark";
+      document.documentElement.setAttribute("data-syntax", syntaxTheme);
     });
   }
 }

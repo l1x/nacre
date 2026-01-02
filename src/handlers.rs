@@ -9,7 +9,7 @@ pub mod tasks;
 pub use board::board;
 pub use general::{
     graph, graph_epic, health_check, palette, serve_autumnus_dark, serve_autumnus_light, serve_css,
-    serve_favicon, serve_js,
+    serve_favicon, serve_js, serve_theme,
 };
 pub use graph::graph_data;
 pub use landing::landing;

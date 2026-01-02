@@ -1,94 +1,10 @@
-/* Theme Variables */
+/* Shared Variables */
 :root {
-    /* Sizing (shared) */
+    /* Sizing (shared across all themes) */
     --header-height: 56px;
     --content-max-width: 1200px;
     --radius: 6px;
     --radius-sm: 4px;
-}
-
-/* Dark Theme (default) */
-:root, [data-theme="dark"] {
-    /* Color palette */
-    --bg-primary: #141414;
-    --bg-secondary: #1c1a19;
-    --bg-card: #231f1d;
-    --bg-card-hover: #2a2523;
-
-    /* Accent colors - warm orange */
-    --accent: #e07a4a;
-    --accent-muted: #b8623c;
-    --accent-glow: rgba(224, 122, 74, 0.15);
-
-    /* Text colors */
-    --text-primary: #e8e4e0;
-    --text-secondary: #9a9590;
-    --text-muted: #6a6560;
-
-    /* Borders */
-    --border-color: #2a2624;
-    --border-subtle: #222020;
-
-    /* Shadows */
-    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
-    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
-
-    /* Chart Grid */
-    --chart-grid-color: rgba(255, 255, 255, 0.08);
-
-    /* Status Colors */
-    --status-open: #e07a4a;
-    --status-in-progress: #7eb8da;
-    --status-blocked: #d48a8a;
-    --status-deferred: #b8a9c9;
-    --status-closed: #6a6560;
-
-    /* Type Colors */
-    --type-epic: #9b59b6;
-    --type-feature: #3498db;
-    --type-bug: #e74c3c;
-}
-
-/* Light Theme */
-[data-theme="light"] {
-    /* Color palette */
-    --bg-primary: #f5f2ed;
-    --bg-secondary: #ebe7e1;
-    --bg-card: #ffffff;
-    --bg-card-hover: #faf8f5;
-
-    /* Accent colors - warm orange (slightly deeper for contrast) */
-    --accent: #d4693d;
-    --accent-muted: #a8512e;
-    --accent-glow: rgba(212, 105, 61, 0.12);
-
-    /* Text colors */
-    --text-primary: #2a2520;
-    --text-secondary: #5a5550;
-    --text-muted: #8a8580;
-
-    /* Borders */
-    --border-color: #e0dcd5;
-    --border-subtle: #ebe7e1;
-
-    /* Shadows */
-    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.08);
-    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.1);
-
-    /* Chart Grid */
-    --chart-grid-color: rgba(0, 0, 0, 0.08);
-
-    /* Status Colors */
-    --status-open: #e07a4a;
-    --status-in-progress: #7eb8da;
-    --status-blocked: #d48a8a;
-    --status-deferred: #b8a9c9;
-    --status-closed: #8a8580;
-
-    /* Type Colors */
-    --type-epic: #9b59b6;
-    --type-feature: #3498db;
-    --type-bug: #e74c3c;
 }
 
 /* Theme transition */
@@ -206,24 +122,39 @@ nav a.active::after {
     box-shadow: 0 0 0 3px var(--accent-glow);
 }
 
-/* Theme toggle */
-.theme-toggle {
-    background: none;
+/* Theme select dropdown */
+.theme-select {
+    background: var(--bg-card);
     border: 1px solid var(--border-color);
     border-radius: var(--radius);
     padding: 6px 10px;
     cursor: pointer;
-    color: var(--text-secondary);
-    font-size: 1.1rem;
-    line-height: 1;
+    color: var(--text-primary);
+    font-size: 0.85rem;
     margin-left: 12px;
     transition: color 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239a9590' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 8px center;
+    padding-right: 28px;
 }
 
-.theme-toggle:hover {
-    color: var(--accent);
+.theme-select:hover {
     border-color: var(--accent-muted);
-    background-color: var(--accent-glow);
+    background-color: var(--bg-card-hover);
+}
+
+.theme-select:focus {
+    outline: none;
+    border-color: var(--accent);
+}
+
+.theme-select option {
+    background: var(--bg-card);
+    color: var(--text-primary);
 }
 
 /* Main content */
@@ -1466,10 +1397,11 @@ main:has(.board) {
         font-size: 0.85rem;
     }
 
-    .theme-toggle {
-        padding: 4px 8px;
-        font-size: 1rem;
+    .theme-select {
+        padding: 4px 6px;
+        font-size: 0.8rem;
         margin-left: 8px;
+        padding-right: 24px;
     }
 
     .create-btn {
@@ -2523,19 +2455,6 @@ main:has(.board) {
 .html-chart__bar-group:nth-child(6) .html-chart__bar { --bar-delay: 250ms; }
 .html-chart__bar-group:nth-child(7) .html-chart__bar { --bar-delay: 300ms; }
 .html-chart__bar-group:nth-child(8) .html-chart__bar { --bar-delay: 350ms; }
-
-/* Chart color variables */
-:root, [data-theme="dark"] {
-    --chart-blue: #4f81bd;
-    --chart-green: #9bbb59;
-    --chart-orange: #f79646;
-}
-
-[data-theme="light"] {
-    --chart-blue: #3a6ea5;
-    --chart-green: #7a9a45;
-    --chart-orange: #e07a30;
-}
 
 /* Legacy SVG theme support */
 [data-theme="light"] .chart-container svg rect[fill="#1e1e1e"],
