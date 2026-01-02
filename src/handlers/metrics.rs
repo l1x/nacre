@@ -63,9 +63,11 @@ pub async fn metrics_handler(
                 closed_last_7_days += 1;
             }
 
-            let started_at = started_times.get(&issue.id).unwrap_or(&issue.created_at);
-            let duration = closed_at - *started_at;
-            cycle_times.push(duration.whole_minutes() as f64);
+            // Only include issues that transitioned to InProgress for cycle time
+            if let Some(started_at) = started_times.get(&issue.id) {
+                let duration = closed_at - *started_at;
+                cycle_times.push(duration.whole_minutes() as f64);
+            }
         }
     }
 
@@ -233,12 +235,14 @@ pub async fn metrics_handler(
         if let Some(closed_at) = issue.closed_at {
             let close_date = closed_at.date();
             if close_date >= start_dt.date() && close_date <= now_dt.date() {
-                let started_at = started_times.get(&issue.id).unwrap_or(&issue.created_at);
-                let duration_mins = (closed_at - *started_at).whole_minutes() as f64;
-                cycle_times_by_day
-                    .entry(close_date)
-                    .or_default()
-                    .push(duration_mins);
+                // Only include issues that transitioned to InProgress for cycle time
+                if let Some(started_at) = started_times.get(&issue.id) {
+                    let duration_mins = (closed_at - *started_at).whole_minutes() as f64;
+                    cycle_times_by_day
+                        .entry(close_date)
+                        .or_default()
+                        .push(duration_mins);
+                }
             }
         }
     }
