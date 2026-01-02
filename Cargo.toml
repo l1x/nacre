@@ -30,6 +30,7 @@ autumnus = { version = "0.7", default-features = false, features = [
     "lang-rust",
     "lang-toml",
     "lang-typescript",
+    "lang-xml",
     "lang-yaml",
 ] }
 askama = { version = "0.12", features = ["markdown"] }
