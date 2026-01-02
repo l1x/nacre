@@ -412,3 +412,106 @@ pub async fn metrics_handler(
         activity_heatmap,
     })
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::beads::{Activity, EventType, Issue, Status};
+
+    #[test]
+    fn test_cycle_time_calculation_with_in_progress() {
+        // Create test activities with InProgress transition
+        let activities = vec![
+            Activity {
+                timestamp: time::macros::datetime!(2026-01-01 10:00:00 UTC),
+                r#type: EventType::StatusChanged,
+                issue_id: "test-1".to_string(),
+                message: "started".to_string(),
+                old_status: Some(Status::Open),
+                new_status: Some(Status::InProgress),
+            },
+            Activity {
+                timestamp: time::macros::datetime!(2026-01-01 12:00:00 UTC),
+                r#type: EventType::StatusChanged,
+                issue_id: "test-1".to_string(),
+                message: "completed".to_string(),
+                old_status: Some(Status::InProgress),
+                new_status: Some(Status::Closed),
+            },
+        ];
+
+        // Build started_times map (same logic as in metrics_handler)
+        let mut started_times: HashMap<String, time::OffsetDateTime> = HashMap::new();
+        for act in &activities {
+            if act.new_status == Some(Status::InProgress) {
+                started_times
+                    .entry(act.issue_id.clone())
+                    .or_insert(act.timestamp);
+            }
+        }
+
+        // Should have one entry
+        assert_eq!(started_times.len(), 1);
+        assert!(started_times.contains_key("test-1"));
+
+        // Create a closed issue
+        let issue = Issue {
+            id: "test-1".to_string(),
+            title: "Test Issue".to_string(),
+            status: Status::Closed,
+            priority: Some(2),
+            issue_type: crate::beads::IssueType::Task,
+            created_at: time::macros::datetime!(2026-01-01 09:00:00 UTC),
+            updated_at: time::macros::datetime!(2026-01-01 12:00:00 UTC),
+            closed_at: Some(time::macros::datetime!(2026-01-01 12:00:00 UTC)),
+            assignee: None,
+            labels: None,
+            description: None,
+            acceptance_criteria: None,
+            close_reason: None,
+            estimate: None,
+            dependencies: vec![],
+        };
+
+        // Calculate cycle time (same logic as in metrics_handler)
+        let mut cycle_times = Vec::new();
+        if let Some(closed_at) = issue.closed_at {
+            if let Some(started_at) = started_times.get(&issue.id) {
+                let duration = closed_at - *started_at;
+                cycle_times.push(duration.whole_minutes() as f64);
+            }
+        }
+
+        // Should have cycle time of 120 minutes (2 hours)
+        assert_eq!(cycle_times.len(), 1);
+        assert_eq!(cycle_times[0], 120.0);
+    }
+
+    #[test]
+    fn test_cycle_time_empty_without_in_progress() {
+        // Create activities WITHOUT InProgress transition
+        let activities = vec![
+            Activity {
+                timestamp: time::macros::datetime!(2026-01-01 10:00:00 UTC),
+                r#type: EventType::Created,
+                issue_id: "test-1".to_string(),
+                message: "created".to_string(),
+                old_status: None,
+                new_status: Some(Status::Open),
+            },
+        ];
+
+        // Build started_times map
+        let mut started_times: HashMap<String, time::OffsetDateTime> = HashMap::new();
+        for act in &activities {
+            if act.new_status == Some(Status::InProgress) {
+                started_times
+                    .entry(act.issue_id.clone())
+                    .or_insert(act.timestamp);
+            }
+        }
+
+        // Should be empty - no InProgress transitions
+        assert_eq!(started_times.len(), 0);
+    }
+}

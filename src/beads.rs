@@ -608,7 +608,14 @@ impl Client {
     }
 
     pub fn get_activity(&self) -> Result<Vec<Activity>> {
-        let output = self.base_command().arg("activity").arg("--json").output()?;
+        // Use a high limit to ensure we get all InProgress transitions needed for cycle time
+        let output = self
+            .base_command()
+            .arg("activity")
+            .arg("--json")
+            .arg("--limit")
+            .arg("10000")
+            .output()?;
 
         if !output.status.success() {
             let error_msg = String::from_utf8_lossy(&output.stderr);
@@ -973,6 +980,39 @@ mod tests {
         assert_eq!(activity.r#type, deserialized.r#type);
         assert_eq!(activity.old_status, deserialized.old_status);
         assert_eq!(activity.new_status, deserialized.new_status);
+    }
+
+    #[test]
+    fn test_activity_parse_real_json() {
+        // Test parsing actual JSON from bd activity --json
+        let json = r#"{"timestamp":"2026-01-01T11:00:56.004281+01:00","type":"status","issue_id":"nacre-eue.1","symbol":"→","message":"nacre-eue.1 started","old_status":"open","new_status":"in_progress"}"#;
+
+        let activity: Activity = serde_json::from_str(json).expect("Failed to parse activity JSON");
+        assert_eq!(activity.issue_id, "nacre-eue.1");
+        assert_eq!(activity.r#type, EventType::StatusChanged);
+        assert_eq!(activity.old_status, Some(Status::Open));
+        assert_eq!(activity.new_status, Some(Status::InProgress));
+    }
+
+    #[test]
+    fn test_activity_parse_array() {
+        // Test parsing array of activities as returned by bd activity --json
+        let json = r#"[
+            {"timestamp":"2026-01-01T10:35:34.504723+01:00","type":"create","issue_id":"nacre-eue","symbol":"+","message":"nacre-eue created"},
+            {"timestamp":"2026-01-01T11:00:56.004281+01:00","type":"status","issue_id":"nacre-eue.1","symbol":"→","message":"started","old_status":"open","new_status":"in_progress"},
+            {"timestamp":"2026-01-01T11:07:46.028596+01:00","type":"status","issue_id":"nacre-eue.1","symbol":"✓","message":"completed","old_status":"in_progress","new_status":"closed"}
+        ]"#;
+
+        let activities: Vec<Activity> = serde_json::from_str(json).expect("Failed to parse activities array");
+        assert_eq!(activities.len(), 3);
+
+        // Find the InProgress activity
+        let in_progress_activities: Vec<_> = activities
+            .iter()
+            .filter(|a| a.new_status == Some(Status::InProgress))
+            .collect();
+        assert_eq!(in_progress_activities.len(), 1);
+        assert_eq!(in_progress_activities[0].issue_id, "nacre-eue.1");
     }
 
     #[test]
