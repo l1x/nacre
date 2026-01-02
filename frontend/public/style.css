@@ -811,8 +811,8 @@ main:has(.board) {
     margin: 0;
 }
 
-.description-content h1, 
-.description-content h2, 
+.description-content h1,
+.description-content h2,
 .description-content h3 {
     font-family: -apple-system, BlinkMacSystemFont, sans-serif;
     font-style: normal;
@@ -820,6 +820,31 @@ main:has(.board) {
     color: var(--text-primary);
     margin-top: 1.5em;
     margin-bottom: 0.75em;
+}
+
+/* Markdown tables */
+.description-content table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1.5em 0;
+    font-size: 0.95rem;
+}
+
+.description-content th,
+.description-content td {
+    padding: 10px 14px;
+    text-align: left;
+    border: 1px solid var(--border-color);
+}
+
+.description-content th {
+    background: var(--bg-secondary);
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.description-content tr:hover {
+    background: var(--bg-card-hover);
 }
 
 .timestamps-grid {
@@ -1001,6 +1026,30 @@ main:has(.board) {
 .prd-content strong {
     color: var(--text-primary);
     font-weight: 600;
+}
+
+.prd-content table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1.5em 0;
+    font-size: 0.95rem;
+}
+
+.prd-content th,
+.prd-content td {
+    padding: 10px 14px;
+    text-align: left;
+    border: 1px solid var(--border-color);
+}
+
+.prd-content th {
+    background: var(--bg-secondary);
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.prd-content tr:hover {
+    background: var(--bg-card-hover);
 }
 
 .prd-content code {
