@@ -3005,18 +3005,20 @@ main:has(.board) {
 }
 
 /* Indicator dots for type and status */
-.org-node-indicators {
-    display: flex;
-    gap: 4px;
-    position: absolute;
-    top: 4px;
-    right: 4px;
-}
-
 .org-node-dot {
     width: 8px;
     height: 8px;
     border-radius: 50%;
+    position: absolute;
+    bottom: 4px;
+}
+
+.org-node-dot--type {
+    left: 4px;
+}
+
+.org-node-dot--status {
+    right: 4px;
 }
 
 /* Type dot colors */
@@ -3047,15 +3049,6 @@ main:has(.board) {
     background-color: rgba(212, 138, 138, 0.2);
     color: var(--status-blocked);
     margin-top: 2px;
-}
-
-/* Priority indicator */
-.org-node-priority {
-    font-size: 0.6rem;
-    color: var(--text-muted);
-    position: absolute;
-    top: 2px;
-    right: 4px;
 }
 
 /* Graph tree container */

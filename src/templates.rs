@@ -134,11 +134,8 @@ impl NestedTreeNode {
         format!(
             r#"<li>
     <a href="/tasks/{id}" class="org-node status-{status} type-{issue_type}">
-        <div class="org-node-indicators">
-            <span class="org-node-dot org-node-dot--type type-{issue_type}" title="{issue_type}"></span>
-            <span class="org-node-dot org-node-dot--status status-{status}" title="{status}"></span>
-        </div>
-        <span class="org-node-priority">P{priority}</span>
+        <span class="org-node-dot org-node-dot--type type-{issue_type}" title="{issue_type}"></span>
+        <span class="org-node-dot org-node-dot--status status-{status}" title="{status}"></span>
         <div class="org-node-content">
             <span class="org-node-title">{title}</span>
             <span class="org-node-id">{id}</span>
