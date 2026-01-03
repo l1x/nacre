@@ -2984,12 +2984,13 @@ main:has(.board) {
     display: inline-block;
     border-radius: var(--radius);
     color: var(--text-primary);
-    background-color: var(--bg-card);
+    background-color: var(--bg-card-hover);
     position: relative;
     top: 1px;
     transition: all 0.2s ease;
     min-width: 120px;
     max-width: 200px;
+    box-shadow: var(--shadow-sm);
 }
 
 .org-tree li > a:hover,
