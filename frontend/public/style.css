@@ -3007,18 +3007,22 @@ main:has(.board) {
 /* Status indicators on nodes */
 .org-node.status-open {
     border-left: 3px solid var(--status-open);
+    background: linear-gradient(90deg, rgba(224, 122, 74, 0.15) 0%, var(--bg-card) 100%);
 }
 
 .org-node.status-in_progress {
     border-left: 3px solid var(--status-in-progress);
+    background: linear-gradient(90deg, rgba(126, 184, 218, 0.15) 0%, var(--bg-card) 100%);
 }
 
 .org-node.status-blocked {
     border-left: 3px solid var(--status-blocked);
+    background: linear-gradient(90deg, rgba(212, 138, 138, 0.15) 0%, var(--bg-card) 100%);
 }
 
 .org-node.status-closed {
     border-left: 3px solid var(--status-closed);
+    background: var(--bg-card);
     opacity: 0.6;
 }
 
