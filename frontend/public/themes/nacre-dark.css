@@ -42,14 +42,17 @@
 
     /* Semantic Colors */
     --color-red: #d48a8a;
-    --color-green: #9bbb59;
+    --color-orange: #e07a4a;
     --color-yellow: #f0c674;
+    --color-green: #9bbb59;
     --color-blue: #7eb8da;
-    --color-pink: #b8a9c9;
     --color-teal: #5fb3b3;
+    --color-pink: #b8a9c9;
+    --color-purple: #9b59b6;
+    --color-grey: #6a6560;
 
     /* Chart colors */
     --chart-blue: var(--color-blue);
     --chart-green: var(--color-green);
-    --chart-orange: var(--accent);
+    --chart-orange: var(--color-orange);
 }

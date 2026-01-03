@@ -41,16 +41,19 @@
     --type-feature: #8caaee;    /* blue */
     --type-bug: #e78284;        /* red */
 
-    /* Semantic Colors */
-    --color-red: #e78284;
-    --color-green: #a6d189;
-    --color-yellow: #e5c890;
-    --color-blue: #8caaee;
-    --color-pink: #f4b8e4;
-    --color-teal: #81c8be;
+    /* Semantic Colors - Catppuccin Palette */
+    --color-red: #e78284;       /* red */
+    --color-orange: #ef9f76;    /* peach */
+    --color-yellow: #e5c890;    /* yellow */
+    --color-green: #a6d189;     /* green */
+    --color-blue: #8caaee;      /* blue */
+    --color-teal: #81c8be;      /* teal */
+    --color-pink: #f4b8e4;      /* pink */
+    --color-purple: #ca9ee6;    /* mauve */
+    --color-grey: #838ba7;      /* overlay1 */
 
     /* Chart colors */
     --chart-blue: var(--color-blue);
     --chart-green: var(--color-green);
-    --chart-orange: var(--accent);
+    --chart-orange: var(--color-orange);
 }

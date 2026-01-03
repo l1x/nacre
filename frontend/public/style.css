@@ -2404,32 +2404,32 @@ main:has(.board) {
     transform: scaleY(1.02);
 }
 
-/* Bar colors - Project Palette */
+/* Bar colors - Using semantic color palette */
 .html-chart__bar--blue { background: var(--chart-blue); }
 .html-chart__bar--green { background: var(--chart-green); }
-.html-chart__bar--orange { background: var(--accent); }
-.html-chart__bar--grey { background: var(--text-muted); }
+.html-chart__bar--orange { background: var(--chart-orange); }
+.html-chart__bar--grey { background: var(--color-grey); }
 
 /* Legend Dots */
 .html-chart__legend-dot--blue { background: var(--chart-blue); }
 .html-chart__legend-dot--green { background: var(--chart-green); }
-.html-chart__legend-dot--orange { background: var(--accent); }
-.html-chart__legend-dot--grey { background: var(--text-muted); }
+.html-chart__legend-dot--orange { background: var(--chart-orange); }
+.html-chart__legend-dot--grey { background: var(--color-grey); }
 
 /* Specific Chart Overrides to match Board colors (Created=Orange, Resolved/Closed=Grey) */
 #ticket-activity .html-chart__bar--blue,
 #ticket-activity .html-chart__legend-dot--blue {
-    background: var(--accent);
+    background: var(--chart-orange);
 }
 
 #ticket-activity .html-chart__bar--green,
 #ticket-activity .html-chart__legend-dot--green {
-    background: var(--text-muted);
+    background: var(--color-grey);
 }
 
 #throughput .html-chart__bar--blue,
 #throughput .html-chart__legend-dot--blue {
-    background: var(--text-muted);
+    background: var(--color-grey);
 }
 
 .html-chart__bar-value {
