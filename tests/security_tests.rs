@@ -1,6 +1,6 @@
 use axum::http::StatusCode;
 use axum_test::TestServer;
-use nacre::{create_app, AppState};
+use nacre::{AppState, create_app};
 use std::sync::Arc;
 
 #[tokio::test]
@@ -13,19 +13,19 @@ async fn test_path_traversal_protection() {
     // The filename parameter in the route is /prds/:filename
     // We expect the server to reject ".."
     let _response = server.get("/prds/../../Cargo.toml").await;
-    
+
     // Axum/Hyper might normalize ".." before it reaches the handler if not careful,
     // but typically it doesn't cross route segments if defined as :filename.
-    // However, :filename matches a single segment. 
-    // If we request /prds/../../Cargo.toml, the router might not even match /prds/:filename 
+    // However, :filename matches a single segment.
+    // If we request /prds/../../Cargo.toml, the router might not even match /prds/:filename
     // because that expects exactly two segments: /prds/something.
-    
+
     // If we encode it: /prds/%2e%2e%2f%2e%2e%2fCargo.toml
     // The decoded filename would be "../../Cargo.toml".
-    
+
     // Let's try encoded traversal
     let response = server.get("/prds/%2e%2e%2f%2e%2e%2fCargo.toml").await;
-    
+
     // It should be 400 Bad Request or 404 Not Found, but definitely NOT 200
     assert_ne!(response.status_code(), StatusCode::OK);
     assert_eq!(response.status_code(), StatusCode::BAD_REQUEST);

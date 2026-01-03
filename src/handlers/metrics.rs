@@ -129,7 +129,10 @@ pub fn calculate_status_counts(issues: &[Issue], now: OffsetDateTime) -> StatusC
         .filter(|i| i.status == Status::InProgress)
         .count();
 
-    let blocked_count = issues.iter().filter(|i| i.status == Status::Blocked).count();
+    let blocked_count = issues
+        .iter()
+        .filter(|i| i.status == Status::Blocked)
+        .count();
 
     StatusCounts {
         closed_last_7_days,
@@ -342,9 +345,27 @@ pub fn build_cycle_time_chart(
     create_chart(
         labels,
         vec![
-            create_series("p50", "blue", &cycle_p50_scaled, cycle_max_scaled, cycle_unit),
-            create_series("p90", "orange", &cycle_p90_scaled, cycle_max_scaled, cycle_unit),
-            create_series("p100", "yellow", &cycle_p100_scaled, cycle_max_scaled, cycle_unit),
+            create_series(
+                "p50",
+                "blue",
+                &cycle_p50_scaled,
+                cycle_max_scaled,
+                cycle_unit,
+            ),
+            create_series(
+                "p90",
+                "orange",
+                &cycle_p90_scaled,
+                cycle_max_scaled,
+                cycle_unit,
+            ),
+            create_series(
+                "p100",
+                "yellow",
+                &cycle_p100_scaled,
+                cycle_max_scaled,
+                cycle_unit,
+            ),
         ],
         cycle_unit,
     )
@@ -379,7 +400,13 @@ pub fn build_throughput_chart(issues: &[Issue], dates: &[time::Date]) -> ChartDa
 
     create_chart(
         labels,
-        vec![create_series("Closed", "orange", &throughput_values, throughput_max, "")],
+        vec![create_series(
+            "Closed",
+            "orange",
+            &throughput_values,
+            throughput_max,
+            "",
+        )],
         "",
     )
 }
@@ -476,15 +503,13 @@ pub async fn metrics_handler(
     while let Some(res) = set.join_next().await {
         match res.map_err(|e| crate::AppError::BadRequest(format!("Task join failed: {e}")))? {
             MetricsData::Issues(data) => all_issues = data?,
-            MetricsData::Activities(data) => {
-                match data {
-                    Ok(acts) => activities = acts,
-                    Err(e) => {
-                        debug!(error = %e, "Failed to fetch activities");
-                        activities = Vec::new();
-                    }
+            MetricsData::Activities(data) => match data {
+                Ok(acts) => activities = acts,
+                Err(e) => {
+                    debug!(error = %e, "Failed to fetch activities");
+                    activities = Vec::new();
                 }
-            }
+            },
             MetricsData::Summary(data) => summary = data.unwrap_or(serde_json::Value::Null),
         }
     }
@@ -554,7 +579,12 @@ mod tests {
     use super::*;
     use crate::beads::{Activity, EventType, IssueType};
 
-    fn make_test_issue(id: &str, status: Status, created_at: OffsetDateTime, closed_at: Option<OffsetDateTime>) -> Issue {
+    fn make_test_issue(
+        id: &str,
+        status: Status,
+        created_at: OffsetDateTime,
+        closed_at: Option<OffsetDateTime>,
+    ) -> Issue {
         Issue {
             id: id.to_string(),
             title: format!("Test {}", id),
@@ -574,7 +604,11 @@ mod tests {
         }
     }
 
-    fn make_status_change(issue_id: &str, timestamp: OffsetDateTime, new_status: Status) -> Activity {
+    fn make_status_change(
+        issue_id: &str,
+        timestamp: OffsetDateTime,
+        new_status: Status,
+    ) -> Activity {
         Activity {
             timestamp,
             r#type: EventType::StatusChanged,
@@ -607,9 +641,21 @@ mod tests {
     #[test]
     fn test_build_started_times_map() {
         let activities = vec![
-            make_status_change("test-1", time::macros::datetime!(2026-01-01 10:00:00 UTC), Status::InProgress),
-            make_status_change("test-1", time::macros::datetime!(2026-01-01 12:00:00 UTC), Status::Closed),
-            make_status_change("test-2", time::macros::datetime!(2026-01-01 11:00:00 UTC), Status::InProgress),
+            make_status_change(
+                "test-1",
+                time::macros::datetime!(2026-01-01 10:00:00 UTC),
+                Status::InProgress,
+            ),
+            make_status_change(
+                "test-1",
+                time::macros::datetime!(2026-01-01 12:00:00 UTC),
+                Status::Closed,
+            ),
+            make_status_change(
+                "test-2",
+                time::macros::datetime!(2026-01-01 11:00:00 UTC),
+                Status::InProgress,
+            ),
         ];
 
         let started_times = build_started_times_map(&activities);
@@ -618,21 +664,22 @@ mod tests {
         assert!(started_times.contains_key("test-1"));
         assert!(started_times.contains_key("test-2"));
         // Should use first InProgress timestamp
-        assert_eq!(started_times["test-1"], time::macros::datetime!(2026-01-01 10:00:00 UTC));
+        assert_eq!(
+            started_times["test-1"],
+            time::macros::datetime!(2026-01-01 10:00:00 UTC)
+        );
     }
 
     #[test]
     fn test_build_started_times_map_empty_without_in_progress() {
-        let activities = vec![
-            Activity {
-                timestamp: time::macros::datetime!(2026-01-01 10:00:00 UTC),
-                r#type: EventType::Created,
-                issue_id: "test-1".to_string(),
-                message: "created".to_string(),
-                old_status: None,
-                new_status: Some(Status::Open),
-            },
-        ];
+        let activities = vec![Activity {
+            timestamp: time::macros::datetime!(2026-01-01 10:00:00 UTC),
+            r#type: EventType::Created,
+            issue_id: "test-1".to_string(),
+            message: "created".to_string(),
+            old_status: None,
+            new_status: Some(Status::Open),
+        }];
 
         let started_times = build_started_times_map(&activities);
         assert_eq!(started_times.len(), 0);
@@ -640,14 +687,12 @@ mod tests {
 
     #[test]
     fn test_calculate_cycle_times() {
-        let issues = vec![
-            make_test_issue(
-                "test-1",
-                Status::Closed,
-                time::macros::datetime!(2026-01-01 09:00:00 UTC),
-                Some(time::macros::datetime!(2026-01-01 12:00:00 UTC)),
-            ),
-        ];
+        let issues = vec![make_test_issue(
+            "test-1",
+            Status::Closed,
+            time::macros::datetime!(2026-01-01 09:00:00 UTC),
+            Some(time::macros::datetime!(2026-01-01 12:00:00 UTC)),
+        )];
 
         let mut started_times = HashMap::new();
         started_times.insert(
@@ -664,14 +709,12 @@ mod tests {
 
     #[test]
     fn test_calculate_cycle_times_no_in_progress() {
-        let issues = vec![
-            make_test_issue(
-                "test-1",
-                Status::Closed,
-                time::macros::datetime!(2026-01-01 09:00:00 UTC),
-                Some(time::macros::datetime!(2026-01-01 12:00:00 UTC)),
-            ),
-        ];
+        let issues = vec![make_test_issue(
+            "test-1",
+            Status::Closed,
+            time::macros::datetime!(2026-01-01 09:00:00 UTC),
+            Some(time::macros::datetime!(2026-01-01 12:00:00 UTC)),
+        )];
 
         let started_times = HashMap::new(); // No InProgress transitions
 
@@ -744,32 +787,28 @@ mod tests {
         let dates = generate_date_range(now);
 
         assert_eq!(dates.len(), 7);
-        assert_eq!(dates[0], time::macros::date!(2026-01-01));
-        assert_eq!(dates[6], time::macros::date!(2026-01-07));
+        assert_eq!(dates[0], time::macros::date!(2026 - 01 - 01));
+        assert_eq!(dates[6], time::macros::date!(2026 - 01 - 07));
     }
 
     #[test]
     fn test_build_activity_heatmap() {
         // 2026-01-05 is a Monday
-        let activities = vec![
-            Activity {
-                timestamp: time::macros::datetime!(2026-01-05 14:00:00 UTC), // Monday 14:00
-                r#type: EventType::StatusChanged,
-                issue_id: "test-1".to_string(),
-                message: "changed".to_string(),
-                old_status: Some(Status::Open),
-                new_status: Some(Status::InProgress),
-            },
-        ];
+        let activities = vec![Activity {
+            timestamp: time::macros::datetime!(2026-01-05 14:00:00 UTC), // Monday 14:00
+            r#type: EventType::StatusChanged,
+            issue_id: "test-1".to_string(),
+            message: "changed".to_string(),
+            old_status: Some(Status::Open),
+            new_status: Some(Status::InProgress),
+        }];
 
-        let issues = vec![
-            make_test_issue(
-                "test-1",
-                Status::InProgress,
-                time::macros::datetime!(2026-01-05 10:00:00 UTC), // Monday 10:00
-                None,
-            ),
-        ];
+        let issues = vec![make_test_issue(
+            "test-1",
+            Status::InProgress,
+            time::macros::datetime!(2026-01-05 10:00:00 UTC), // Monday 10:00
+            None,
+        )];
 
         let heatmap = build_activity_heatmap(&activities, &issues);
 

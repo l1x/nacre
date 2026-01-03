@@ -263,7 +263,11 @@ mod tests {
             make_issue("nacre-1", IssueType::Task, Status::Open),
             make_issue("nacre-2", IssueType::Task, Status::Open),
         ];
-        let deps = vec![make_dependency("nacre-2", "nacre-1", DependencyType::Blocks)];
+        let deps = vec![make_dependency(
+            "nacre-2",
+            "nacre-1",
+            DependencyType::Blocks,
+        )];
 
         let graph = build_graph_data(&issues, &deps);
 

@@ -6,8 +6,8 @@
 //! - Dependencies display correctly in graph
 //! - Data consistency between API and HTML views
 
-use axum::http::StatusCode;
 use crate::common::test_server;
+use axum::http::StatusCode;
 
 /// Test that a task created via API appears in tasks list view
 #[tokio::test]

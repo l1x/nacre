@@ -299,9 +299,7 @@ pub fn build_nested_tree(all_issues: &[beads::Issue]) -> Vec<NestedTreeNode> {
             .map(|child_ids| {
                 let mut child_nodes: Vec<_> = child_ids
                     .iter()
-                    .filter_map(|id| {
-                        build_node(id, issue_map, children_map, blocked_by_count)
-                    })
+                    .filter_map(|id| build_node(id, issue_map, children_map, blocked_by_count))
                     .collect();
                 // Sort children by status then id
                 child_nodes.sort_by(|a, b| {
@@ -350,9 +348,7 @@ pub fn build_nested_tree(all_issues: &[beads::Issue]) -> Vec<NestedTreeNode> {
     // Build nested tree from top-level nodes
     top_level
         .iter()
-        .filter_map(|issue| {
-            build_node(&issue.id, &issue_map, &children_map, &blocked_by_count)
-        })
+        .filter_map(|issue| build_node(&issue.id, &issue_map, &children_map, &blocked_by_count))
         .collect()
 }
 

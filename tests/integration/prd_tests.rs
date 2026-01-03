@@ -2,8 +2,8 @@
 //!
 //! Tests for PRD listing and detail views
 
-use axum::http::StatusCode;
 use crate::common::test_server;
+use axum::http::StatusCode;
 
 #[tokio::test]
 async fn test_prds_list() {

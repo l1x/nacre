@@ -18,7 +18,10 @@ pub fn calculate_project_stats(issues: &[Issue]) -> ProjectStats {
             .iter()
             .filter(|i| i.status == Status::InProgress)
             .count(),
-        blocked: issues.iter().filter(|i| i.status == Status::Blocked).count(),
+        blocked: issues
+            .iter()
+            .filter(|i| i.status == Status::Blocked)
+            .count(),
         closed: issues.iter().filter(|i| i.status == Status::Closed).count(),
     }
 }

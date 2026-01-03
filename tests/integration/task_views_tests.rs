@@ -2,8 +2,8 @@
 //!
 //! Tests for task-related HTML views: list, detail, edit
 
-use axum::http::StatusCode;
 use crate::common::test_server;
+use axum::http::StatusCode;
 
 #[tokio::test]
 async fn test_tasks_list() {

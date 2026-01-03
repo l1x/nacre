@@ -1,5 +1,5 @@
-use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::Arc;
+use std::sync::atomic::{AtomicU64, Ordering};
 
 use axum::Router;
 use axum::routing::{get, post};
@@ -83,11 +83,8 @@ pub fn create_app(state: SharedAppState) -> Router {
                 .make_span_with(|request: &axum::http::Request<_>| {
                     static REQUEST_ID: AtomicU64 = AtomicU64::new(1);
                     let request_id_num = REQUEST_ID.fetch_add(1, Ordering::Relaxed);
-                    let generator = block_id::BlockId::new(
-                        block_id::Alphabet::alphanumeric(),
-                        1234,
-                        5,
-                    );
+                    let generator =
+                        block_id::BlockId::new(block_id::Alphabet::alphanumeric(), 1234, 5);
                     let request_id = generator
                         .encode_string(request_id_num)
                         .unwrap_or_else(|| request_id_num.to_string());

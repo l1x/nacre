@@ -2,11 +2,11 @@
 //!
 //! Tests for health check, landing page, and miscellaneous views
 
-use axum::http::StatusCode;
-use nacre::{create_app, AppState};
-use std::sync::Arc;
-use axum_test::TestServer;
 use crate::common::test_server;
+use axum::http::StatusCode;
+use axum_test::TestServer;
+use nacre::{AppState, create_app};
+use std::sync::Arc;
 
 #[tokio::test]
 async fn test_health_check() {

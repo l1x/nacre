@@ -2,8 +2,8 @@
 //!
 //! Tests for the Kanban board view
 
-use axum::http::StatusCode;
 use crate::common::test_server;
+use axum::http::StatusCode;
 
 #[tokio::test]
 async fn test_board_view() {

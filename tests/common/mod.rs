@@ -4,7 +4,7 @@
 //! enabling parallel development by multiple agents.
 
 use axum_test::TestServer;
-use nacre::{create_app, AppState};
+use nacre::{AppState, create_app};
 use std::sync::Arc;
 
 /// Creates a test server for integration testing.

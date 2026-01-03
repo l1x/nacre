@@ -46,8 +46,14 @@ fn serve_asset(filename: &str, headers: &HeaderMap) -> Response {
 
     let content = file.contents_utf8().unwrap_or("");
     let mut response_headers = HeaderMap::new();
-    response_headers.insert(header::CONTENT_TYPE, HeaderValue::from_static(content_type(filename)));
-    response_headers.insert(header::CACHE_CONTROL, HeaderValue::from_static(CACHE_CONTROL));
+    response_headers.insert(
+        header::CONTENT_TYPE,
+        HeaderValue::from_static(content_type(filename)),
+    );
+    response_headers.insert(
+        header::CACHE_CONTROL,
+        HeaderValue::from_static(CACHE_CONTROL),
+    );
     if let Ok(etag_value) = HeaderValue::from_str(&etag) {
         response_headers.insert(header::ETAG, etag_value);
     }
@@ -90,15 +96,16 @@ pub async fn serve_static(Path(filename): Path<String>, headers: HeaderMap) -> R
     serve_asset(&filename, &headers)
 }
 
-pub async fn graph(
-    State(state): State<crate::SharedAppState>,
-) -> crate::AppResult<GraphTemplate> {
+pub async fn graph(State(state): State<crate::SharedAppState>) -> crate::AppResult<GraphTemplate> {
     let all_issues = state.client.list_issues()?;
 
     // Get all epics for the selector
     let epics: Vec<EpicSummary> = all_issues
         .iter()
-        .filter(|i| i.issue_type == crate::beads::IssueType::Epic && i.status != crate::beads::Status::Tombstone)
+        .filter(|i| {
+            i.issue_type == crate::beads::IssueType::Epic
+                && i.status != crate::beads::Status::Tombstone
+        })
         .map(|i| EpicSummary {
             id: i.id.clone(),
             title: i.title.clone(),
@@ -125,7 +132,10 @@ pub async fn graph_epic(
     // Get all epics for the selector
     let epics: Vec<EpicSummary> = all_issues
         .iter()
-        .filter(|i| i.issue_type == crate::beads::IssueType::Epic && i.status != crate::beads::Status::Tombstone)
+        .filter(|i| {
+            i.issue_type == crate::beads::IssueType::Epic
+                && i.status != crate::beads::Status::Tombstone
+        })
         .map(|i| EpicSummary {
             id: i.id.clone(),
             title: i.title.clone(),

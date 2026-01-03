@@ -2,8 +2,8 @@
 //!
 //! Tests for REST API endpoints: GET/POST /api/issues
 
-use axum::http::StatusCode;
 use crate::common::test_server;
+use axum::http::StatusCode;
 
 #[tokio::test]
 async fn test_api_tasks_list() {

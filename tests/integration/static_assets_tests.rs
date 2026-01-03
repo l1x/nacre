@@ -2,8 +2,8 @@
 //!
 //! Tests for CSS, JavaScript, and favicon serving with caching
 
-use axum::http::StatusCode;
 use crate::common::test_server;
+use axum::http::StatusCode;
 
 #[tokio::test]
 async fn test_static_assets() {

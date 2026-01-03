@@ -1007,7 +1007,8 @@ mod tests {
             {"timestamp":"2026-01-01T11:07:46.028596+01:00","type":"status","issue_id":"nacre-eue.1","symbol":"✓","message":"completed","old_status":"in_progress","new_status":"closed"}
         ]"#;
 
-        let activities: Vec<Activity> = serde_json::from_str(json).expect("Failed to parse activities array");
+        let activities: Vec<Activity> =
+            serde_json::from_str(json).expect("Failed to parse activities array");
         assert_eq!(activities.len(), 3);
 
         // Find the InProgress activity
