@@ -10,6 +10,14 @@ homepage = "https://github.com/l1x/nacre"
 readme = "README.md"
 keywords = ["beads", "issue-tracker", "dashboard", "cli", "project-management"]
 categories = ["command-line-utilities", "development-tools"]
+exclude = [
+  ".agent-prompts/",
+  ".beads/",
+  ".claude/",
+  "benches/",
+  "docs/",
+  "frontend/src/",
+]
 
 [package.metadata.cargo-machete]
 ignored = ["askama_axum"]  # Provides IntoResponse trait impls for Askama+Axum
