@@ -1,1 +1,1046 @@
-var w=["nacre-light","catppuccin-latte"];(function(){let m=localStorage.getItem("theme"),M=window.matchMedia("(prefers-color-scheme: dark)").matches,L=m||(M?"nacre-dark":"nacre-light");document.documentElement.setAttribute("data-theme",L);let f=w.includes(L)?"light":"dark";document.documentElement.setAttribute("data-syntax",f)})();function N(){let m=document.getElementById("theme-select");if(m){let M=document.documentElement.getAttribute("data-theme")||"nacre-dark";m.value=M,m.addEventListener("change",()=>{let L=m.value;document.documentElement.setAttribute("data-theme",L),localStorage.setItem("theme",L);let f=w.includes(L)?"light":"dark";document.documentElement.setAttribute("data-syntax",f)})}}function V(){let m=document.getElementById("filter-input");if(m)m.addEventListener("input",(M)=>{let L=M.target.value.toLowerCase();document.querySelectorAll("[data-filter-text]").forEach((q)=>{let k=q.getAttribute("data-filter-text"),J=k&&k.includes(L);if(q instanceof HTMLElement)if(J)q.style.display="";else q.style.display="none"})})}function S(){document.addEventListener("click",(m)=>{let L=m.target.closest(".toggle-children");if(!L)return;let f=L.closest(".epic-item");if(!f)return;let q=f.querySelector(".epic-children");if(!q)return;let k=q.classList.contains("collapsed");if(q.classList.toggle("collapsed"),L.classList.toggle("expanded"),k)q.style.maxHeight=q.scrollHeight+"px",q.style.opacity="1";else q.style.maxHeight="0",q.style.opacity="0"})}class x{container=null;activeToasts=new Set;initialized=!1;constructor(){if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",()=>this.init());else this.init()}init(){if(this.initialized)return;this.container=document.createElement("div"),this.container.id="toast-container",this.container.className="toast-container",document.body.appendChild(this.container),this.initialized=!0}createToast(m){let M=document.createElement("div");M.className=`toast toast-${m.type||"info"}`;let L=document.createElement("div");L.className="toast-message",L.textContent=m.message;let f=document.createElement("div");if(f.className="toast-actions",m.retryAction){let k=document.createElement("button");k.className="toast-retry",k.textContent="Retry",k.addEventListener("click",async()=>{k.disabled=!0,k.textContent="Retrying...";try{await m.retryAction(),this.remove(M),this.show({message:"Success!",type:"success",duration:2000})}catch{k.disabled=!1,k.textContent="Retry"}}),f.appendChild(k)}let q=document.createElement("button");return q.className="toast-close",q.textContent="×",q.addEventListener("click",()=>this.remove(M)),f.appendChild(q),M.appendChild(L),M.appendChild(f),M}show(m){if(!this.initialized)return;if(!this.container)return;let M=this.createToast(m);if(this.container.appendChild(M),this.activeToasts.add(M),setTimeout(()=>{M.classList.add("toast-show")},10),m.duration&&m.duration>0)setTimeout(()=>{this.remove(M)},m.duration)}remove(m){m.classList.remove("toast-show"),setTimeout(()=>{if(m.parentNode)m.parentNode.removeChild(m);this.activeToasts.delete(m)},300)}clear(){this.activeToasts.forEach((m)=>this.remove(m))}}var b=new x;function P(m,M,L){let f=m instanceof Error?m.message:"Unknown error occurred";console.error(`[${M}] ${f}`,m),b.show({message:`${M}: ${f}`,type:"error",duration:L?0:5000,retryAction:L})}function U(m,M,L){let f=`HTTP ${m.status}: ${m.statusText}`;console.error(`[${M}] ${f}`,m),b.show({message:`${M}: ${f}`,type:"error",duration:L?0:5000,retryAction:L})}function T(){document.addEventListener("click",(M)=>{let L=M.target;if(L.classList.contains("issue-title")&&L.closest(".issue-item"))m(L)});function m(M){let L=M.innerText,f=document.createElement("input");f.type="text",f.value=L,f.classList.add("edit-input"),f.addEventListener("click",(E)=>E.stopPropagation()),M.replaceWith(f),f.focus();let q=!1,k=async()=>{if(q)return;q=!0;let E=f.value.trim(),G=f.closest(".issue-item"),Q=G?G.getAttribute("data-id"):null;if(E&&E!==L&&Q){let u=async()=>{if(!(await fetch(`/api/issues/${Q}`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({title:E})})).ok)throw Error("Update failed")};try{await u();let F=document.createElement("div");F.classList.add("issue-title"),F.innerText=E,f.replaceWith(F)}catch(F){if(F instanceof Error&&F.message==="Update failed")U(new Response(null,{status:500,statusText:"Update failed"}),"Failed to update title",u);else P(F,"Failed to update title",u)}}else J()},J=()=>{let E=document.createElement("div");E.classList.add("issue-title"),E.innerText=L,f.replaceWith(E)};f.addEventListener("blur",k),f.addEventListener("keydown",(E)=>{if(E.key==="Enter")f.blur();else if(E.key==="Escape")J(),q=!0})}}var W={OPEN:"open",IN_PROGRESS:"in_progress",BLOCKED:"blocked",CLOSED:"closed",DEFERRED:"deferred"},Y={[W.OPEN]:0,[W.IN_PROGRESS]:1,[W.BLOCKED]:2,[W.CLOSED]:3,[W.DEFERRED]:4},D={EPIC:"epic",FEATURE:"feature",BUG:"bug",TASK:"task",CHORE:"chore"},_={[D.EPIC]:0,[D.FEATURE]:1,[D.BUG]:2,[D.TASK]:3,[D.CHORE]:4};var p=Object.values(W);function l(m){return p.includes(m)}function r(){let m=document.getElementById("columns-toggle"),M=document.getElementById("columns-dropdown");if(m&&M){let J=function(G,Q){let u=document.querySelector(`.board-column[data-status="${G}"]`);if(u)u.style.display=Q?"":"none"},E=function(){let G={};k().forEach((Q)=>{let u=Q.getAttribute("data-status");if(u&&l(u))G[u]=Q.checked}),localStorage.setItem("board-column-visibility",JSON.stringify(G))},f=localStorage.getItem("board-column-visibility"),q=f?JSON.parse(f):null,k=()=>M.querySelectorAll('input[type="checkbox"]');k().forEach((G)=>{let Q=G.getAttribute("data-status");if(!Q||!l(Q))return;if(q===null)G.checked=Q!==W.DEFERRED;else G.checked=q[Q]!==!1;J(Q,G.checked)}),M.addEventListener("change",(G)=>{let Q=G.target;if(Q.type!=="checkbox")return;let u=Q.getAttribute("data-status");if(!u)return;J(u,Q.checked),E()}),m.addEventListener("click",(G)=>{G.stopPropagation(),M.classList.toggle("show")}),document.addEventListener("click",(G)=>{if(!M.contains(G.target)&&G.target!==m)M.classList.remove("show")}),M.addEventListener("click",(G)=>{G.stopPropagation()})}let L=()=>{let f=document.querySelectorAll(".type-filter");if(f.length===0)return;let q=new Set(Array.from(f).filter((J)=>J.checked).map((J)=>J.value));document.querySelectorAll(".issue-card").forEach((J)=>{let E=!1;for(let G of q)if(J.classList.contains(`issue-type-${G}`)){E=!0;break}J.classList.toggle("hidden-by-type",!E)})};document.addEventListener("change",(f)=>{if(f.target.classList.contains("type-filter"))L()}),L()}function B(){let m=document.querySelectorAll('.issue-card[draggable="true"]'),M=document.querySelectorAll(".column-content");if(m.length>0&&M.length>0)m.forEach((f)=>{f.addEventListener("dragstart",()=>{f.classList.add("dragging"),f.style.opacity="0.5"}),f.addEventListener("dragend",()=>{f.classList.remove("dragging"),f.style.opacity="1"})}),M.forEach((f)=>{f.addEventListener("dragover",(q)=>{q.preventDefault();let k=document.querySelector(".dragging");if(k){let J=L(f,q.clientY);if(J==null)f.appendChild(k);else f.insertBefore(k,J)}}),f.addEventListener("drop",async()=>{let q=document.querySelector(".dragging");if(!q)return;let k=f.getAttribute("data-status"),J=q.getAttribute("data-id");if(J&&k){let E=async()=>{if(!(await fetch(`/api/issues/${J}`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({status:k})})).ok)throw Error("Update failed")};try{await E()}catch(G){if(G instanceof Error&&G.message==="Update failed")U(new Response(null,{status:500,statusText:"Update failed"}),"Failed to update status",E);else P(G,"Failed to update status",E)}}})});function L(f,q){return[...f.querySelectorAll(".issue-card:not(.dragging)")].reduce((E,G)=>{let Q=G.getBoundingClientRect(),u=q-Q.top-Q.height/2;if(u<0&&u>E.offset)return{offset:u,element:G};else return E},{offset:Number.NEGATIVE_INFINITY,element:null}).element}}function c(){let m=-1,M=0,L=0,f=document.querySelector(".board")!==null,q=document.querySelector(".issue-list")!==null;if(f)Q();document.addEventListener("keydown",(u)=>{let F=u.target;if(F.tagName==="INPUT"||F.tagName==="TEXTAREA")return;if(u.key==="Backspace"){u.preventDefault(),window.history.back();return}if(q)k(u);else if(f)J(u)});function k(u){let F=Array.from(document.querySelectorAll('.issue-item:not([style*="display: none"])'));if(F.length===0)return;let H=document.querySelector(".issue-item.selected");if(H)m=F.indexOf(H);if(u.key==="j"||u.key==="ArrowDown"){m=Math.min(m+1,F.length-1);let j=F.at(m);if(j)G(j);u.preventDefault()}else if(u.key==="k"||u.key==="ArrowUp"){m=Math.max(m-1,0);let j=F.at(m);if(j)G(j);u.preventDefault()}else if(u.key==="Enter"||u.key==="o"){if(H){let j=H.querySelector(".issue-meta a");if(j)j.click()}}}function J(u){let F=Array.from(document.querySelectorAll('.board-column:not([style*="display: none"])'));if(F.length===0)return;if(u.key==="j"||u.key==="ArrowDown"){let H=F.at(M);if(!H)return;let j=E(H);if(j.length>0)L=Math.min(L+1,j.length-1),Q(),u.preventDefault()}else if(u.key==="k"||u.key==="ArrowUp")L=Math.max(L-1,0),Q(),u.preventDefault();else if(u.key==="h"||u.key==="ArrowLeft"){M=Math.max(M-1,0);let H=F.at(M);if(!H)return;let j=E(H);L=Math.min(L,Math.max(0,j.length-1)),Q(),u.preventDefault()}else if(u.key==="l"||u.key==="ArrowRight"){M=Math.min(M+1,F.length-1);let H=F.at(M);if(!H)return;let j=E(H);L=Math.min(L,Math.max(0,j.length-1)),Q(),u.preventDefault()}else if(u.key==="Enter"||u.key==="o"){let H=document.querySelector(".issue-card.selected");if(H){let j=H.querySelector("a");if(j)j.click()}}}function E(u){if(!u)return[];return Array.from(u.querySelectorAll('.issue-card:not([style*="display: none"])'))}function G(u){if(document.querySelectorAll(".issue-item.selected").forEach((F)=>F.classList.remove("selected")),u)u.classList.add("selected"),u.scrollIntoView({behavior:"smooth",block:"nearest"})}function Q(){let u=Array.from(document.querySelectorAll('.board-column:not([style*="display: none"])'));if(u.length===0)return;M=Math.max(0,Math.min(M,u.length-1));let F=u.at(M);if(!F)return;let H=E(F);if(document.querySelectorAll(".issue-card.selected").forEach((j)=>j.classList.remove("selected")),H.length>0){L=Math.max(0,Math.min(L,H.length-1));let j=H.at(L);if(j)j.classList.add("selected"),j.scrollIntoView({behavior:"smooth",block:"nearest"})}}}function i(){let m=document.querySelector(".org-tree");if(!m)return;let M=m.querySelector(".org-tree-svg");if(!M)M=document.createElementNS("http://www.w3.org/2000/svg","svg"),M.classList.add("org-tree-svg"),M.style.position="absolute",M.style.top="0",M.style.left="0",M.style.width="100%",M.style.height="100%",M.style.pointerEvents="none",M.style.overflow="visible",m.style.position="relative",m.insertBefore(M,m.firstChild);let L=new Map;function f(){M.innerHTML="",L.clear();let E=getComputedStyle(document.documentElement),G=E.getPropertyValue("--connector-color").trim()||E.getPropertyValue("--border-color").trim()||"#585b70";m.querySelectorAll("li").forEach((u)=>{let F=u.querySelector(":scope > a.org-node, :scope > .org-node"),H=u.querySelector(":scope > ul");if(!F||!H)return;let j=H.querySelectorAll(":scope > li");if(j.length===0)return;let $=F.getBoundingClientRect(),K=m.getBoundingClientRect(),Z=$.left+$.width/2-K.left,z=$.bottom-K.top,X=[];j.forEach((A)=>{let y=A.querySelector(":scope > a.org-node, :scope > .org-node");if(!y)return;let I=y.getBoundingClientRect(),C=I.left+I.width/2-K.left,R=I.top-K.top,v=(z+R)/2,O=document.createElementNS("http://www.w3.org/2000/svg","path"),n=`M ${Z} ${z} C ${Z} ${v}, ${C} ${v}, ${C} ${R}`;O.setAttribute("d",n),O.setAttribute("fill","none"),O.setAttribute("stroke",G),O.setAttribute("stroke-width","2"),O.setAttribute("stroke-linecap","round"),O.style.transition="stroke 0.2s ease",M.appendChild(O),X.push({path:O,childNode:y})}),L.set(F,X)}),q()}function q(){let E=getComputedStyle(document.documentElement),G=E.getPropertyValue("--accent").trim()||"#fab387",Q=E.getPropertyValue("--connector-color").trim()||E.getPropertyValue("--border-color").trim()||"#585b70";L.forEach((u,F)=>{F.addEventListener("mouseenter",()=>{u.forEach(({path:H,childNode:j})=>{H.setAttribute("stroke",G),j.classList.add("org-node-highlight")})}),F.addEventListener("mouseleave",()=>{u.forEach(({path:H,childNode:j})=>{H.setAttribute("stroke",Q),j.classList.remove("org-node-highlight")})})})}f();let k;window.addEventListener("resize",()=>{clearTimeout(k),k=window.setTimeout(f,100)}),m.addEventListener("scroll",f),new MutationObserver(()=>{requestAnimationFrame(f)}).observe(m,{childList:!0,subtree:!0})}function d(){let m=document.querySelector(".epic-selector-wrapper");if(!m)return;let M=m.querySelector(".epic-selector"),L=m.querySelector("#epic-nav-left"),f=m.querySelector("#epic-nav-right");if(!M||!L||!f)return;let q=200,k=()=>{let{scrollLeft:J,scrollWidth:E,clientWidth:G}=M;L.disabled=J<=0,f.disabled=J+G>=E-1};L.addEventListener("click",()=>{M.scrollBy({left:-q,behavior:"smooth"})}),f.addEventListener("click",()=>{M.scrollBy({left:q,behavior:"smooth"})}),M.addEventListener("scroll",k),window.addEventListener("resize",k),k()}function a(){d(),i();let m=document.querySelector(".tree-view");if(!m)return;let M=m.querySelector(".tree-list"),L=document.querySelector(".controls-grid")||document.querySelector(".child-expand-controls"),f=new Set,q=()=>m.querySelectorAll(".tree-node"),k=()=>document.querySelectorAll(".type-filter");if(m.getAttribute("data-issue-type")===D.TASK)q().forEach((H)=>{if(H.getAttribute("data-has-children")==="true"){let $=H.getAttribute("data-id");if($){f.add($);let K=H.querySelector(".tree-toggle");if(K){K.classList.add("expanded");let Z=K.querySelector(".toggle-icon");if(Z)Z.textContent="−"}}}});function E(){let H=k(),j=H.length>0?new Set(Array.from(H).filter(($)=>$.checked).map(($)=>$.value)):null;q().forEach(($)=>{let K=$.getAttribute("data-parent")||"",Z=$.getAttribute("data-type")||"",z=!1;if(!K)z=!0;else if(f.has(K))z=!0;if(z&&j&&!j.has(Z))z=!1;$.classList.toggle("hidden",!z)})}if(M)M.addEventListener("click",(H)=>{let $=H.target.closest(".tree-toggle");if(!$)return;H.preventDefault(),H.stopPropagation();let K=$.closest(".tree-node");if(!K)return;let Z=K.getAttribute("data-id");if(!Z)return;if(f.has(Z)){f.delete(Z),$.classList.remove("expanded");let z=$.querySelector(".toggle-icon");if(z)z.textContent="+"}else{f.add(Z),$.classList.add("expanded");let z=$.querySelector(".toggle-icon");if(z)z.textContent="−"}E()});if(document.addEventListener("change",(H)=>{if(H.target.classList.contains("type-filter"))E()}),L)L.addEventListener("click",(H)=>{let $=H.target.closest("button");if(!$)return;let K=$.id;if(K==="expand-all"||K==="detail-expand")G();else if(K==="collapse-all"||K==="detail-collapse")Q();else if(K==="expand-one-level")u();else if(K==="collapse-one-level")F()});function G(){q().forEach((H)=>{if(H.getAttribute("data-has-children")==="true"){let $=H.getAttribute("data-id");if($){f.add($);let K=H.querySelector(".tree-toggle");if(K){K.classList.add("expanded");let Z=K.querySelector(".toggle-icon");if(Z)Z.textContent="−"}}}}),E()}function Q(){f.clear(),q().forEach((H)=>{let j=H.querySelector(".tree-toggle");if(j){j.classList.remove("expanded");let $=j.querySelector(".toggle-icon");if($)$.textContent="+"}}),E()}function u(){let H=q(),j=-1;H.forEach((Z)=>{let z=Z.getAttribute("data-id");if(z&&f.has(z)){let X=parseInt(Z.getAttribute("data-depth")||"0");if(X>j)j=X}});let $=j+1,K=[];H.forEach((Z)=>{let z=parseInt(Z.getAttribute("data-depth")||"0"),X=Z.getAttribute("data-id"),A=Z.getAttribute("data-has-children")==="true",y=Z.getAttribute("data-parent");if(X&&A&&!f.has(X)){if(z<=$){if(!y||f.has(y))K.push({id:X,element:Z})}}}),K.forEach(({id:Z,element:z})=>{f.add(Z);let X=z.querySelector(".tree-toggle");if(X){X.classList.add("expanded");let A=X.querySelector(".toggle-icon");if(A)A.textContent="−"}}),E()}function F(){let H=q(),j=0;f.forEach(($)=>{H.forEach((K)=>{if(K.getAttribute("data-id")===$){let Z=parseInt(K.getAttribute("data-depth")||"0");j=Math.max(j,Z)}})}),H.forEach(($)=>{let K=parseInt($.getAttribute("data-depth")||"0"),Z=$.getAttribute("data-id"),z=$.getAttribute("data-has-children")==="true";if(Z&&z&&K>j-1){f.delete(Z);let X=$.querySelector(".tree-toggle");if(X){X.classList.remove("expanded");let A=X.querySelector(".toggle-icon");if(A)A.textContent="+"}}}),E()}E()}function h(){let m=document.querySelector(".graph-tree-container"),M=document.getElementById("epic-select");if(!m)return;if(M)M.addEventListener("change",()=>{let L=M.value;if(L)window.location.href=`/graph/${L}`;else window.location.href="/graph"});m.addEventListener("click",(L)=>{let f=L.target.closest(".tree-toggle");if(!f)return;let k=f.closest(".tree-node")?.dataset.id;if(!k)return;let J=f.classList.toggle("expanded");g(k,J)})}function g(m,M){document.querySelectorAll(`[data-parent="${m}"]`).forEach((L)=>{if(L.classList.toggle("hidden",!M),!M){let f=L.dataset.id;if(f){let q=L.querySelector(".tree-toggle");if(q?.classList.contains("expanded"))q.classList.remove("expanded"),g(f,!1)}}})}var o=["status","type","priority"];function t(m){return o.includes(m)}function s(){document.addEventListener("click",(m)=>{let L=m.target.closest(".sort-btn");if(!L)return;if(L.classList.contains("active")){e(),L.classList.remove("active");return}let f=L.getAttribute("data-sort");if(f&&t(f))ff(f),qf(L)})}function e(){window.location.reload()}function ff(m){let M=document.querySelector(".tree-list");if(!M)return;let L=Array.from(M.querySelectorAll(".tree-node")),f=new Map;L.forEach((k)=>{let J=k.querySelector(".tree-toggle");if(J&&J.classList.contains("expanded"))f.set(k.dataset.id,!0)}),L.sort((k,J)=>mf(k,J,m)),M.classList.add("sorting-active"),document.querySelectorAll("#expand-all, #collapse-all, #expand-one-level, #collapse-one-level").forEach((k)=>{k.disabled=!0}),M.innerHTML="",L.forEach((k)=>{if(k.classList.remove("hidden"),M.appendChild(k),f.has(k.dataset.id)){let J=k.querySelector(".tree-toggle");if(J){J.classList.add("expanded");let E=J.querySelector(".toggle-icon");if(E)E.textContent="−"}}})}function mf(m,M,L){switch(L){case"status":return Mf(m.dataset.status,M.dataset.status);case"type":return Lf(m.dataset.type,M.dataset.type);case"priority":return uf(m.dataset.priority,M.dataset.priority);default:return 0}}function Mf(m,M){let L=Y[m]??999,f=Y[M]??999;return L-f}function Lf(m,M){let L=_[m]??999,f=_[M]??999;return L-f}function uf(m,M){let L=parseInt(m)||999,f=parseInt(M)||999;return L-f}function qf(m){document.querySelectorAll(".sort-btn").forEach((L)=>{L.classList.remove("active")}),m.classList.add("active")}document.addEventListener("DOMContentLoaded",()=>{N(),V(),S(),T(),r(),B(),c(),a(),h(),s()});
+// frontend/src/modules/theme.ts
+var LIGHT_THEMES = ["nacre-light", "catppuccin-latte"];
+(function() {
+  const stored = localStorage.getItem("theme");
+  const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+  const theme = stored || (prefersDark ? "nacre-dark" : "nacre-light");
+  document.documentElement.setAttribute("data-theme", theme);
+  const syntaxTheme = LIGHT_THEMES.includes(theme) ? "light" : "dark";
+  document.documentElement.setAttribute("data-syntax", syntaxTheme);
+})();
+function initTheme() {
+  const themeSelect = document.getElementById("theme-select");
+  if (themeSelect) {
+    const current = document.documentElement.getAttribute("data-theme") || "nacre-dark";
+    themeSelect.value = current;
+    themeSelect.addEventListener("change", () => {
+      const newTheme = themeSelect.value;
+      document.documentElement.setAttribute("data-theme", newTheme);
+      localStorage.setItem("theme", newTheme);
+      const syntaxTheme = LIGHT_THEMES.includes(newTheme) ? "light" : "dark";
+      document.documentElement.setAttribute("data-syntax", syntaxTheme);
+    });
+  }
+}
+
+// frontend/src/modules/search.ts
+function initSearch() {
+  const filterInput = document.getElementById("filter-input");
+  if (filterInput) {
+    filterInput.addEventListener("input", (e) => {
+      const query = e.target.value.toLowerCase();
+      const filterableItems = document.querySelectorAll("[data-filter-text]");
+      filterableItems.forEach((item) => {
+        const text = item.getAttribute("data-filter-text");
+        const matches = text && text.includes(query);
+        if (item instanceof HTMLElement) {
+          if (matches) {
+            item.style.display = "";
+          } else {
+            item.style.display = "none";
+          }
+        }
+      });
+    });
+  }
+}
+
+// frontend/src/modules/list.ts
+function initListFeatures() {
+  document.addEventListener("click", (e) => {
+    const target = e.target;
+    const button = target.closest(".toggle-children");
+    if (!button)
+      return;
+    const epicItem = button.closest(".epic-item");
+    if (!epicItem)
+      return;
+    const children = epicItem.querySelector(".epic-children");
+    if (!children)
+      return;
+    const isCollapsed = children.classList.contains("collapsed");
+    children.classList.toggle("collapsed");
+    button.classList.toggle("expanded");
+    if (isCollapsed) {
+      children.style.maxHeight = children.scrollHeight + "px";
+      children.style.opacity = "1";
+    } else {
+      children.style.maxHeight = "0";
+      children.style.opacity = "0";
+    }
+  });
+}
+
+// frontend/src/modules/toast.ts
+class ToastManager {
+  container = null;
+  activeToasts = new Set;
+  initialized = false;
+  constructor() {
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", () => this.init());
+    } else {
+      this.init();
+    }
+  }
+  init() {
+    if (this.initialized)
+      return;
+    this.container = document.createElement("div");
+    this.container.id = "toast-container";
+    this.container.className = "toast-container";
+    document.body.appendChild(this.container);
+    this.initialized = true;
+  }
+  createToast(config) {
+    const toast = document.createElement("div");
+    toast.className = `toast toast-${config.type || "info"}`;
+    const message = document.createElement("div");
+    message.className = "toast-message";
+    message.textContent = config.message;
+    const actions = document.createElement("div");
+    actions.className = "toast-actions";
+    if (config.retryAction) {
+      const retryBtn = document.createElement("button");
+      retryBtn.className = "toast-retry";
+      retryBtn.textContent = "Retry";
+      retryBtn.addEventListener("click", async () => {
+        retryBtn.disabled = true;
+        retryBtn.textContent = "Retrying...";
+        try {
+          await config.retryAction();
+          this.remove(toast);
+          this.show({ message: "Success!", type: "success", duration: 2000 });
+        } catch {
+          retryBtn.disabled = false;
+          retryBtn.textContent = "Retry";
+        }
+      });
+      actions.appendChild(retryBtn);
+    }
+    const closeBtn = document.createElement("button");
+    closeBtn.className = "toast-close";
+    closeBtn.textContent = "×";
+    closeBtn.addEventListener("click", () => this.remove(toast));
+    actions.appendChild(closeBtn);
+    toast.appendChild(message);
+    toast.appendChild(actions);
+    return toast;
+  }
+  show(config) {
+    if (!this.initialized)
+      return;
+    if (!this.container)
+      return;
+    const toast = this.createToast(config);
+    this.container.appendChild(toast);
+    this.activeToasts.add(toast);
+    setTimeout(() => {
+      toast.classList.add("toast-show");
+    }, 10);
+    if (config.duration && config.duration > 0) {
+      setTimeout(() => {
+        this.remove(toast);
+      }, config.duration);
+    }
+  }
+  remove(toast) {
+    toast.classList.remove("toast-show");
+    setTimeout(() => {
+      if (toast.parentNode) {
+        toast.parentNode.removeChild(toast);
+      }
+      this.activeToasts.delete(toast);
+    }, 300);
+  }
+  clear() {
+    this.activeToasts.forEach((toast) => this.remove(toast));
+  }
+}
+var toast = new ToastManager;
+function handleError(error, context, retryAction) {
+  const message = error instanceof Error ? error.message : "Unknown error occurred";
+  console.error(`[${context}] ${message}`, error);
+  toast.show({
+    message: `${context}: ${message}`,
+    type: "error",
+    duration: retryAction ? 0 : 5000,
+    retryAction
+  });
+}
+function handleNetworkError(response, context, retryAction) {
+  const message = `HTTP ${response.status}: ${response.statusText}`;
+  console.error(`[${context}] ${message}`, response);
+  toast.show({
+    message: `${context}: ${message}`,
+    type: "error",
+    duration: retryAction ? 0 : 5000,
+    retryAction
+  });
+}
+
+// frontend/src/modules/edit.ts
+function initInlineEdit() {
+  document.addEventListener("click", (e) => {
+    const target = e.target;
+    if (target.classList.contains("issue-title") && target.closest(".issue-item")) {
+      handleTitleEdit(target);
+    }
+  });
+  function handleTitleEdit(titleEl) {
+    const currentTitle = titleEl.innerText;
+    const input = document.createElement("input");
+    input.type = "text";
+    input.value = currentTitle;
+    input.classList.add("edit-input");
+    input.addEventListener("click", (e) => e.stopPropagation());
+    titleEl.replaceWith(input);
+    input.focus();
+    let isSaving = false;
+    const save = async () => {
+      if (isSaving)
+        return;
+      isSaving = true;
+      const newTitle = input.value.trim();
+      const issueItem = input.closest(".issue-item");
+      const id = issueItem ? issueItem.getAttribute("data-id") : null;
+      if (newTitle && newTitle !== currentTitle && id) {
+        const updateTitle = async () => {
+          const res = await fetch(`/api/issues/${id}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ title: newTitle })
+          });
+          if (!res.ok)
+            throw new Error("Update failed");
+        };
+        try {
+          await updateTitle();
+          const newTitleEl = document.createElement("div");
+          newTitleEl.classList.add("issue-title");
+          newTitleEl.innerText = newTitle;
+          input.replaceWith(newTitleEl);
+        } catch (err) {
+          if (err instanceof Error && err.message === "Update failed") {
+            handleNetworkError(new Response(null, { status: 500, statusText: "Update failed" }), "Failed to update title", updateTitle);
+          } else {
+            handleError(err, "Failed to update title", updateTitle);
+          }
+        }
+      } else {
+        replaceWithOriginal();
+      }
+    };
+    const replaceWithOriginal = () => {
+      const originalTitleEl = document.createElement("div");
+      originalTitleEl.classList.add("issue-title");
+      originalTitleEl.innerText = currentTitle;
+      input.replaceWith(originalTitleEl);
+    };
+    input.addEventListener("blur", save);
+    input.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        input.blur();
+      } else if (e.key === "Escape") {
+        replaceWithOriginal();
+        isSaving = true;
+      }
+    });
+  }
+}
+
+// frontend/src/constants.ts
+var STATUS = {
+  OPEN: "open",
+  IN_PROGRESS: "in_progress",
+  BLOCKED: "blocked",
+  CLOSED: "closed",
+  DEFERRED: "deferred"
+};
+var STATUS_ORDER = {
+  [STATUS.OPEN]: 0,
+  [STATUS.IN_PROGRESS]: 1,
+  [STATUS.BLOCKED]: 2,
+  [STATUS.CLOSED]: 3,
+  [STATUS.DEFERRED]: 4
+};
+var ISSUE_TYPE = {
+  EPIC: "epic",
+  FEATURE: "feature",
+  BUG: "bug",
+  TASK: "task",
+  CHORE: "chore"
+};
+var TYPE_ORDER = {
+  [ISSUE_TYPE.EPIC]: 0,
+  [ISSUE_TYPE.FEATURE]: 1,
+  [ISSUE_TYPE.BUG]: 2,
+  [ISSUE_TYPE.TASK]: 3,
+  [ISSUE_TYPE.CHORE]: 4
+};
+
+// frontend/src/modules/board.ts
+var VALID_STATUSES = Object.values(STATUS);
+function isValidStatus(value) {
+  return VALID_STATUSES.includes(value);
+}
+function initBoardFeatures() {
+  const columnsToggle = document.getElementById("columns-toggle");
+  const columnsDropdown = document.getElementById("columns-dropdown");
+  if (columnsToggle && columnsDropdown) {
+    let updateColumnVisibility = function(status, isVisible) {
+      const column = document.querySelector(`.board-column[data-status="${status}"]`);
+      if (column) {
+        column.style.display = isVisible ? "" : "none";
+      }
+    }, saveVisibilityState = function() {
+      const newState = {};
+      getColumnCheckboxes().forEach((checkbox) => {
+        const status = checkbox.getAttribute("data-status");
+        if (status && isValidStatus(status)) {
+          newState[status] = checkbox.checked;
+        }
+      });
+      localStorage.setItem("board-column-visibility", JSON.stringify(newState));
+    };
+    const savedVisibility = localStorage.getItem("board-column-visibility");
+    const visibilityState = savedVisibility ? JSON.parse(savedVisibility) : null;
+    const getColumnCheckboxes = () => columnsDropdown.querySelectorAll('input[type="checkbox"]');
+    getColumnCheckboxes().forEach((checkbox) => {
+      const status = checkbox.getAttribute("data-status");
+      if (!status || !isValidStatus(status))
+        return;
+      if (visibilityState === null) {
+        checkbox.checked = status !== STATUS.DEFERRED;
+      } else {
+        checkbox.checked = visibilityState[status] !== false;
+      }
+      updateColumnVisibility(status, checkbox.checked);
+    });
+    columnsDropdown.addEventListener("change", (e) => {
+      const target = e.target;
+      if (target.type !== "checkbox")
+        return;
+      const status = target.getAttribute("data-status");
+      if (!status)
+        return;
+      updateColumnVisibility(status, target.checked);
+      saveVisibilityState();
+    });
+    columnsToggle.addEventListener("click", (e) => {
+      e.stopPropagation();
+      columnsDropdown.classList.toggle("show");
+    });
+    document.addEventListener("click", (e) => {
+      if (!columnsDropdown.contains(e.target) && e.target !== columnsToggle) {
+        columnsDropdown.classList.remove("show");
+      }
+    });
+    columnsDropdown.addEventListener("click", (e) => {
+      e.stopPropagation();
+    });
+  }
+  const updateCardVisibility = () => {
+    const typeFilters = document.querySelectorAll(".type-filter");
+    if (typeFilters.length === 0)
+      return;
+    const activeTypes = new Set(Array.from(typeFilters).filter((f) => f.checked).map((f) => f.value));
+    const cards = document.querySelectorAll(".issue-card");
+    cards.forEach((card) => {
+      let visible = false;
+      for (const type of activeTypes) {
+        if (card.classList.contains(`issue-type-${type}`)) {
+          visible = true;
+          break;
+        }
+      }
+      card.classList.toggle("hidden-by-type", !visible);
+    });
+  };
+  document.addEventListener("change", (e) => {
+    const target = e.target;
+    if (target.classList.contains("type-filter")) {
+      updateCardVisibility();
+    }
+  });
+  updateCardVisibility();
+}
+
+// frontend/src/modules/dragdrop.ts
+function initDragAndDrop() {
+  const draggables = document.querySelectorAll('.issue-card[draggable="true"]');
+  const droppables = document.querySelectorAll(".column-content");
+  if (draggables.length > 0 && droppables.length > 0) {
+    draggables.forEach((draggable) => {
+      draggable.addEventListener("dragstart", () => {
+        draggable.classList.add("dragging");
+        draggable.style.opacity = "0.5";
+      });
+      draggable.addEventListener("dragend", () => {
+        draggable.classList.remove("dragging");
+        draggable.style.opacity = "1";
+      });
+    });
+    droppables.forEach((droppable) => {
+      droppable.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        const dragging = document.querySelector(".dragging");
+        if (dragging) {
+          const afterElement = getDragAfterElement(droppable, e.clientY);
+          if (afterElement == null) {
+            droppable.appendChild(dragging);
+          } else {
+            droppable.insertBefore(dragging, afterElement);
+          }
+        }
+      });
+      droppable.addEventListener("drop", async () => {
+        const draggable = document.querySelector(".dragging");
+        if (!draggable)
+          return;
+        const apiStatus = droppable.getAttribute("data-status");
+        const id = draggable.getAttribute("data-id");
+        if (id && apiStatus) {
+          const updateStatus = async () => {
+            const res = await fetch(`/api/issues/${id}`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ status: apiStatus })
+            });
+            if (!res.ok)
+              throw new Error("Update failed");
+          };
+          try {
+            await updateStatus();
+          } catch (err) {
+            if (err instanceof Error && err.message === "Update failed") {
+              handleNetworkError(new Response(null, { status: 500, statusText: "Update failed" }), "Failed to update status", updateStatus);
+            } else {
+              handleError(err, "Failed to update status", updateStatus);
+            }
+          }
+        }
+      });
+    });
+  }
+  function getDragAfterElement(container, y) {
+    const draggableElements = [...container.querySelectorAll(".issue-card:not(.dragging)")];
+    const result = draggableElements.reduce((closest, child) => {
+      const box = child.getBoundingClientRect();
+      const offset = y - box.top - box.height / 2;
+      if (offset < 0 && offset > closest.offset) {
+        return { offset, element: child };
+      } else {
+        return closest;
+      }
+    }, { offset: Number.NEGATIVE_INFINITY, element: null });
+    return result.element;
+  }
+}
+
+// frontend/src/modules/navigation.ts
+function initNavigation() {
+  let selectedIndex = -1;
+  let selectedColumnIndex = 0;
+  let selectedCardIndex = 0;
+  const isBoard = document.querySelector(".board") !== null;
+  const isList = document.querySelector(".issue-list") !== null;
+  if (isBoard) {
+    updateBoardSelection();
+  }
+  document.addEventListener("keydown", (e) => {
+    const target = e.target;
+    if (target.tagName === "INPUT" || target.tagName === "TEXTAREA")
+      return;
+    if (e.key === "Backspace") {
+      e.preventDefault();
+      window.history.back();
+      return;
+    }
+    if (isList) {
+      handleListNavigation(e);
+    } else if (isBoard) {
+      handleBoardNavigation(e);
+    }
+  });
+  function handleListNavigation(e) {
+    const items = Array.from(document.querySelectorAll('.issue-item:not([style*="display: none"])'));
+    if (items.length === 0)
+      return;
+    const current = document.querySelector(".issue-item.selected");
+    if (current) {
+      selectedIndex = items.indexOf(current);
+    }
+    if (e.key === "j" || e.key === "ArrowDown") {
+      selectedIndex = Math.min(selectedIndex + 1, items.length - 1);
+      const item = items.at(selectedIndex);
+      if (item)
+        selectItem(item);
+      e.preventDefault();
+    } else if (e.key === "k" || e.key === "ArrowUp") {
+      selectedIndex = Math.max(selectedIndex - 1, 0);
+      const item = items.at(selectedIndex);
+      if (item)
+        selectItem(item);
+      e.preventDefault();
+    } else if (e.key === "Enter" || e.key === "o") {
+      if (current) {
+        const link = current.querySelector(".issue-meta a");
+        if (link)
+          link.click();
+      }
+    }
+  }
+  function handleBoardNavigation(e) {
+    const columns = Array.from(document.querySelectorAll('.board-column:not([style*="display: none"])'));
+    if (columns.length === 0)
+      return;
+    if (e.key === "j" || e.key === "ArrowDown") {
+      const col = columns.at(selectedColumnIndex);
+      if (!col)
+        return;
+      const cards = getVisibleCards(col);
+      if (cards.length > 0) {
+        selectedCardIndex = Math.min(selectedCardIndex + 1, cards.length - 1);
+        updateBoardSelection();
+        e.preventDefault();
+      }
+    } else if (e.key === "k" || e.key === "ArrowUp") {
+      selectedCardIndex = Math.max(selectedCardIndex - 1, 0);
+      updateBoardSelection();
+      e.preventDefault();
+    } else if (e.key === "h" || e.key === "ArrowLeft") {
+      selectedColumnIndex = Math.max(selectedColumnIndex - 1, 0);
+      const col = columns.at(selectedColumnIndex);
+      if (!col)
+        return;
+      const cards = getVisibleCards(col);
+      selectedCardIndex = Math.min(selectedCardIndex, Math.max(0, cards.length - 1));
+      updateBoardSelection();
+      e.preventDefault();
+    } else if (e.key === "l" || e.key === "ArrowRight") {
+      selectedColumnIndex = Math.min(selectedColumnIndex + 1, columns.length - 1);
+      const col = columns.at(selectedColumnIndex);
+      if (!col)
+        return;
+      const cards = getVisibleCards(col);
+      selectedCardIndex = Math.min(selectedCardIndex, Math.max(0, cards.length - 1));
+      updateBoardSelection();
+      e.preventDefault();
+    } else if (e.key === "Enter" || e.key === "o") {
+      const selected = document.querySelector(".issue-card.selected");
+      if (selected) {
+        const link = selected.querySelector("a");
+        if (link)
+          link.click();
+      }
+    }
+  }
+  function getVisibleCards(column) {
+    if (!column)
+      return [];
+    return Array.from(column.querySelectorAll('.issue-card:not([style*="display: none"])'));
+  }
+  function selectItem(item) {
+    document.querySelectorAll(".issue-item.selected").forEach((el) => el.classList.remove("selected"));
+    if (item) {
+      item.classList.add("selected");
+      item.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
+  }
+  function updateBoardSelection() {
+    const columns = Array.from(document.querySelectorAll('.board-column:not([style*="display: none"])'));
+    if (columns.length === 0)
+      return;
+    selectedColumnIndex = Math.max(0, Math.min(selectedColumnIndex, columns.length - 1));
+    const col = columns.at(selectedColumnIndex);
+    if (!col)
+      return;
+    const cards = getVisibleCards(col);
+    document.querySelectorAll(".issue-card.selected").forEach((el) => el.classList.remove("selected"));
+    if (cards.length > 0) {
+      selectedCardIndex = Math.max(0, Math.min(selectedCardIndex, cards.length - 1));
+      const card = cards.at(selectedCardIndex);
+      if (card) {
+        card.classList.add("selected");
+        card.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      }
+    }
+  }
+}
+
+// frontend/src/modules/graph.ts
+function initOrgTreeConnectors() {
+  const orgTree = document.querySelector(".org-tree");
+  if (!orgTree)
+    return;
+  let svg = orgTree.querySelector(".org-tree-svg");
+  if (!svg) {
+    svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    svg.classList.add("org-tree-svg");
+    svg.style.position = "absolute";
+    svg.style.top = "0";
+    svg.style.left = "0";
+    svg.style.width = "100%";
+    svg.style.height = "100%";
+    svg.style.pointerEvents = "none";
+    svg.style.overflow = "visible";
+    orgTree.style.position = "relative";
+    orgTree.insertBefore(svg, orgTree.firstChild);
+  }
+  const pathsByParent = new Map;
+  function drawConnectors() {
+    svg.innerHTML = "";
+    pathsByParent.clear();
+    const style = getComputedStyle(document.documentElement);
+    const strokeColor = style.getPropertyValue("--connector-color").trim() || style.getPropertyValue("--border-color").trim() || "#585b70";
+    const nodes = orgTree.querySelectorAll("li");
+    nodes.forEach((li) => {
+      const parentNode = li.querySelector(":scope > a.org-node, :scope > .org-node");
+      const childrenUl = li.querySelector(":scope > ul");
+      if (!parentNode || !childrenUl)
+        return;
+      const children = childrenUl.querySelectorAll(":scope > li");
+      if (children.length === 0)
+        return;
+      const parentRect = parentNode.getBoundingClientRect();
+      const treeRect = orgTree.getBoundingClientRect();
+      const parentX = parentRect.left + parentRect.width / 2 - treeRect.left;
+      const parentY = parentRect.bottom - treeRect.top;
+      const parentPaths = [];
+      children.forEach((childLi) => {
+        const childNode = childLi.querySelector(":scope > a.org-node, :scope > .org-node");
+        if (!childNode)
+          return;
+        const childRect = childNode.getBoundingClientRect();
+        const childX = childRect.left + childRect.width / 2 - treeRect.left;
+        const childY = childRect.top - treeRect.top;
+        const midY = (parentY + childY) / 2;
+        const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        const d = `M ${parentX} ${parentY} C ${parentX} ${midY}, ${childX} ${midY}, ${childX} ${childY}`;
+        path.setAttribute("d", d);
+        path.setAttribute("fill", "none");
+        path.setAttribute("stroke", strokeColor);
+        path.setAttribute("stroke-width", "2");
+        path.setAttribute("stroke-linecap", "round");
+        path.style.transition = "stroke 0.2s ease";
+        svg.appendChild(path);
+        parentPaths.push({ path, childNode });
+      });
+      pathsByParent.set(parentNode, parentPaths);
+    });
+    setupHoverEffects();
+  }
+  function setupHoverEffects() {
+    const style = getComputedStyle(document.documentElement);
+    const accentColor = style.getPropertyValue("--accent").trim() || "#fab387";
+    const strokeColor = style.getPropertyValue("--connector-color").trim() || style.getPropertyValue("--border-color").trim() || "#585b70";
+    pathsByParent.forEach((paths, parentNode) => {
+      parentNode.addEventListener("mouseenter", () => {
+        paths.forEach(({ path, childNode }) => {
+          path.setAttribute("stroke", accentColor);
+          childNode.classList.add("org-node-highlight");
+        });
+      });
+      parentNode.addEventListener("mouseleave", () => {
+        paths.forEach(({ path, childNode }) => {
+          path.setAttribute("stroke", strokeColor);
+          childNode.classList.remove("org-node-highlight");
+        });
+      });
+    });
+  }
+  drawConnectors();
+  let resizeTimeout;
+  window.addEventListener("resize", () => {
+    clearTimeout(resizeTimeout);
+    resizeTimeout = window.setTimeout(drawConnectors, 100);
+  });
+  orgTree.addEventListener("scroll", drawConnectors);
+  const observer = new MutationObserver(() => {
+    requestAnimationFrame(drawConnectors);
+  });
+  observer.observe(orgTree, { childList: true, subtree: true });
+}
+function initEpicSelector() {
+  const wrapper = document.querySelector(".epic-selector-wrapper");
+  if (!wrapper)
+    return;
+  const selector = wrapper.querySelector(".epic-selector");
+  const leftBtn = wrapper.querySelector("#epic-nav-left");
+  const rightBtn = wrapper.querySelector("#epic-nav-right");
+  if (!selector || !leftBtn || !rightBtn)
+    return;
+  const scrollAmount = 200;
+  const updateButtonStates = () => {
+    const { scrollLeft, scrollWidth, clientWidth } = selector;
+    leftBtn.disabled = scrollLeft <= 0;
+    rightBtn.disabled = scrollLeft + clientWidth >= scrollWidth - 1;
+  };
+  leftBtn.addEventListener("click", () => {
+    selector.scrollBy({ left: -scrollAmount, behavior: "smooth" });
+  });
+  rightBtn.addEventListener("click", () => {
+    selector.scrollBy({ left: scrollAmount, behavior: "smooth" });
+  });
+  selector.addEventListener("scroll", updateButtonStates);
+  window.addEventListener("resize", updateButtonStates);
+  updateButtonStates();
+}
+function initGraph() {
+  initEpicSelector();
+  initOrgTreeConnectors();
+  const treeView = document.querySelector(".tree-view");
+  if (!treeView)
+    return;
+  const treeList = treeView.querySelector(".tree-list");
+  const controlsContainer = document.querySelector(".controls-grid") || document.querySelector(".child-expand-controls");
+  const expandedNodes = new Set;
+  const getNodes = () => treeView.querySelectorAll(".tree-node");
+  const getTypeFilters = () => document.querySelectorAll(".type-filter");
+  const issueType = treeView.getAttribute("data-issue-type");
+  if (issueType === ISSUE_TYPE.TASK) {
+    getNodes().forEach((node) => {
+      const hasChildren = node.getAttribute("data-has-children") === "true";
+      if (hasChildren) {
+        const id = node.getAttribute("data-id");
+        if (id) {
+          expandedNodes.add(id);
+          const toggleBtn = node.querySelector(".tree-toggle");
+          if (toggleBtn) {
+            toggleBtn.classList.add("expanded");
+            const icon = toggleBtn.querySelector(".toggle-icon");
+            if (icon)
+              icon.textContent = "−";
+          }
+        }
+      }
+    });
+  }
+  function updateVisibility() {
+    const typeFilters = getTypeFilters();
+    const activeTypes = typeFilters.length > 0 ? new Set(Array.from(typeFilters).filter((f) => f.checked).map((f) => f.value)) : null;
+    getNodes().forEach((node) => {
+      const parentId = node.getAttribute("data-parent") || "";
+      const type = node.getAttribute("data-type") || "";
+      let visible = false;
+      if (!parentId) {
+        visible = true;
+      } else if (expandedNodes.has(parentId)) {
+        visible = true;
+      }
+      if (visible && activeTypes && !activeTypes.has(type)) {
+        visible = false;
+      }
+      node.classList.toggle("hidden", !visible);
+    });
+  }
+  if (treeList) {
+    treeList.addEventListener("click", (e) => {
+      const target = e.target;
+      const toggleBtn = target.closest(".tree-toggle");
+      if (!toggleBtn)
+        return;
+      e.preventDefault();
+      e.stopPropagation();
+      const node = toggleBtn.closest(".tree-node");
+      if (!node)
+        return;
+      const id = node.getAttribute("data-id");
+      if (!id)
+        return;
+      if (expandedNodes.has(id)) {
+        expandedNodes.delete(id);
+        toggleBtn.classList.remove("expanded");
+        const icon = toggleBtn.querySelector(".toggle-icon");
+        if (icon)
+          icon.textContent = "+";
+      } else {
+        expandedNodes.add(id);
+        toggleBtn.classList.add("expanded");
+        const icon = toggleBtn.querySelector(".toggle-icon");
+        if (icon)
+          icon.textContent = "−";
+      }
+      updateVisibility();
+    });
+  }
+  document.addEventListener("change", (e) => {
+    const target = e.target;
+    if (target.classList.contains("type-filter")) {
+      updateVisibility();
+    }
+  });
+  if (controlsContainer) {
+    controlsContainer.addEventListener("click", (e) => {
+      const target = e.target;
+      const button = target.closest("button");
+      if (!button)
+        return;
+      const id = button.id;
+      if (id === "expand-all" || id === "detail-expand") {
+        expandAll();
+      } else if (id === "collapse-all" || id === "detail-collapse") {
+        collapseAll();
+      } else if (id === "expand-one-level") {
+        expandOneLevel();
+      } else if (id === "collapse-one-level") {
+        collapseOneLevel();
+      }
+    });
+  }
+  function expandAll() {
+    getNodes().forEach((node) => {
+      const hasChildren = node.getAttribute("data-has-children") === "true";
+      if (hasChildren) {
+        const id = node.getAttribute("data-id");
+        if (id) {
+          expandedNodes.add(id);
+          const toggleBtn = node.querySelector(".tree-toggle");
+          if (toggleBtn) {
+            toggleBtn.classList.add("expanded");
+            const icon = toggleBtn.querySelector(".toggle-icon");
+            if (icon)
+              icon.textContent = "−";
+          }
+        }
+      }
+    });
+    updateVisibility();
+  }
+  function collapseAll() {
+    expandedNodes.clear();
+    getNodes().forEach((node) => {
+      const toggleBtn = node.querySelector(".tree-toggle");
+      if (toggleBtn) {
+        toggleBtn.classList.remove("expanded");
+        const icon = toggleBtn.querySelector(".toggle-icon");
+        if (icon)
+          icon.textContent = "+";
+      }
+    });
+    updateVisibility();
+  }
+  function expandOneLevel() {
+    const nodes = getNodes();
+    let currentMaxExpandedDepth = -1;
+    nodes.forEach((node) => {
+      const id = node.getAttribute("data-id");
+      if (id && expandedNodes.has(id)) {
+        const depth = parseInt(node.getAttribute("data-depth") || "0");
+        if (depth > currentMaxExpandedDepth) {
+          currentMaxExpandedDepth = depth;
+        }
+      }
+    });
+    const targetDepth = currentMaxExpandedDepth + 1;
+    const nodesToExpand = [];
+    nodes.forEach((node) => {
+      const depth = parseInt(node.getAttribute("data-depth") || "0");
+      const id = node.getAttribute("data-id");
+      const hasChildren = node.getAttribute("data-has-children") === "true";
+      const parentId = node.getAttribute("data-parent");
+      if (id && hasChildren && !expandedNodes.has(id)) {
+        if (depth <= targetDepth) {
+          const parentExpanded = !parentId || expandedNodes.has(parentId);
+          if (parentExpanded) {
+            nodesToExpand.push({ id, element: node });
+          }
+        }
+      }
+    });
+    nodesToExpand.forEach(({ id, element }) => {
+      expandedNodes.add(id);
+      const toggleBtn = element.querySelector(".tree-toggle");
+      if (toggleBtn) {
+        toggleBtn.classList.add("expanded");
+        const icon = toggleBtn.querySelector(".toggle-icon");
+        if (icon)
+          icon.textContent = "−";
+      }
+    });
+    updateVisibility();
+  }
+  function collapseOneLevel() {
+    const nodes = getNodes();
+    let maxExpandedDepth = 0;
+    expandedNodes.forEach((id) => {
+      nodes.forEach((node) => {
+        if (node.getAttribute("data-id") === id) {
+          const depth = parseInt(node.getAttribute("data-depth") || "0");
+          maxExpandedDepth = Math.max(maxExpandedDepth, depth);
+        }
+      });
+    });
+    nodes.forEach((node) => {
+      const depth = parseInt(node.getAttribute("data-depth") || "0");
+      const id = node.getAttribute("data-id");
+      const hasChildren = node.getAttribute("data-has-children") === "true";
+      if (id && hasChildren && depth > maxExpandedDepth - 1) {
+        expandedNodes.delete(id);
+        const toggleBtn = node.querySelector(".tree-toggle");
+        if (toggleBtn) {
+          toggleBtn.classList.remove("expanded");
+          const icon = toggleBtn.querySelector(".toggle-icon");
+          if (icon)
+            icon.textContent = "+";
+        }
+      }
+    });
+    updateVisibility();
+  }
+  updateVisibility();
+}
+
+// frontend/src/modules/dependency-graph.ts
+function initDependencyGraph() {
+  const container = document.querySelector(".graph-tree-container");
+  const epicSelect = document.getElementById("epic-select");
+  if (!container)
+    return;
+  if (epicSelect) {
+    epicSelect.addEventListener("change", () => {
+      const epicId = epicSelect.value;
+      if (epicId) {
+        window.location.href = `/graph/${epicId}`;
+      } else {
+        window.location.href = "/graph";
+      }
+    });
+  }
+  container.addEventListener("click", (e) => {
+    const toggle = e.target.closest(".tree-toggle");
+    if (!toggle)
+      return;
+    const node = toggle.closest(".tree-node");
+    const nodeId = node?.dataset.id;
+    if (!nodeId)
+      return;
+    const isExpanded = toggle.classList.toggle("expanded");
+    toggleDirectChildren(nodeId, isExpanded);
+  });
+}
+function toggleDirectChildren(parentId, show) {
+  document.querySelectorAll(`[data-parent="${parentId}"]`).forEach((child) => {
+    child.classList.toggle("hidden", !show);
+    if (!show) {
+      const childId = child.dataset.id;
+      if (childId) {
+        const toggle = child.querySelector(".tree-toggle");
+        if (toggle?.classList.contains("expanded")) {
+          toggle.classList.remove("expanded");
+          toggleDirectChildren(childId, false);
+        }
+      }
+    }
+  });
+}
+
+// frontend/src/modules/sorting.ts
+var VALID_SORT_KEYS = ["status", "type", "priority"];
+function isValidSortKey(key) {
+  return VALID_SORT_KEYS.includes(key);
+}
+function initSorting() {
+  document.addEventListener("click", (e) => {
+    const target = e.target;
+    const button = target.closest(".sort-btn");
+    if (!button)
+      return;
+    if (button.classList.contains("active")) {
+      restoreTreeView();
+      button.classList.remove("active");
+      return;
+    }
+    const sortBy = button.getAttribute("data-sort");
+    if (sortBy && isValidSortKey(sortBy)) {
+      sortTreeNodes(sortBy);
+      updateActiveSortButton(button);
+    }
+  });
+}
+function restoreTreeView() {
+  window.location.reload();
+}
+function sortTreeNodes(sortBy) {
+  const treeList = document.querySelector(".tree-list");
+  if (!treeList)
+    return;
+  const nodes = Array.from(treeList.querySelectorAll(".tree-node"));
+  const expandedStates = new Map;
+  nodes.forEach((node) => {
+    const toggleBtn = node.querySelector(".tree-toggle");
+    if (toggleBtn && toggleBtn.classList.contains("expanded")) {
+      expandedStates.set(node.dataset.id, true);
+    }
+  });
+  nodes.sort((a, b) => compareNodes(a, b, sortBy));
+  treeList.classList.add("sorting-active");
+  const expandButtons = document.querySelectorAll("#expand-all, #collapse-all, #expand-one-level, #collapse-one-level");
+  expandButtons.forEach((btn) => {
+    btn.disabled = true;
+  });
+  treeList.innerHTML = "";
+  nodes.forEach((node) => {
+    node.classList.remove("hidden");
+    treeList.appendChild(node);
+    if (expandedStates.has(node.dataset.id)) {
+      const toggleBtn = node.querySelector(".tree-toggle");
+      if (toggleBtn) {
+        toggleBtn.classList.add("expanded");
+        const icon = toggleBtn.querySelector(".toggle-icon");
+        if (icon) {
+          icon.textContent = "−";
+        }
+      }
+    }
+  });
+}
+function compareNodes(a, b, sortBy) {
+  switch (sortBy) {
+    case "status":
+      return compareStatus(a.dataset.status, b.dataset.status);
+    case "type":
+      return compareType(a.dataset.type, b.dataset.type);
+    case "priority":
+      return comparePriority(a.dataset.priority, b.dataset.priority);
+    default:
+      return 0;
+  }
+}
+function compareStatus(statusA, statusB) {
+  const orderA = STATUS_ORDER[statusA] ?? 999;
+  const orderB = STATUS_ORDER[statusB] ?? 999;
+  return orderA - orderB;
+}
+function compareType(typeA, typeB) {
+  const orderA = TYPE_ORDER[typeA] ?? 999;
+  const orderB = TYPE_ORDER[typeB] ?? 999;
+  return orderA - orderB;
+}
+function comparePriority(priorityA, priorityB) {
+  const prioA = parseInt(priorityA) || 999;
+  const prioB = parseInt(priorityB) || 999;
+  return prioA - prioB;
+}
+function updateActiveSortButton(activeButton) {
+  const sortButtons = document.querySelectorAll(".sort-btn");
+  sortButtons.forEach((button) => {
+    button.classList.remove("active");
+  });
+  activeButton.classList.add("active");
+}
+
+// frontend/src/main.ts
+document.addEventListener("DOMContentLoaded", () => {
+  initTheme();
+  initSearch();
+  initListFeatures();
+  initInlineEdit();
+  initBoardFeatures();
+  initDragAndDrop();
+  initNavigation();
+  initGraph();
+  initDependencyGraph();
+  initSorting();
+});
