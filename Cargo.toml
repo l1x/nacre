@@ -20,42 +20,75 @@ name = "tree_building"
 
 [dependencies]
 argh = { version = "0.1" }
-autumnus = { version = "0.7", default-features = false, features = [
-    "lang-bash",
-    "lang-css",
-    "lang-html",
-    "lang-javascript",
-    "lang-json",
-    "lang-python",
-    "lang-rust",
-    "lang-toml",
-    "lang-typescript",
-    "lang-xml",
-    "lang-yaml",
-] }
-askama = { version = "0.12", features = ["markdown"] }
+askama = { version = "0.12" }
 askama_axum = { version = "0.4" }
+autumnus = { version = "0.7", default-features = false, features = [
+  "lang-bash",
+  "lang-css",
+  "lang-html",
+  "lang-javascript",
+  "lang-json",
+  "lang-python",
+  "lang-rust",
+  "lang-toml",
+  "lang-typescript",
+  "lang-xml",
+  "lang-yaml",
+] }
 axum = { version = "0.7" }
+"block-id" = { version = "0.2" }
 include_dir = { version = "0.7" }
 kiters = { version = "0.1.0" }
 open = { version = "5.0" }
 pulldown-cmark = { version = "0.13" }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = { version = "1.0" }
-"block-id" = { version = "0.2" }
 thiserror = { version = "2" }
-time = { version = "0.3.44", features = ["serde", "formatting", "parsing", "macros"] }
+time = { version = "0.3.44", features = [
+  "formatting",
+  "macros",
+  "parsing",
+  "serde"
+] }
 tokio = { version = "1", features = ["macros", "net", "rt-multi-thread"] }
 tower = { version = "0.5", features = ["util"] }
-tower-http = { version = "0.5", features = ["compression-full", "trace"] }
+tower-http = { version = "0.5", features = [
+  "compression-br",
+  "compression-gzip",
+  "trace"
+] }
 tracing = { version = "0.1" }
 tracing-subscriber = { version = "0.3", features = ["env-filter", "time"] }
 
 [dev-dependencies]
-axum-test = "15"
+axum-test = { version = "15" }
 criterion = { version = "0.5" }
-http-body-util = "0.1"
+http-body-util = { version = "0.1" }
 markdown = { version = "1.0" }
 minijinja = { version = "2.0" }
-serial_test = "3"
-tempfile = "3"
+serial_test = { version = "3" }
+tempfile = { version = "3" }
+
+[profile.bench]
+lto = "thin"
+codegen-units = 8
+
+[profile.dev]
+lto = "thin"
+codegen-units = 8
+
+[profile.release]
+opt-level = "s"  # reduces binary size
+debug = "full"  # No one needs an undebuggable release binary
+split-debuginfo = "packed"  # generates a separate *.dwp/*.dSYM so the binary can get stripped
+strip = "symbols"  # See split-debuginfo - reduces binary size
+lto = true  # reduces binary size
+panic = "abort"  # reduces binary size
+incremental = true  # Improves re-compile times
+codegen-units = 1  # reduces binary size
+
+[profile.profiling]
+inherits = "release"  # Use all the optimization settings from the release profile
+debug = true  # Include debug info so 'perf' can find function names
+split-debuginfo = "off"  # Keep debug info in the binary
+strip = false  # Do NOT strip symbols

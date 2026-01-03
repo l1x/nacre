@@ -3004,39 +3004,37 @@ main:has(.board) {
     color: var(--text-muted);
 }
 
+/* Indicator dots for type and status */
+.org-node-indicators {
+    display: flex;
+    gap: 4px;
+    position: absolute;
+    top: 4px;
+    right: 4px;
+}
+
+.org-node-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+}
+
+/* Type dot colors */
+.org-node-dot--type.type-epic { background-color: var(--type-epic); }
+.org-node-dot--type.type-feature { background-color: var(--type-feature); }
+.org-node-dot--type.type-task { background-color: var(--text-muted); }
+.org-node-dot--type.type-bug { background-color: var(--type-bug); }
+
+/* Status dot colors */
+.org-node-dot--status.status-open { background-color: var(--status-open); }
+.org-node-dot--status.status-in_progress { background-color: var(--status-in-progress); }
+.org-node-dot--status.status-blocked { background-color: var(--status-blocked); }
+.org-node-dot--status.status-deferred { background-color: var(--status-deferred); }
+.org-node-dot--status.status-closed { background-color: var(--status-closed); }
+
 /* Status indicators on nodes */
-.org-node.status-open {
-    border-left: 3px solid var(--status-open);
-    background: linear-gradient(90deg, rgba(224, 122, 74, 0.15) 0%, var(--bg-card) 100%);
-}
-
-.org-node.status-in_progress {
-    border-left: 3px solid var(--status-in-progress);
-    background: linear-gradient(90deg, rgba(126, 184, 218, 0.15) 0%, var(--bg-card) 100%);
-}
-
-.org-node.status-blocked {
-    border-left: 3px solid var(--status-blocked);
-    background: linear-gradient(90deg, rgba(212, 138, 138, 0.15) 0%, var(--bg-card) 100%);
-}
-
 .org-node.status-closed {
-    border-left: 3px solid var(--status-closed);
-    background: var(--bg-card);
     opacity: 0.6;
-}
-
-/* Type-specific styling */
-.org-node.type-epic {
-    background-color: rgba(155, 89, 182, 0.1);
-}
-
-.org-node.type-feature {
-    background-color: rgba(52, 152, 219, 0.1);
-}
-
-.org-node.type-bug {
-    background-color: rgba(231, 76, 60, 0.1);
 }
 
 /* Blocked badge */
