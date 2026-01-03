@@ -41,12 +41,18 @@ header {
     height: var(--header-height);
     background-color: var(--bg-secondary);
     border-bottom: 1px solid var(--border-subtle);
-    display: flex;
-    align-items: center;
-    padding: 0 32px;
     position: sticky;
     top: 0;
     z-index: 100;
+}
+
+.header-content {
+    display: flex;
+    align-items: center;
+    padding: 0 32px;
+    height: 100%;
+    max-width: 1600px;
+    margin: 0 auto;
 }
 
 h1 {
@@ -2410,6 +2416,7 @@ main:has(.board) {
 .html-chart__bar--orange { background: var(--chart-orange); }
 .html-chart__bar--grey { background: var(--color-grey); }
 .html-chart__bar--yellow { background: var(--color-yellow); }
+.html-chart__bar--teal { background: var(--color-teal); }
 
 /* Legend Dots */
 .html-chart__legend-dot--blue { background: var(--chart-blue); }
@@ -2417,6 +2424,7 @@ main:has(.board) {
 .html-chart__legend-dot--orange { background: var(--chart-orange); }
 .html-chart__legend-dot--grey { background: var(--color-grey); }
 .html-chart__legend-dot--yellow { background: var(--color-yellow); }
+.html-chart__legend-dot--teal { background: var(--color-teal); }
 
 .html-chart__bar-value {
     position: absolute;

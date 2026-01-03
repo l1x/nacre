@@ -1,22 +1,24 @@
     <header>
-        <a href="/" class="home-link">
-            <h1>Nacre</h1>
-            <span class="project-name">Proj: {{ project_name }}</span>
-        </a>
-        {% include "_nav.html" %}
-        <div style="flex: 1;"></div>
-        {% if active_nav == "tasks" || active_nav == "board" || active_nav == "prds" || active_nav == "graph" %}
-        <div class="search-container"><input type="text" id="filter-input" placeholder="Search issues..."></div>
-        {% endif %}
-        {% if active_nav == "tasks" || active_nav == "board" %}
-        <a href="/tasks/new" class="create-btn">+ Create</a>
-        {% endif %}
-        <select class="theme-select" id="theme-select" aria-label="Select theme">
-            <option value="nacre-dark">Nacre Dark</option>
-            <option value="nacre-light">Nacre Light</option>
-            <option value="catppuccin-latte">Latte</option>
-            <option value="catppuccin-frappe">Frappé</option>
-            <option value="catppuccin-macchiato">Macchiato</option>
-            <option value="catppuccin-mocha">Mocha</option>
-        </select>
+        <div class="header-content">
+            <a href="/" class="home-link">
+                <h1>Nacre</h1>
+                <span class="project-name">Proj: {{ project_name }}</span>
+            </a>
+            {% include "_nav.html" %}
+            <div style="flex: 1;"></div>
+            {% if active_nav == "tasks" || active_nav == "board" || active_nav == "prds" || active_nav == "graph" %}
+            <div class="search-container"><input type="text" id="filter-input" placeholder="Search issues..."></div>
+            {% endif %}
+            {% if active_nav == "tasks" || active_nav == "board" %}
+            <a href="/tasks/new" class="create-btn">+ Create</a>
+            {% endif %}
+            <select class="theme-select" id="theme-select" aria-label="Select theme">
+                <option value="nacre-dark">Nacre Dark</option>
+                <option value="nacre-light">Nacre Light</option>
+                <option value="catppuccin-latte">Latte</option>
+                <option value="catppuccin-frappe">Frappé</option>
+                <option value="catppuccin-macchiato">Macchiato</option>
+                <option value="catppuccin-mocha">Mocha</option>
+            </select>
+        </div>
     </header>
