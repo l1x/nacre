@@ -198,23 +198,13 @@ pub struct NewIssueTemplate {
 
 #[derive(Template)]
 #[template(path = "prds.html")]
-pub struct PrdsListTemplate {
+pub struct PrdsTemplate {
     pub project_name: String,
     pub page_title: String,
     pub active_nav: &'static str,
     pub app_version: String,
-    pub files: Vec<String>,
-}
-
-#[derive(Template)]
-#[template(path = "prd.html")]
-pub struct PrdViewTemplate {
-    pub project_name: String,
-    pub page_title: String,
-    pub active_nav: &'static str,
-    pub app_version: String,
-    #[allow(dead_code)]
-    pub filename: String,
+    pub prds: Vec<PrdSummary>,
+    /// Rendered markdown content for the selected PRD (empty if none selected)
     pub content: String,
 }
 
@@ -232,6 +222,13 @@ pub struct EditIssueTemplate {
 pub struct EpicSummary {
     pub id: String,
     pub title: String,
+    pub selected: bool,
+}
+
+/// PRD summary for PRD selector
+pub struct PrdSummary {
+    pub filename: String,
+    pub modified: std::time::SystemTime,
     pub selected: bool,
 }
 

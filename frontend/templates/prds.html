@@ -6,14 +6,29 @@
 <body>
     {% include "_header.html" %}
     <main id="content">
-        <div class="page-header">
-            <h2>Product Requirements Documents</h2>
+        <div class="prds-page">
+            <div class="epic-selector-wrapper">
+                <button class="epic-nav epic-nav--left" id="epic-nav-left" aria-label="Previous PRDs">&larr;</button>
+                <div class="epic-selector" id="epic-selector">
+                    {% for prd in prds %}
+                    <a href="/prds/{{ prd.filename }}" class="epic-pill{% if prd.selected %} epic-pill--active{% endif %}" title="{{ prd.filename }}">
+                        {{ prd.filename }}
+                    </a>
+                    {% endfor %}
+                </div>
+                <button class="epic-nav epic-nav--right" id="epic-nav-right" aria-label="Next PRDs">&rarr;</button>
+            </div>
+
+            <div class="prd-content-container">
+                {% if content.is_empty() %}
+                <div class="graph-empty-state">Select a PRD to view its content</div>
+                {% else %}
+                <div class="prd-content">
+                    {{ content|safe }}
+                </div>
+                {% endif %}
+            </div>
         </div>
-        <ul class="prd-list">
-        {% for file in files %}
-            <li data-filter-text="{{ file|lower }}"><a href="/prds/{{ file }}">{{ file }}</a></li>
-        {% endfor %}
-        </ul>
     </main>
 {% include "_footer.html" %}
 </body>
