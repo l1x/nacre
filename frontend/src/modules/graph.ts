@@ -77,7 +77,7 @@ function initOrgTreeConnectors() {
                 path.setAttribute('stroke', strokeColor);
                 path.setAttribute('stroke-width', '2');
                 path.setAttribute('stroke-linecap', 'round');
-                path.style.transition = 'stroke 0.2s ease, stroke-width 0.2s ease';
+                path.style.transition = 'stroke 0.2s ease';
 
                 svg.appendChild(path);
                 parentPaths.push({ path, childNode });
@@ -97,10 +97,9 @@ function initOrgTreeConnectors() {
 
         pathsByParent.forEach((paths, parentNode) => {
             parentNode.addEventListener('mouseenter', () => {
-                // Highlight all direct child paths
+                // Highlight all direct child paths (color only)
                 paths.forEach(({ path, childNode }) => {
                     path.setAttribute('stroke', accentColor);
-                    path.setAttribute('stroke-width', '3');
                     childNode.classList.add('org-node-highlight');
                 });
             });
@@ -109,7 +108,6 @@ function initOrgTreeConnectors() {
                 // Reset all direct child paths
                 paths.forEach(({ path, childNode }) => {
                     path.setAttribute('stroke', strokeColor);
-                    path.setAttribute('stroke-width', '2');
                     childNode.classList.remove('org-node-highlight');
                 });
             });
