@@ -5,6 +5,37 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.0] - 2026-01-03
+
+### Added
+
+- **Graph View**: Horizontal org-chart tree visualization replacing Cytoscape.js
+- **Graph View**: Horizontal epic selector with pagination arrows
+- **Graph View**: Curved SVG Bezier connectors with gradient fade
+- **Graph View**: Status and type indicator dots on nodes
+- **Graph View**: Hover glow effect on child nodes
+- **PRDs View**: Horizontal PRD selector dropdown (matching graph style)
+- **Theming**: Theme switcher with 6 themes (nacre-dark, nacre-light, catppuccin-mocha/macchiato/frappe/latte)
+- **Theming**: Semantic color palette with theme-aware chart colors
+- **Header**: Project folder name display below logo
+- **Metrics**: Refactored to pure functions for improved testability (17 new unit tests)
+
+### Changed
+
+- **Graph View**: Tasks display in multiple rows with wrapping
+- **Graph View**: Legend width matches epic selector box
+- **Board View**: Added max-width and centering for consistency
+- **Charts**: Use yellow instead of grey for Resolved bars
+
+### Fixed
+
+- **Metrics**: Cycle time calculation now correctly excludes issues without InProgress transitions
+- **Metrics**: EventType parsing includes Deleted event type
+- **Metrics**: Always show cycle time chart even with limited data
+- **Board View**: Theme selector now visible
+- **Markdown**: Table borders display correctly
+- **Graph View**: Lighter nodes and darker lines for better readability
+
 ## [0.8.0] - 2026-01-01
 
 ### Added
