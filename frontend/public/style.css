@@ -1901,10 +1901,9 @@ main:has(.board) {
     border: 1px solid var(--border-color);
     border-radius: var(--radius);
     padding: 16px 24px;
-    display: inline-flex;
+    display: flex;
     align-items: center;
     gap: 24px;
-    align-self: flex-start;
 }
 
 .graph-legend h3 {
