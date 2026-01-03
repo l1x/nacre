@@ -1,6 +1,6 @@
 # Nacre
 
-A local-first web interface for [Beads](https://github.com/beads-project/beads) issue tracking.
+A local-first web interface for [Beads](https://github.com/steveyegge/beads) issue tracking.
 
 ## Features
 
@@ -17,7 +17,7 @@ A local-first web interface for [Beads](https://github.com/beads-project/beads) 
 ### Prerequisites
 
 - Rust 1.75+ (uses Rust 2024 edition)
-- [Beads CLI](https://github.com/beads-project/beads) installed and configured
+- [Beads CLI](https://github.com/steveyegge/beads) installed and configured
 
 ### Build from source
 
@@ -121,6 +121,42 @@ cargo clippy
 - **[include_dir](https://crates.io/crates/include_dir)** - Embed static assets at compile time
 
 ## Version History
+
+### 0.9.1 (2026-01-03)
+
+**Bug Fixes**
+- Fixed Beads repository URLs in documentation
+
+### 0.9.0 (2026-01-03)
+
+**New Features**
+- Graph view with horizontal org-chart tree visualization
+- Horizontal epic selector with pagination arrows on `/graph`
+- Curved SVG Bezier connectors with gradient fade on graph nodes
+- Status and type indicator dots on graph nodes
+- Hover glow effect on child graph nodes
+- PRD selector dropdown on `/prds` (matching graph style)
+- Theme switcher with 6 themes (nacre-dark, nacre-light, catppuccin-mocha/macchiato/frappe/latte)
+- Semantic color palette with theme-aware chart colors
+- Project folder name display in header
+
+**Refactoring**
+- Metrics handlers refactored to pure functions for improved testability (17 new unit tests)
+- Handlers are now thin orchestration layers
+
+**UI Improvements**
+- Graph tasks display in multiple rows with wrapping
+- Graph legend width matches epic selector box
+- Board view max-width and centering for consistency
+- Yellow instead of grey for Resolved bars in charts
+
+**Bug Fixes**
+- Cycle time calculation now correctly excludes issues without InProgress transitions
+- EventType parsing includes Deleted event type
+- Always show cycle time chart even with limited data
+- Theme selector now visible on Board view
+- Markdown table borders display correctly
+- Graph nodes lighter with darker lines for better readability
 
 ### 0.8.0 (2026-01-01)
 
