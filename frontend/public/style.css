@@ -1112,6 +1112,30 @@ main:has(.board) {
     border-color: var(--accent);
 }
 
+/* PRDs Page */
+.prds-page {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.prds-page .epic-selector-wrapper {
+    max-width: 900px;
+}
+
+.prds-page .epic-pill {
+    min-width: 180px;
+    text-align: center;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.prd-content-container {
+    min-height: 400px;
+}
+
 /* Scrollbar styling */
 ::-webkit-scrollbar {
     width: 8px;
