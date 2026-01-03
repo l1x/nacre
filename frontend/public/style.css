@@ -2965,64 +2965,14 @@ main:has(.board) {
     padding: 1em 0.5em 0 0.5em;
 }
 
-/* Curved connector from each child up to parent level */
-.org-tree li::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 2px;
-    height: 1em;
-    background: linear-gradient(
-        to bottom,
-        transparent 0%,
-        var(--border-color) 20%,
-        var(--border-color) 100%
-    );
-    border-radius: 2px;
-}
-
-/* Curved cap at top of connector */
-.org-tree li::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 8px;
-    height: 8px;
-    border: 2px solid var(--border-color);
-    border-radius: 50%;
-    background: var(--bg-primary);
-}
-
-/* No connector for root level items */
-.org-tree > ul > li::before,
-.org-tree > ul > li::after {
-    display: none;
-}
-
+/* SVG connectors are drawn via JavaScript - no CSS pseudo-elements needed */
 .org-tree > ul > li {
     padding-top: 0;
 }
 
-/* Curved connector from parent down to children container */
-.org-tree ul ul::before {
-    content: '';
-    position: absolute;
-    top: -0.5em;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 2px;
-    height: 1.5em;
-    background: linear-gradient(
-        to bottom,
-        var(--border-color) 0%,
-        var(--border-color) 80%,
-        transparent 100%
-    );
-    border-radius: 2px;
+/* Nested lists need padding for hierarchy */
+.org-tree ul ul {
+    padding-top: 1.5em;
 }
 
 /* Node styling */
@@ -3049,33 +2999,7 @@ main:has(.board) {
     border-color: var(--accent);
 }
 
-/* Hover effect - highlight path connectors */
-.org-tree li > a:hover + ul li::before,
-.org-tree li > a:hover + ul ul::before,
-.org-tree li > .org-node:hover + ul li::before,
-.org-tree li > .org-node:hover + ul ul::before {
-    background: linear-gradient(
-        to bottom,
-        transparent 0%,
-        var(--accent) 20%,
-        var(--accent) 100%
-    );
-}
-
-.org-tree li > a:hover + ul li::after,
-.org-tree li > .org-node:hover + ul li::after {
-    border-color: var(--accent);
-}
-
-.org-tree li > a:hover + ul::before,
-.org-tree li > .org-node:hover + ul::before {
-    background: linear-gradient(
-        to bottom,
-        var(--accent) 0%,
-        var(--accent) 80%,
-        transparent 100%
-    );
-}
+/* SVG connector hover effects handled via JavaScript */
 
 /* Node content layout */
 .org-node-content {
