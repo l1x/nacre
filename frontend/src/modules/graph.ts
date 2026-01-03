@@ -22,9 +22,13 @@ function initOrgTreeConnectors() {
         orgTree.insertBefore(svg, orgTree.firstChild);
     }
 
+    // Map to track paths by parent node for hover effects
+    const pathsByParent = new Map<HTMLElement, { path: SVGPathElement; childNode: HTMLElement }[]>();
+
     function drawConnectors() {
-        // Clear existing paths
+        // Clear existing paths and map
         svg.innerHTML = '';
+        pathsByParent.clear();
 
         // Get computed style for colors
         const style = getComputedStyle(document.documentElement);
@@ -49,6 +53,9 @@ function initOrgTreeConnectors() {
             const parentX = parentRect.left + parentRect.width / 2 - treeRect.left;
             const parentY = parentRect.bottom - treeRect.top;
 
+            // Initialize array for this parent's paths
+            const parentPaths: { path: SVGPathElement; childNode: HTMLElement }[] = [];
+
             children.forEach(childLi => {
                 const childNode = childLi.querySelector(':scope > a.org-node, :scope > .org-node') as HTMLElement;
                 if (!childNode) return;
@@ -70,8 +77,41 @@ function initOrgTreeConnectors() {
                 path.setAttribute('stroke', strokeColor);
                 path.setAttribute('stroke-width', '2');
                 path.setAttribute('stroke-linecap', 'round');
+                path.style.transition = 'stroke 0.2s ease, stroke-width 0.2s ease';
 
                 svg.appendChild(path);
+                parentPaths.push({ path, childNode });
+            });
+
+            pathsByParent.set(parentNode, parentPaths);
+        });
+
+        // Setup hover effects
+        setupHoverEffects();
+    }
+
+    function setupHoverEffects() {
+        const style = getComputedStyle(document.documentElement);
+        const accentColor = style.getPropertyValue('--accent').trim() || '#fab387';
+        const strokeColor = style.getPropertyValue('--border-color').trim() || '#585b70';
+
+        pathsByParent.forEach((paths, parentNode) => {
+            parentNode.addEventListener('mouseenter', () => {
+                // Highlight all direct child paths
+                paths.forEach(({ path, childNode }) => {
+                    path.setAttribute('stroke', accentColor);
+                    path.setAttribute('stroke-width', '3');
+                    childNode.classList.add('org-node-highlight');
+                });
+            });
+
+            parentNode.addEventListener('mouseleave', () => {
+                // Reset all direct child paths
+                paths.forEach(({ path, childNode }) => {
+                    path.setAttribute('stroke', strokeColor);
+                    path.setAttribute('stroke-width', '2');
+                    childNode.classList.remove('org-node-highlight');
+                });
             });
         });
     }

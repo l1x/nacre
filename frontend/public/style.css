@@ -2999,6 +2999,15 @@ main:has(.board) {
     border-color: var(--accent);
 }
 
+/* Highlight effect for child nodes when parent is hovered */
+.org-node-highlight {
+    border-color: var(--accent) !important;
+    box-shadow: 0 0 12px var(--accent-glow, rgba(250, 179, 135, 0.4)),
+                0 0 4px var(--accent-glow, rgba(250, 179, 135, 0.2));
+    transform: translateY(-2px);
+    transition: all 0.2s ease;
+}
+
 /* SVG connector hover effects handled via JavaScript */
 
 /* Node content layout */
