@@ -2416,22 +2416,6 @@ main:has(.board) {
 .html-chart__legend-dot--orange { background: var(--chart-orange); }
 .html-chart__legend-dot--grey { background: var(--color-grey); }
 
-/* Specific Chart Overrides to match Board colors (Created=Orange, Resolved/Closed=Grey) */
-#ticket-activity .html-chart__bar--blue,
-#ticket-activity .html-chart__legend-dot--blue {
-    background: var(--chart-orange);
-}
-
-#ticket-activity .html-chart__bar--green,
-#ticket-activity .html-chart__legend-dot--green {
-    background: var(--color-grey);
-}
-
-#throughput .html-chart__bar--blue,
-#throughput .html-chart__legend-dot--blue {
-    background: var(--color-grey);
-}
-
 .html-chart__bar-value {
     position: absolute;
     top: -20px;

@@ -116,8 +116,8 @@ pub async fn landing(
     let tickets_chart = create_chart(
         labels.clone(),
         vec![
-            create_series("Created", "blue", &created_values, tickets_max, ""),
-            create_series("Resolved", "green", &resolved_values, tickets_max, ""),
+            create_series("Created", "orange", &created_values, tickets_max, ""),
+            create_series("Resolved", "grey", &resolved_values, tickets_max, ""),
         ],
         "",
     );
