@@ -2885,10 +2885,13 @@ main:has(.board) {
 .org-tree ul {
     position: relative;
     padding: 1em 0;
-    white-space: nowrap;
     margin: 0 auto;
     text-align: center;
     list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.5em;
 }
 
 .org-tree ul::after {
@@ -2906,50 +2909,27 @@ main:has(.board) {
     padding: 1em 0.5em 0 0.5em;
 }
 
-/* Horizontal connector lines */
-.org-tree li::before,
-.org-tree li::after {
+/* Vertical connector from each child up to parent level */
+.org-tree li::before {
     content: '';
     position: absolute;
     top: 0;
-    right: 50%;
-    border-top: 1px solid var(--border-color);
-    width: 50%;
+    left: 50%;
+    border-left: 1px solid var(--border-color);
+    width: 0;
     height: 1em;
 }
 
-.org-tree li::after {
-    right: auto;
-    left: 50%;
-    border-left: 1px solid var(--border-color);
-}
-
-/* Hide connectors for only-child */
-.org-tree li:only-child::after,
-.org-tree li:only-child::before {
+/* No connector for root level items */
+.org-tree > ul > li::before {
     display: none;
 }
 
-.org-tree li:only-child {
+.org-tree > ul > li {
     padding-top: 0;
 }
 
-/* First/last child - hide outer borders, add rounded corners */
-.org-tree li:first-child::before,
-.org-tree li:last-child::after {
-    border: 0 none;
-}
-
-.org-tree li:last-child::before {
-    border-right: 1px solid var(--border-color);
-    border-radius: 0 5px 0 0;
-}
-
-.org-tree li:first-child::after {
-    border-radius: 5px 0 0 0;
-}
-
-/* Vertical connector from parent to children */
+/* Vertical connector from parent to children container */
 .org-tree ul ul::before {
     content: '';
     position: absolute;
@@ -2985,11 +2965,9 @@ main:has(.board) {
 }
 
 /* Hover effect - highlight path connectors */
-.org-tree li > a:hover + ul li::after,
 .org-tree li > a:hover + ul li::before,
 .org-tree li > a:hover + ul::before,
 .org-tree li > a:hover + ul ul::before,
-.org-tree li > .org-node:hover + ul li::after,
 .org-tree li > .org-node:hover + ul li::before,
 .org-tree li > .org-node:hover + ul::before,
 .org-tree li > .org-node:hover + ul ul::before {
