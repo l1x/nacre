@@ -49,11 +49,11 @@ pub fn calculate_cycle_times(
     let mut cycle_times: Vec<f64> = Vec::new();
 
     for issue in issues {
-        if let Some(closed_at) = issue.closed_at {
-            if let Some(started_at) = started_times.get(&issue.id) {
-                let duration = closed_at - *started_at;
-                cycle_times.push(duration.whole_minutes() as f64);
-            }
+        if let Some(closed_at) = issue.closed_at
+            && let Some(started_at) = started_times.get(&issue.id)
+        {
+            let duration = closed_at - *started_at;
+            cycle_times.push(duration.whole_minutes() as f64);
         }
     }
 
@@ -290,14 +290,15 @@ pub fn build_cycle_time_chart(
     for issue in issues {
         if let Some(closed_at) = issue.closed_at {
             let close_date = closed_at.date();
-            if close_date >= start_date && close_date <= end_date {
-                if let Some(started_at) = started_times.get(&issue.id) {
-                    let duration_mins = (closed_at - *started_at).whole_minutes() as f64;
-                    cycle_times_by_day
-                        .entry(close_date)
-                        .or_default()
-                        .push(duration_mins);
-                }
+            if close_date >= start_date
+                && close_date <= end_date
+                && let Some(started_at) = started_times.get(&issue.id)
+            {
+                let duration_mins = (closed_at - *started_at).whole_minutes() as f64;
+                cycle_times_by_day
+                    .entry(close_date)
+                    .or_default()
+                    .push(duration_mins);
             }
         }
     }
