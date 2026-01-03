@@ -2156,25 +2156,25 @@ main:has(.board) {
     z-index: 1;
 }
 
-/* Intensity levels - using accent color with varying opacity */
+/* Intensity levels - using orange/peach tones */
 .heatmap-intensity-0 {
     background-color: var(--bg-secondary);
 }
 
 .heatmap-intensity-1 {
-    background-color: oklch(0.7 0.12 145);
+    background-color: oklch(0.75 0.08 55);
 }
 
 .heatmap-intensity-2 {
-    background-color: oklch(0.6 0.15 145);
+    background-color: oklch(0.70 0.12 55);
 }
 
 .heatmap-intensity-3 {
-    background-color: oklch(0.5 0.18 145);
+    background-color: oklch(0.65 0.16 55);
 }
 
 .heatmap-intensity-4 {
-    background-color: oklch(0.4 0.2 145);
+    background-color: oklch(0.60 0.18 55);
 }
 
 /* Legend */
