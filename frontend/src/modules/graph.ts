@@ -32,7 +32,9 @@ function initOrgTreeConnectors() {
 
         // Get computed style for colors
         const style = getComputedStyle(document.documentElement);
-        const strokeColor = style.getPropertyValue('--border-color').trim() || '#585b70';
+        const strokeColor = style.getPropertyValue('--connector-color').trim()
+            || style.getPropertyValue('--border-color').trim()
+            || '#585b70';
 
         // Find all nodes with children
         const nodes = orgTree.querySelectorAll('li');
@@ -93,7 +95,9 @@ function initOrgTreeConnectors() {
     function setupHoverEffects() {
         const style = getComputedStyle(document.documentElement);
         const accentColor = style.getPropertyValue('--accent').trim() || '#fab387';
-        const strokeColor = style.getPropertyValue('--border-color').trim() || '#585b70';
+        const strokeColor = style.getPropertyValue('--connector-color').trim()
+            || style.getPropertyValue('--border-color').trim()
+            || '#585b70';
 
         pathsByParent.forEach((paths, parentNode) => {
             parentNode.addEventListener('mouseenter', () => {

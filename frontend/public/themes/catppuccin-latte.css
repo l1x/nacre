@@ -20,6 +20,7 @@
     /* Borders */
     --border-color: #acb0be;    /* surface2 */
     --border-subtle: #bcc0cc;   /* surface1 */
+    --connector-color: #ccd0da; /* lighter for graph lines */
 
     /* Shadows */
     --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.08);
