@@ -5,35 +5,36 @@
 </head>
 <body>
     <header>
-        <a href="/" class="home-link">
-            <h1>Nacre</h1>
-            <span class="project-name">Proj: {{ project_name }}</span>
-        </a>
-        {% include "_nav.html" %}
-        {% if active_nav == "tasks" || active_nav == "board" || active_nav == "prds" || active_nav == "graph" %}
-        <div class="search-container"><input type="text" id="filter-input" placeholder="Search issues..."></div>
-        {% endif %}
-        <div class="column-controls">
-            <button class="columns-toggle" id="columns-toggle" aria-label="Toggle column visibility">Columns</button>
-            <div class="columns-dropdown" id="columns-dropdown">
-                {% for col in columns %}
-                <label class="column-checkbox">
-                    <input type="checkbox" data-status="{{ col.status }}" checked>
-                    <span>{{ col.name }}</span>
-                    <span class="count">{{ col.issues.len() }}</span>
-                </label>
-                {% endfor %}
+        <div class="header-content">
+            <a href="/" class="home-link">
+                <h1>Nacre</h1>
+                <span class="project-name">Proj: {{ project_name }}</span>
+            </a>
+            {% include "_nav.html" %}
+            <div style="flex: 1;"></div>
+            <div class="search-container"><input type="text" id="filter-input" placeholder="Search issues..."></div>
+            <div class="column-controls">
+                <button class="columns-toggle" id="columns-toggle" aria-label="Toggle column visibility">Columns</button>
+                <div class="columns-dropdown" id="columns-dropdown">
+                    {% for col in columns %}
+                    <label class="column-checkbox">
+                        <input type="checkbox" data-status="{{ col.status }}" checked>
+                        <span>{{ col.name }}</span>
+                        <span class="count">{{ col.issues.len() }}</span>
+                    </label>
+                    {% endfor %}
+                </div>
             </div>
+            <a href="/tasks/new" class="create-btn">+ Create</a>
+            <select class="theme-select" id="theme-select" aria-label="Select theme">
+                <option value="nacre-dark">Nacre Dark</option>
+                <option value="nacre-light">Nacre Light</option>
+                <option value="catppuccin-latte">Latte</option>
+                <option value="catppuccin-frappe">Frappé</option>
+                <option value="catppuccin-macchiato">Macchiato</option>
+                <option value="catppuccin-mocha">Mocha</option>
+            </select>
         </div>
-        <a href="/tasks/new" class="create-btn">+ Create</a>
-        <select class="theme-select" id="theme-select" aria-label="Select theme">
-            <option value="nacre-dark">Nacre Dark</option>
-            <option value="nacre-light">Nacre Light</option>
-            <option value="catppuccin-latte">Latte</option>
-            <option value="catppuccin-frappe">Frappé</option>
-            <option value="catppuccin-macchiato">Macchiato</option>
-            <option value="catppuccin-mocha">Mocha</option>
-        </select>
     </header>
     <main id="content">
         <div class="graph-controls">

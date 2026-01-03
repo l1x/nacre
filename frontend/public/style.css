@@ -476,8 +476,9 @@ main > h2 {
 
 /* Board View */
 main:has(.board) {
-    max-width: none;
+    max-width: 1600px;
     padding: 24px 32px;
+    margin: 0 auto;
 }
 
 .board {
