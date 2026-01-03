@@ -196,7 +196,7 @@ pub async fn metrics_handler(
         labels.clone(),
         vec![
             create_series("Created", "orange", &created_values, tickets_max, ""),
-            create_series("Resolved", "grey", &resolved_values, tickets_max, ""),
+            create_series("Resolved", "yellow", &resolved_values, tickets_max, ""),
         ],
         "",
     );
@@ -244,7 +244,7 @@ pub async fn metrics_handler(
         vec![
             create_series("p50", "blue", &lead_p50, lead_max, "h"),
             create_series("p90", "orange", &lead_p90, lead_max, "h"),
-            create_series("p100", "grey", &lead_p100, lead_max, "h"),
+            create_series("p100", "yellow", &lead_p100, lead_max, "h"),
         ],
         "h",
     );
@@ -321,7 +321,7 @@ pub async fn metrics_handler(
             ),
             create_series(
                 "p100",
-                "grey",
+                "yellow",
                 &cycle_p100_scaled,
                 cycle_max_scaled,
                 cycle_unit,

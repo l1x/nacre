@@ -117,7 +117,7 @@ pub async fn landing(
         labels.clone(),
         vec![
             create_series("Created", "orange", &created_values, tickets_max, ""),
-            create_series("Resolved", "grey", &resolved_values, tickets_max, ""),
+            create_series("Resolved", "yellow", &resolved_values, tickets_max, ""),
         ],
         "",
     );

@@ -2409,12 +2409,14 @@ main:has(.board) {
 .html-chart__bar--green { background: var(--chart-green); }
 .html-chart__bar--orange { background: var(--chart-orange); }
 .html-chart__bar--grey { background: var(--color-grey); }
+.html-chart__bar--yellow { background: var(--color-yellow); }
 
 /* Legend Dots */
 .html-chart__legend-dot--blue { background: var(--chart-blue); }
 .html-chart__legend-dot--green { background: var(--chart-green); }
 .html-chart__legend-dot--orange { background: var(--chart-orange); }
 .html-chart__legend-dot--grey { background: var(--color-grey); }
+.html-chart__legend-dot--yellow { background: var(--color-yellow); }
 
 .html-chart__bar-value {
     position: absolute;
