@@ -7,19 +7,17 @@
     {% include "_header.html" %}
     <main id="content">
         <div class="graph-page">
-            <div class="graph-header">
+            <div class="page-header-box">
                 <h2>Dependency Graph</h2>
-                <div class="graph-controls">
-                    <label for="epic-select">Epic:</label>
-                    <select id="epic-select" class="graph-select">
-                        <option value="">Select an epic...</option>
-                        {% for epic in epics %}
-                        <option value="{{ epic.id }}"{% if epic.selected %} selected{% endif %}>
-                            {{ epic.id }}: {{ epic.title }}
-                        </option>
-                        {% endfor %}
-                    </select>
-                </div>
+                <p class="page-subtitle">Visualize epic dependencies and task hierarchy</p>
+            </div>
+
+            <div class="epic-selector">
+                {% for epic in epics %}
+                <a href="/graph/{{ epic.id }}" class="epic-pill{% if epic.selected %} epic-pill--active{% endif %}">
+                    {{ epic.title }}
+                </a>
+                {% endfor %}
             </div>
 
             <div class="graph-tree-container">

@@ -2797,40 +2797,69 @@ main:has(.board) {
     min-height: 500px;
 }
 
-.graph-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 16px;
+/* Page header box (shared style) */
+.page-header-box {
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    padding: 24px 32px;
+    text-align: center;
 }
 
-.graph-header h2 {
+.page-header-box h2 {
     font-family: 'Georgia', 'Times New Roman', serif;
     font-size: 1.5rem;
     font-style: italic;
     color: var(--text-primary);
+    margin: 0 0 8px 0;
+}
+
+.page-subtitle {
+    color: var(--text-muted);
+    font-size: 0.9rem;
     margin: 0;
 }
 
-.graph-select {
-    padding: 8px 12px;
-    font-size: 0.9rem;
+/* Horizontal epic selector */
+.epic-selector {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+    padding: 16px;
+    background-color: var(--bg-card);
     border: 1px solid var(--border-color);
     border-radius: var(--radius);
-    background-color: var(--bg-card);
-    color: var(--text-primary);
-    min-width: 250px;
-    cursor: pointer;
 }
 
-.graph-select:hover {
-    border-color: var(--border-hover);
+.epic-pill {
+    padding: 8px 16px;
+    font-size: 0.85rem;
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
+    background-color: var(--bg-secondary);
+    color: var(--text-secondary);
+    text-decoration: none;
+    transition: all 0.15s ease;
+    white-space: nowrap;
 }
 
-.graph-select:focus {
-    outline: none;
+.epic-pill:hover {
     border-color: var(--accent);
+    color: var(--accent);
+    background-color: var(--bg-card-hover);
+}
+
+.epic-pill--active {
+    background-color: var(--accent);
+    border-color: var(--accent);
+    color: white;
+}
+
+.epic-pill--active:hover {
+    background-color: var(--accent-muted);
+    border-color: var(--accent-muted);
+    color: white;
 }
 
 /* Cytoscape container */
