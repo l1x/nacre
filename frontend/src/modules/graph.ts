@@ -1,6 +1,42 @@
 import { ISSUE_TYPE } from '../constants';
 
+function initEpicSelector() {
+    const wrapper = document.querySelector('.epic-selector-wrapper');
+    if (!wrapper) return;
+
+    const selector = wrapper.querySelector('.epic-selector') as HTMLElement;
+    const leftBtn = wrapper.querySelector('#epic-nav-left') as HTMLButtonElement;
+    const rightBtn = wrapper.querySelector('#epic-nav-right') as HTMLButtonElement;
+
+    if (!selector || !leftBtn || !rightBtn) return;
+
+    const scrollAmount = 200; // pixels to scroll per click
+
+    const updateButtonStates = () => {
+        const { scrollLeft, scrollWidth, clientWidth } = selector;
+        leftBtn.disabled = scrollLeft <= 0;
+        rightBtn.disabled = scrollLeft + clientWidth >= scrollWidth - 1;
+    };
+
+    leftBtn.addEventListener('click', () => {
+        selector.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
+    });
+
+    rightBtn.addEventListener('click', () => {
+        selector.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+    });
+
+    selector.addEventListener('scroll', updateButtonStates);
+    window.addEventListener('resize', updateButtonStates);
+
+    // Initial state
+    updateButtonStates();
+}
+
 export function initGraph() {
+    // Initialize epic selector pagination
+    initEpicSelector();
+
     const treeView = document.querySelector('.tree-view');
     if (!treeView) return;
 
