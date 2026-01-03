@@ -147,7 +147,6 @@ impl NestedTreeNode {
             id = askama::MarkupDisplay::new_unsafe(&self.id, askama::Html),
             status = self.status,
             issue_type = self.issue_type,
-            priority = self.priority,
             title = askama::MarkupDisplay::new_unsafe(&self.title, askama::Html),
             blocked_badge = blocked_badge,
             children_html = children_html,
