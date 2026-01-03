@@ -1,126 +1,73 @@
 use axum::extract::State;
+use time::OffsetDateTime;
 
-use crate::beads;
+use crate::beads::{Issue, IssueType, Status};
+use crate::handlers::metrics::{build_tickets_chart, generate_date_range};
 use crate::templates::*;
 
-pub async fn landing(
-    State(state): State<crate::SharedAppState>,
-) -> crate::AppResult<LandingTemplate> {
-    let all_issues = state.client.list_issues()?;
+// ============================================================================
+// Pure Functions - testable without mocking
+// ============================================================================
 
-    // Calculate stats
-    let stats = ProjectStats {
-        total: all_issues.len(),
-        open: all_issues
+/// Calculate project statistics from issues
+pub fn calculate_project_stats(issues: &[Issue]) -> ProjectStats {
+    ProjectStats {
+        total: issues.len(),
+        open: issues.iter().filter(|i| i.status == Status::Open).count(),
+        in_progress: issues
             .iter()
-            .filter(|i| i.status == beads::Status::Open)
+            .filter(|i| i.status == Status::InProgress)
             .count(),
-        in_progress: all_issues
-            .iter()
-            .filter(|i| i.status == beads::Status::InProgress)
-            .count(),
-        blocked: all_issues
-            .iter()
-            .filter(|i| i.status == beads::Status::Blocked)
-            .count(),
-        closed: all_issues
-            .iter()
-            .filter(|i| i.status == beads::Status::Closed)
-            .count(),
-    };
+        blocked: issues.iter().filter(|i| i.status == Status::Blocked).count(),
+        closed: issues.iter().filter(|i| i.status == Status::Closed).count(),
+    }
+}
 
-    // Get epics with progress
-    let mut epics: Vec<EpicWithProgress> = all_issues
+/// Get open epics with their progress, sorted by percent complete (least first)
+pub fn build_epic_progress_list(issues: &[Issue]) -> Vec<EpicWithProgress> {
+    let mut epics: Vec<EpicWithProgress> = issues
         .iter()
-        .filter(|i| i.issue_type == beads::IssueType::Epic && i.status != beads::Status::Closed)
-        .map(|epic| EpicWithProgress::from_epic(epic, &all_issues, false))
+        .filter(|i| i.issue_type == IssueType::Epic && i.status != Status::Closed)
+        .map(|epic| EpicWithProgress::from_epic(epic, issues, false))
         .collect();
 
-    // Sort epics by percent complete (least complete first to highlight work needed)
     epics.sort_by(|a, b| {
         a.percent
             .partial_cmp(&b.percent)
             .unwrap_or(std::cmp::Ordering::Equal)
     });
 
-    // Get blocked issues (limit to 5)
-    let blocked: Vec<beads::Issue> = all_issues
+    epics
+}
+
+/// Get issues by status with optional limit
+pub fn get_issues_by_status(issues: &[Issue], status: Status, limit: usize) -> Vec<Issue> {
+    issues
         .iter()
-        .filter(|i| i.status == beads::Status::Blocked)
-        .take(5)
+        .filter(|i| i.status == status)
+        .take(limit)
         .cloned()
-        .collect();
+        .collect()
+}
 
-    // Get in progress issues (limit to 5)
-    let in_progress: Vec<beads::Issue> = all_issues
-        .iter()
-        .filter(|i| i.status == beads::Status::InProgress)
-        .take(5)
-        .cloned()
-        .collect();
+// ============================================================================
+// Handler - thin orchestration layer
+// ============================================================================
 
-    // Build chart data for the last 7 days
-    let now_dt = time::OffsetDateTime::now_utc();
-    let start_dt = now_dt - time::Duration::days(6); // 7 days including today
+pub async fn landing(
+    State(state): State<crate::SharedAppState>,
+) -> crate::AppResult<LandingTemplate> {
+    let all_issues = state.client.list_issues()?;
 
-    // Collect all dates
-    let mut dates: Vec<time::Date> = Vec::new();
-    let mut curr = start_dt.date();
-    while curr <= now_dt.date() {
-        dates.push(curr);
-        if let Some(next) = curr.next_day() {
-            curr = next;
-        } else {
-            break;
-        }
-    }
-    let date_format = time::format_description::parse("[month].[day]").unwrap();
-    let labels: Vec<String> = dates
-        .iter()
-        .map(|d| d.format(&date_format).unwrap())
-        .collect();
+    // Use pure functions for all calculations
+    let now = OffsetDateTime::now_utc();
+    let dates = generate_date_range(now);
 
-    // --- Tickets Activity Chart ---
-    let mut created_by_day: std::collections::HashMap<time::Date, usize> =
-        std::collections::HashMap::new();
-    let mut resolved_by_day: std::collections::HashMap<time::Date, usize> =
-        std::collections::HashMap::new();
-    for d in &dates {
-        created_by_day.insert(*d, 0);
-        resolved_by_day.insert(*d, 0);
-    }
-    for issue in &all_issues {
-        let created_date = issue.created_at.date();
-        if created_date >= start_dt.date() && created_date <= now_dt.date() {
-            *created_by_day.entry(created_date).or_insert(0) += 1;
-        }
-        if let Some(closed_at) = issue.closed_at {
-            let resolved_date = closed_at.date();
-            if resolved_date >= start_dt.date() && resolved_date <= now_dt.date() {
-                *resolved_by_day.entry(resolved_date).or_insert(0) += 1;
-            }
-        }
-    }
-    let created_values: Vec<f64> = dates
-        .iter()
-        .map(|d| *created_by_day.get(d).unwrap_or(&0) as f64)
-        .collect();
-    let resolved_values: Vec<f64> = dates
-        .iter()
-        .map(|d| *resolved_by_day.get(d).unwrap_or(&0) as f64)
-        .collect();
-    let tickets_max = created_values
-        .iter()
-        .chain(resolved_values.iter())
-        .fold(0.0_f64, |a, &b| a.max(b));
-    let tickets_chart = create_chart(
-        labels.clone(),
-        vec![
-            create_series("Created", "orange", &created_values, tickets_max, ""),
-            create_series("Resolved", "yellow", &resolved_values, tickets_max, ""),
-        ],
-        "",
-    );
+    let stats = calculate_project_stats(&all_issues);
+    let epics = build_epic_progress_list(&all_issues);
+    let blocked = get_issues_by_status(&all_issues, Status::Blocked, 5);
+    let in_progress = get_issues_by_status(&all_issues, Status::InProgress, 5);
+    let tickets_chart = build_tickets_chart(&all_issues, &dates);
 
     Ok(LandingTemplate {
         project_name: state.project_name.clone(),
@@ -133,4 +80,92 @@ pub async fn landing(
         in_progress,
         tickets_chart,
     })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn make_test_issue(id: &str, status: Status, issue_type: IssueType) -> Issue {
+        Issue {
+            id: id.to_string(),
+            title: format!("Test {}", id),
+            status,
+            priority: Some(2),
+            issue_type,
+            created_at: time::OffsetDateTime::now_utc(),
+            updated_at: time::OffsetDateTime::now_utc(),
+            closed_at: None,
+            assignee: None,
+            labels: None,
+            description: None,
+            acceptance_criteria: None,
+            close_reason: None,
+            estimate: None,
+            dependencies: vec![],
+        }
+    }
+
+    #[test]
+    fn test_calculate_project_stats() {
+        let issues = vec![
+            make_test_issue("test-1", Status::Open, IssueType::Task),
+            make_test_issue("test-2", Status::InProgress, IssueType::Task),
+            make_test_issue("test-3", Status::Blocked, IssueType::Task),
+            make_test_issue("test-4", Status::Closed, IssueType::Task),
+            make_test_issue("test-5", Status::Closed, IssueType::Task),
+        ];
+
+        let stats = calculate_project_stats(&issues);
+
+        assert_eq!(stats.total, 5);
+        assert_eq!(stats.open, 1);
+        assert_eq!(stats.in_progress, 1);
+        assert_eq!(stats.blocked, 1);
+        assert_eq!(stats.closed, 2);
+    }
+
+    #[test]
+    fn test_calculate_project_stats_empty() {
+        let stats = calculate_project_stats(&[]);
+
+        assert_eq!(stats.total, 0);
+        assert_eq!(stats.open, 0);
+        assert_eq!(stats.in_progress, 0);
+        assert_eq!(stats.blocked, 0);
+        assert_eq!(stats.closed, 0);
+    }
+
+    #[test]
+    fn test_get_issues_by_status() {
+        let issues = vec![
+            make_test_issue("test-1", Status::Blocked, IssueType::Task),
+            make_test_issue("test-2", Status::Blocked, IssueType::Task),
+            make_test_issue("test-3", Status::Blocked, IssueType::Task),
+            make_test_issue("test-4", Status::Open, IssueType::Task),
+        ];
+
+        let blocked = get_issues_by_status(&issues, Status::Blocked, 2);
+
+        assert_eq!(blocked.len(), 2);
+        assert_eq!(blocked[0].id, "test-1");
+        assert_eq!(blocked[1].id, "test-2");
+    }
+
+    #[test]
+    fn test_build_epic_progress_list() {
+        let issues = vec![
+            make_test_issue("epic-1", Status::Open, IssueType::Epic),
+            make_test_issue("epic-2", Status::InProgress, IssueType::Epic),
+            make_test_issue("epic-3", Status::Closed, IssueType::Epic), // Should be excluded
+            make_test_issue("task-1", Status::Open, IssueType::Task),
+        ];
+
+        let epics = build_epic_progress_list(&issues);
+
+        assert_eq!(epics.len(), 2);
+        // Both have 0% progress (no children), so order may vary
+        assert!(epics.iter().all(|e| e.issue.issue_type == IssueType::Epic));
+        assert!(epics.iter().all(|e| e.issue.status != Status::Closed));
+    }
 }
