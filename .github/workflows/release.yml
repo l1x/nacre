@@ -1,0 +1,57 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - target: x86_64-apple-darwin
+            os: macos-latest
+          - target: aarch64-apple-darwin
+            os: macos-latest
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install mise
+        uses: jdx/mise-action@v2
+
+      - name: Add Rust target
+        run: rustup target add ${{ matrix.target }}
+
+      - name: Build
+        run: mise run build-js-prod && cargo build --release --target ${{ matrix.target }}
+
+      - name: Package
+        run: |
+          tar -czvf nacre-${{ matrix.target }}.tar.gz \
+            -C target/${{ matrix.target }}/release nacre
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: nacre-${{ matrix.target }}
+          path: nacre-${{ matrix.target }}.tar.gz
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/download-artifact@v4
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            nacre-x86_64-apple-darwin/nacre-x86_64-apple-darwin.tar.gz
+            nacre-aarch64-apple-darwin/nacre-aarch64-apple-darwin.tar.gz

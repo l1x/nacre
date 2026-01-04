@@ -96,3 +96,8 @@ depends = ["audit", "machete"]
 description = "Building the development version"
 run = "cargo run -- --open"
 depends = ["build-js-prod"]
+
+[tasks.publish]
+description = "Publish crate to crates.io"
+run = "cargo publish"
+depends = ["lint", "tests", "build-prod"]
