@@ -60,7 +60,8 @@ pub fn get_issues_by_status(issues: &[Issue], status: Status, limit: usize) -> V
 pub async fn landing(
     State(state): State<crate::SharedAppState>,
 ) -> crate::AppResult<LandingTemplate> {
-    let all_issues = state.client.list_issues()?;
+    // Use list_all_issues to include closed for accurate stats
+    let all_issues = state.client.list_all_issues()?;
 
     // Use pure functions for all calculations
     let now = OffsetDateTime::now_utc();

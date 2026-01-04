@@ -490,6 +490,22 @@ impl Client {
         Ok(issues)
     }
 
+    /// List all issues including closed (for stats and metrics)
+    pub fn list_all_issues(&self) -> Result<Vec<Issue>> {
+        let output = self
+            .base_command()
+            .args(["list", "--json", "--all"])
+            .output()?;
+
+        if !output.status.success() {
+            let error_msg = String::from_utf8_lossy(&output.stderr);
+            return Err(BeadsError::CommandError(error_msg.to_string()));
+        }
+
+        let issues: Vec<Issue> = serde_json::from_slice(&output.stdout)?;
+        Ok(issues)
+    }
+
     pub fn get_issue(&self, id: &str) -> Result<Issue> {
         let output = self
             .base_command()
