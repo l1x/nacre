@@ -1,9 +1,10 @@
 use axum::{
     Json,
-    extract::{Path, State},
+    extract::{Path, Query, State},
     http::{HeaderMap, StatusCode, header},
     response::IntoResponse,
 };
+use serde::Deserialize;
 use std::collections::{HashMap, HashSet};
 
 use crate::beads;
@@ -12,10 +13,21 @@ use crate::templates::{
     TasksTemplate, TreeNode,
 };
 
+#[derive(Deserialize, Default)]
+pub struct TasksQuery {
+    #[serde(default)]
+    pub include_closed: bool,
+}
+
 pub async fn tasks_list(
     State(state): State<crate::SharedAppState>,
+    Query(query): Query<TasksQuery>,
 ) -> crate::AppResult<TasksTemplate> {
-    let all_issues = state.client.list_issues()?;
+    let all_issues = if query.include_closed {
+        state.client.list_all_issues()?
+    } else {
+        state.client.list_issues()?
+    };
     let nodes = build_issue_tree(&all_issues);
 
     Ok(TasksTemplate {
@@ -24,6 +36,7 @@ pub async fn tasks_list(
         active_nav: "tasks",
         app_version: state.app_version.clone(),
         nodes,
+        include_closed: query.include_closed,
     })
 }
 

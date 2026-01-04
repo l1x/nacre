@@ -376,6 +376,7 @@ pub struct TasksTemplate {
     pub active_nav: &'static str,
     pub app_version: String,
     pub nodes: Vec<TreeNode>,
+    pub include_closed: bool,
 }
 
 #[derive(Template)]

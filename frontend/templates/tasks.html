@@ -36,6 +36,16 @@
                 </div>
                 <span class="control-label">Sort</span>
             </div>
+            <div class="separator"></div>
+            <div class="control-group">
+                <div class="control-items">
+                    <label class="include-closed-toggle">
+                        <input type="checkbox" id="include-closed" {% if include_closed %}checked{% endif %} onchange="window.location.href=this.checked ? '/tasks?include_closed=true' : '/tasks'">
+                        Include Closed
+                    </label>
+                </div>
+                <span class="control-label">Filter</span>
+            </div>
         </div>
 
         <div class="tree-view">
