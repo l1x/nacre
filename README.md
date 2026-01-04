@@ -122,6 +122,23 @@ cargo clippy
 
 ## Version History
 
+### 0.9.2 (2026-01-04)
+
+**New Features**
+- Added "Include Closed" toggle to /graph, /board, and /tasks views
+- Dashboard and metrics now include closed issues for accurate statistics
+- PDF export for PRDs with preserved CSS colors
+- GitHub Actions workflow for automated macOS binary releases
+
+**UI Improvements**
+- Simplified expand/collapse buttons on /tasks (removed "Level" text)
+- PDF export button moved inside PRD content box
+- "Include Closed" toggle positioned in controls row on /board
+
+**Build & CI**
+- Added `mise publish` task for crates.io releases
+- Release workflow builds x86_64 and aarch64 macOS binaries
+
 ### 0.9.1 (2026-01-03)
 
 **Bug Fixes**
