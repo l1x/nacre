@@ -10,6 +10,10 @@ bun = "latest"
 description = "Lint Rust with Clippy, failing on warnings"
 run = "cargo clippy -- -D warnings"
 
+[tasks.install-js-deps]
+description = "Bun install packages"
+run = "bun install"
+
 [tasks.lint-ts]
 description = "Lint TypeScript with ESLint (security plugin)"
 run = "bun run lint"

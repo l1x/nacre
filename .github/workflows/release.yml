@@ -16,7 +16,7 @@ jobs:
         uses: jdx/mise-action@v2
 
       - name: Install frontend dependencies
-        run: bun install
+        run: mise run install-js-deps
 
       - name: Build
         run: mise run build-prod
