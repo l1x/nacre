@@ -1,9 +1,23 @@
 use crate::beads;
 use crate::templates::*;
-use axum::extract::State;
+use axum::extract::{Query, State};
+use serde::Deserialize;
 
-pub async fn board(State(state): State<crate::SharedAppState>) -> crate::AppResult<BoardTemplate> {
-    let all_issues = state.client.list_issues()?;
+#[derive(Deserialize, Default)]
+pub struct BoardQuery {
+    #[serde(default)]
+    pub include_closed: bool,
+}
+
+pub async fn board(
+    State(state): State<crate::SharedAppState>,
+    Query(query): Query<BoardQuery>,
+) -> crate::AppResult<BoardTemplate> {
+    let all_issues = if query.include_closed {
+        state.client.list_all_issues()?
+    } else {
+        state.client.list_issues()?
+    };
 
     let columns = vec![
         BoardColumn {
@@ -59,5 +73,6 @@ pub async fn board(State(state): State<crate::SharedAppState>) -> crate::AppResu
         active_nav: "board",
         app_version: state.app_version.clone(),
         columns,
+        include_closed: query.include_closed,
     })
 }

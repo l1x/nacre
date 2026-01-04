@@ -185,6 +185,7 @@ pub struct BoardTemplate {
     pub active_nav: &'static str,
     pub app_version: String,
     pub columns: Vec<BoardColumn>,
+    pub include_closed: bool,
 }
 
 #[derive(Template)]
