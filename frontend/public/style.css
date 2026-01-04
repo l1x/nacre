@@ -3115,3 +3115,59 @@ main:has(.board) {
     justify-content: center;
     overflow: auto;
 }
+
+/* PRD toolbar */
+.prd-toolbar {
+    display: flex;
+    justify-content: flex-end;
+    padding: 0.5rem 0;
+    margin-bottom: 0.5rem;
+}
+
+/* Print styles for PRD export */
+@media print {
+    /* Hide everything except PRD content */
+    body * {
+        visibility: hidden;
+    }
+
+    .prd-content,
+    .prd-content * {
+        visibility: visible;
+    }
+
+    .prd-content {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        padding: 2rem;
+    }
+
+    /* Hide navigation and UI elements */
+    header,
+    nav,
+    footer,
+    .epic-selector-wrapper,
+    .prd-toolbar,
+    .theme-select,
+    #theme-select {
+        display: none !important;
+    }
+
+    /* Ensure code blocks print with background */
+    pre, code {
+        background-color: #f5f5f5 !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    /* Page breaks */
+    h1, h2, h3 {
+        page-break-after: avoid;
+    }
+
+    pre, table {
+        page-break-inside: avoid;
+    }
+}

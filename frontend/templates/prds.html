@@ -23,6 +23,9 @@
                 {% if content.is_empty() %}
                 <div class="graph-empty-state">Select a PRD to view its content</div>
                 {% else %}
+                <div class="prd-toolbar">
+                    <button class="btn btn-secondary" onclick="window.print()" title="Export as PDF">Export PDF</button>
+                </div>
                 <div class="prd-content">
                     {{ content|safe }}
                 </div>
