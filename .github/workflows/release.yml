@@ -26,6 +26,9 @@ jobs:
       - name: Add Rust target
         run: rustup target add ${{ matrix.target }}
 
+      - name: Install frontend dependencies
+        run: bun install
+
       - name: Build
         run: mise run build-js-prod && cargo build --release --target ${{ matrix.target }}
 
