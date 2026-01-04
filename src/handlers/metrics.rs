@@ -488,7 +488,8 @@ pub async fn metrics_handler(
     let mut set: tokio::task::JoinSet<MetricsData> = tokio::task::JoinSet::new();
 
     let client = state.client.clone();
-    set.spawn_blocking(move || MetricsData::Issues(client.list_issues()));
+    // Use list_all_issues to include closed for accurate metrics
+    set.spawn_blocking(move || MetricsData::Issues(client.list_all_issues()));
 
     let client = state.client.clone();
     set.spawn_blocking(move || MetricsData::Activities(client.get_activity()));
