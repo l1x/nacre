@@ -13,10 +13,6 @@
             {% include "_nav.html" %}
             <div style="flex: 1;"></div>
             <div class="search-container"><input type="text" id="filter-input" placeholder="Search issues..."></div>
-            <label class="include-closed-toggle">
-                <input type="checkbox" id="include-closed" {% if include_closed %}checked{% endif %} onchange="window.location.href=this.checked ? '/board?include_closed=true' : '/board'">
-                Include Closed
-            </label>
             <div class="column-controls">
                 <button class="columns-toggle" id="columns-toggle" aria-label="Toggle column visibility">Columns</button>
                 <div class="columns-dropdown" id="columns-dropdown">
@@ -27,6 +23,11 @@
                         <span class="count">{{ col.issues.len() }}</span>
                     </label>
                     {% endfor %}
+                    <div class="dropdown-divider"></div>
+                    <label class="column-checkbox">
+                        <input type="checkbox" id="include-closed" {% if include_closed %}checked{% endif %} onchange="window.location.href=this.checked ? '/board?include_closed=true' : '/board'">
+                        <span>Include Closed</span>
+                    </label>
                 </div>
             </div>
             <a href="/tasks/new" class="create-btn">+ Create</a>

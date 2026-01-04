@@ -1431,6 +1431,12 @@ main:has(.board) {
     font-weight: 500;
 }
 
+.dropdown-divider {
+    height: 1px;
+    background-color: var(--border);
+    margin: 8px 0;
+}
+
 .create-btn:hover {
     background-color: var(--accent-muted);
     color: white;
