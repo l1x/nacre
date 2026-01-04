@@ -3,45 +3,42 @@ name: Release
 on:
   push:
     tags:
-      - 'v*'
+      - "v*"
 
 jobs:
   build:
     strategy:
       matrix:
         include:
-          - target: x86_64-apple-darwin
-            os: macos-latest
-          - target: aarch64-apple-darwin
-            os: macos-latest
+          - os: macos-13
+            arch: x86_64
+          - os: macos-latest
+            arch: aarch64
 
     runs-on: ${{ matrix.os }}
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install mise
+      - name: Install mise and tools
         uses: jdx/mise-action@v2
-
-      - name: Add Rust target
-        run: rustup target add ${{ matrix.target }}
 
       - name: Install frontend dependencies
         run: bun install
 
       - name: Build
-        run: mise run build-js-prod && cargo build --release --target ${{ matrix.target }}
+        run: mise run build-prod
 
       - name: Package
         run: |
-          tar -czvf nacre-${{ matrix.target }}.tar.gz \
-            -C target/${{ matrix.target }}/release nacre
+          tar -czvf nacre-${{ matrix.arch }}-apple-darwin.tar.gz \
+            -C target/release nacre
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: nacre-${{ matrix.target }}
-          path: nacre-${{ matrix.target }}.tar.gz
+          name: nacre-${{ matrix.arch }}-apple-darwin
+          path: nacre-${{ matrix.arch }}-apple-darwin.tar.gz
 
   release:
     needs: build
