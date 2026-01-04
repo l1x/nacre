@@ -1,11 +1,18 @@
 use axum::{
-    extract::{Path, State},
+    extract::{Path, Query, State},
     http::{HeaderMap, HeaderValue, StatusCode, header},
     response::{IntoResponse, Response},
 };
 use include_dir::{Dir, include_dir};
+use serde::Deserialize;
 
 use crate::templates::*;
+
+#[derive(Deserialize, Default)]
+pub struct GraphQuery {
+    #[serde(default)]
+    pub include_closed: bool,
+}
 
 // Embed entire frontend/public directory at compile time
 static ASSETS: Dir = include_dir!("$CARGO_MANIFEST_DIR/frontend/public");
@@ -96,8 +103,15 @@ pub async fn serve_static(Path(filename): Path<String>, headers: HeaderMap) -> R
     serve_asset(&filename, &headers)
 }
 
-pub async fn graph(State(state): State<crate::SharedAppState>) -> crate::AppResult<GraphTemplate> {
-    let all_issues = state.client.list_issues()?;
+pub async fn graph(
+    State(state): State<crate::SharedAppState>,
+    Query(query): Query<GraphQuery>,
+) -> crate::AppResult<GraphTemplate> {
+    let all_issues = if query.include_closed {
+        state.client.list_all_issues()?
+    } else {
+        state.client.list_issues()?
+    };
 
     // Get all epics for the selector
     let epics: Vec<EpicSummary> = all_issues
@@ -120,14 +134,21 @@ pub async fn graph(State(state): State<crate::SharedAppState>) -> crate::AppResu
         app_version: state.app_version.clone(),
         epics,
         tree_html: String::new(),
+        include_closed: query.include_closed,
+        selected_epic: None,
     })
 }
 
 pub async fn graph_epic(
     State(state): State<crate::SharedAppState>,
     Path(epic_id): Path<String>,
+    Query(query): Query<GraphQuery>,
 ) -> crate::AppResult<GraphTemplate> {
-    let all_issues = state.client.list_issues()?;
+    let all_issues = if query.include_closed {
+        state.client.list_all_issues()?
+    } else {
+        state.client.list_issues()?
+    };
 
     // Get all epics for the selector
     let epics: Vec<EpicSummary> = all_issues
@@ -164,6 +185,8 @@ pub async fn graph_epic(
         app_version: state.app_version.clone(),
         epics,
         tree_html,
+        include_closed: query.include_closed,
+        selected_epic: Some(epic_id),
     })
 }
 

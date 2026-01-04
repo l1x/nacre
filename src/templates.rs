@@ -243,6 +243,9 @@ pub struct GraphTemplate {
     pub epics: Vec<EpicSummary>,
     /// Pre-rendered HTML for the org-chart tree (use |safe filter in template)
     pub tree_html: String,
+    pub include_closed: bool,
+    /// Currently selected epic ID (if any)
+    pub selected_epic: Option<String>,
 }
 
 /// A single bar in a chart series
