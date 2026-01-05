@@ -1002,7 +1002,7 @@ main:has(.board) {
     position: relative;
     background-color: var(--bg-card);
     border: 1px solid var(--border-color);
-    padding: 48px 56px;
+    padding: 28px 56px 48px;
     border-radius: var(--radius);
     max-width: 800px;
     margin: 0 auto;
@@ -1029,6 +1029,7 @@ main:has(.board) {
 
 .prd-content h1 {
     color: var(--accent);
+    margin-bottom: 0.35em;
 }
 
 .prd-content h1:first-child {
