@@ -44,7 +44,7 @@ pub async fn task_detail(
     State(state): State<crate::SharedAppState>,
     Path(id): Path<String>,
 ) -> crate::AppResult<TaskDetailTemplate> {
-    let all_issues = state.client.list_issues()?;
+    let all_issues = state.client.list_all_issues()?;
 
     // Find the issue (any type, not just epics)
     let issue = all_issues
