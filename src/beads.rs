@@ -494,7 +494,7 @@ impl Client {
     pub fn list_all_issues(&self) -> Result<Vec<Issue>> {
         let output = self
             .base_command()
-            .args(["list", "--json", "--all"])
+            .args(["list", "--json", "--all", "--limit", "0"])
             .output()?;
 
         if !output.status.success() {
