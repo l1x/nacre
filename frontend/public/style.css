@@ -1177,15 +1177,15 @@ main:has(.board) {
 
 .prd-sidebar-item {
     display: block;
-    padding: 1px 10px;
+    padding: 2px 8px;
     color: var(--text-secondary);
     text-decoration: none;
     font-size: 0.85rem;
-    border-left: 2px solid transparent;
+    text-align: center;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+    transition: background-color 0.15s ease, color 0.15s ease;
 }
 
 .prd-sidebar-item:hover {
@@ -1195,7 +1195,6 @@ main:has(.board) {
 
 .prd-sidebar-item--active {
     color: var(--accent);
-    border-left-color: var(--accent);
     background-color: var(--bg-secondary);
     font-weight: 500;
 }
