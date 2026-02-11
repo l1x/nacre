@@ -39,7 +39,7 @@
     <main id="content">
         <div class="graph-controls">
             <div class="filter-group">
-                <label>Show Types:</label>
+                <label>Type:</label>
                 <div class="checkbox-group">
                     <label><input type="checkbox" class="type-filter" value="epic" checked> Epics</label>
                     <label><input type="checkbox" class="type-filter" value="feature" checked> Features</label>
@@ -47,6 +47,35 @@
                     <label><input type="checkbox" class="type-filter" value="task" checked> Tasks</label>
                     <label><input type="checkbox" class="type-filter" value="chore" checked> Chores</label>
                 </div>
+            </div>
+            <div class="filter-group">
+                <label>Priority:</label>
+                <div class="checkbox-group">
+                    <label><input type="checkbox" class="priority-filter" value="0" checked> P0</label>
+                    <label><input type="checkbox" class="priority-filter" value="1" checked> P1</label>
+                    <label><input type="checkbox" class="priority-filter" value="2" checked> P2</label>
+                    <label><input type="checkbox" class="priority-filter" value="3" checked> P3</label>
+                    <label><input type="checkbox" class="priority-filter" value="4" checked> P4</label>
+                </div>
+            </div>
+            {% if !assignees.is_empty() %}
+            <div class="filter-group">
+                <label>Assignee:</label>
+                <div class="checkbox-group">
+                    <label><input type="checkbox" class="assignee-filter" value="" checked> Unassigned</label>
+                    {% for assignee in assignees %}
+                    <label><input type="checkbox" class="assignee-filter" value="{{ assignee }}" checked> {{ assignee }}</label>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+            <div class="filter-group">
+                <label>Sort:</label>
+                <select class="board-sort-select" id="board-sort">
+                    <option value="priority">Priority</option>
+                    <option value="created">Created</option>
+                    <option value="alpha">Alphabetical</option>
+                </select>
             </div>
             <div class="filter-group">
                 <label class="include-closed-toggle">
@@ -62,13 +91,17 @@
                     <h2>{{ col.name }} <span class="count">{{ col.issues.len() }}</span></h2>
                 </div>
                 <div class="column-content" data-status="{{ col.status }}">
-                    {% for issue in col.issues %}
-                    <div class="issue-card issue-type-{{ issue.issue_type.as_css_class() }}" data-id="{{ issue.id }}" data-filter-text="{{ issue.title|lower }} {{ issue.id|lower }} {{ issue.issue_type|lower }}" draggable="true">
-                        <div class="issue-title"><a href="/tasks/{{ issue.id }}" draggable="false">{{ issue.title }}</a></div>
+                    {% for bi in col.issues %}
+                    <div class="issue-card issue-type-{{ bi.issue.issue_type.as_css_class() }}" data-id="{{ bi.issue.id }}" data-priority="{{ bi.issue.priority.unwrap_or(0) }}" data-created="{{ bi.issue.created_at.unix_timestamp() }}" data-assignee="{{ bi.issue.assignee.as_deref().unwrap_or("") }}" data-filter-text="{{ bi.issue.title|lower }} {{ bi.issue.id|lower }} {{ bi.issue.issue_type|lower }}" draggable="true">
+                        <div class="issue-title"><a href="/tasks/{{ bi.issue.id }}" draggable="false">{{ bi.issue.title }}</a></div>
                         <div class="issue-meta">
-                            <span><a href="/tasks/{{ issue.id }}">{{ issue.id }}</a> • P{{ issue.priority.unwrap_or(0) }}</span>
-                            <span class="issue-type-badge">{{ issue.issue_type }}</span>
+                            <span><a href="/tasks/{{ bi.issue.id }}">{{ bi.issue.id }}</a> • P{{ bi.issue.priority.unwrap_or(0) }}</span>
+                            <span class="issue-type-badge">{{ bi.issue.issue_type }}</span>
+                            {% if bi.is_blocked %}<span class="board-blocked-badge">blocked</span>{% endif %}
                         </div>
+                        {% if let Some(assignee) = bi.issue.assignee %}
+                        <div class="issue-assignee">@{{ assignee }}</div>
+                        {% endif %}
                     </div>
                     {% endfor %}
                 </div>

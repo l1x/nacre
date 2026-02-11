@@ -85,8 +85,8 @@ export function initBoardFeatures() {
         });
     }
 
-    // Type Filtering - use event delegation on document for type-filter changes
-    const updateCardVisibility = () => {
+    // --- Type Filtering ---
+    const updateTypeVisibility = () => {
         const typeFilters = document.querySelectorAll('.type-filter') as NodeListOf<HTMLInputElement>;
         if (typeFilters.length === 0) return;
 
@@ -110,14 +110,93 @@ export function initBoardFeatures() {
         });
     };
 
-    // Event delegation: type filters (handled at document level to catch all filters)
+    // --- Priority Filtering ---
+    const updatePriorityVisibility = () => {
+        const priorityFilters = document.querySelectorAll('.priority-filter') as NodeListOf<HTMLInputElement>;
+        if (priorityFilters.length === 0) return;
+
+        const activePriorities = new Set(
+            Array.from(priorityFilters)
+                .filter((f) => f.checked)
+                .map((f) => f.value)
+        );
+
+        const cards = document.querySelectorAll('.issue-card') as NodeListOf<HTMLElement>;
+        cards.forEach((card) => {
+            const priority = card.getAttribute('data-priority') || '0';
+            card.classList.toggle('hidden-by-priority', !activePriorities.has(priority));
+        });
+    };
+
+    // --- Assignee Filtering ---
+    const updateAssigneeVisibility = () => {
+        const assigneeFilters = document.querySelectorAll('.assignee-filter') as NodeListOf<HTMLInputElement>;
+        if (assigneeFilters.length === 0) return;
+
+        const activeAssignees = new Set(
+            Array.from(assigneeFilters)
+                .filter((f) => f.checked)
+                .map((f) => f.value)
+        );
+
+        const cards = document.querySelectorAll('.issue-card') as NodeListOf<HTMLElement>;
+        cards.forEach((card) => {
+            const assignee = card.getAttribute('data-assignee') || '';
+            card.classList.toggle('hidden-by-assignee', !activeAssignees.has(assignee));
+        });
+    };
+
+    // --- Sort Within Columns ---
+    const sortColumns = (sortBy: string) => {
+        const columns = document.querySelectorAll('.column-content') as NodeListOf<HTMLElement>;
+        columns.forEach((column) => {
+            const cards = Array.from(column.querySelectorAll('.issue-card')) as HTMLElement[];
+
+            cards.sort((a, b) => {
+                if (sortBy === 'priority') {
+                    const pa = parseInt(a.getAttribute('data-priority') || '0');
+                    const pb = parseInt(b.getAttribute('data-priority') || '0');
+                    return pa - pb;
+                } else if (sortBy === 'created') {
+                    const ca = parseInt(a.getAttribute('data-created') || '0');
+                    const cb = parseInt(b.getAttribute('data-created') || '0');
+                    return cb - ca; // newest first
+                } else {
+                    // alphabetical by title
+                    const ta = a.querySelector('.issue-title')?.textContent?.trim() || '';
+                    const tb = b.querySelector('.issue-title')?.textContent?.trim() || '';
+                    return ta.localeCompare(tb);
+                }
+            });
+
+            // Re-append in sorted order
+            cards.forEach((card) => column.appendChild(card));
+        });
+    };
+
+    // Event delegation: all filter changes
     document.addEventListener('change', (e) => {
         const target = e.target as HTMLElement;
         if (target.classList.contains('type-filter')) {
-            updateCardVisibility();
+            updateTypeVisibility();
+        } else if (target.classList.contains('priority-filter')) {
+            updatePriorityVisibility();
+        } else if (target.classList.contains('assignee-filter')) {
+            updateAssigneeVisibility();
         }
     });
 
-    // Initial visibility update
-    updateCardVisibility();
+    // Sort select
+    const sortSelect = document.getElementById('board-sort') as HTMLSelectElement | null;
+    if (sortSelect) {
+        sortSelect.addEventListener('change', () => {
+            sortColumns(sortSelect.value);
+        });
+    }
+
+    // Initial updates
+    updateTypeVisibility();
+    updatePriorityVisibility();
+    updateAssigneeVisibility();
+    sortColumns('priority'); // default sort
 }

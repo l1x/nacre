@@ -604,6 +604,42 @@ main:has(.board) {
 .issue-card.issue-type-merge-request { border-left: 3px solid #1abc9c; }
 .issue-card.issue-type-molecule { border-left: 3px solid #f39c12; }
 
+/* Blocked badge on board cards */
+.board-blocked-badge {
+    font-size: 0.6rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 1px 5px;
+    border-radius: 8px;
+    background-color: rgba(212, 138, 138, 0.2);
+    color: var(--status-blocked);
+    font-weight: 600;
+}
+
+/* Assignee on board cards */
+.issue-assignee {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    margin-top: 4px;
+}
+
+/* Board sort select */
+.board-sort-select {
+    background-color: var(--bg-secondary);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    padding: 4px 8px;
+    font-size: 0.8rem;
+    cursor: pointer;
+}
+
+/* Hidden by filter */
+.hidden-by-priority,
+.hidden-by-assignee {
+    display: none !important;
+}
+
 /* Toast Notifications */
 .toast-container {
     position: fixed;

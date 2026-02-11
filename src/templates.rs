@@ -85,10 +85,15 @@ impl EpicWithProgress {
     }
 }
 
+pub struct BoardIssue {
+    pub issue: beads::Issue,
+    pub is_blocked: bool,
+}
+
 pub struct BoardColumn {
     pub name: String,
     pub status: String,
-    pub issues: Vec<beads::Issue>,
+    pub issues: Vec<BoardIssue>,
 }
 
 /// Tree node for hierarchical graph view (flat list with depth)
@@ -185,6 +190,7 @@ pub struct BoardTemplate {
     pub active_nav: &'static str,
     pub app_version: String,
     pub columns: Vec<BoardColumn>,
+    pub assignees: Vec<String>,
     pub include_closed: bool,
 }
 

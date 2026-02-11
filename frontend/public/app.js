@@ -340,7 +340,7 @@ function initBoardFeatures() {
       e.stopPropagation();
     });
   }
-  const updateCardVisibility = () => {
+  const updateTypeVisibility = () => {
     const typeFilters = document.querySelectorAll(".type-filter");
     if (typeFilters.length === 0)
       return;
@@ -357,13 +357,70 @@ function initBoardFeatures() {
       card.classList.toggle("hidden-by-type", !visible);
     });
   };
+  const updatePriorityVisibility = () => {
+    const priorityFilters = document.querySelectorAll(".priority-filter");
+    if (priorityFilters.length === 0)
+      return;
+    const activePriorities = new Set(Array.from(priorityFilters).filter((f) => f.checked).map((f) => f.value));
+    const cards = document.querySelectorAll(".issue-card");
+    cards.forEach((card) => {
+      const priority = card.getAttribute("data-priority") || "0";
+      card.classList.toggle("hidden-by-priority", !activePriorities.has(priority));
+    });
+  };
+  const updateAssigneeVisibility = () => {
+    const assigneeFilters = document.querySelectorAll(".assignee-filter");
+    if (assigneeFilters.length === 0)
+      return;
+    const activeAssignees = new Set(Array.from(assigneeFilters).filter((f) => f.checked).map((f) => f.value));
+    const cards = document.querySelectorAll(".issue-card");
+    cards.forEach((card) => {
+      const assignee = card.getAttribute("data-assignee") || "";
+      card.classList.toggle("hidden-by-assignee", !activeAssignees.has(assignee));
+    });
+  };
+  const sortColumns = (sortBy) => {
+    const columns = document.querySelectorAll(".column-content");
+    columns.forEach((column) => {
+      const cards = Array.from(column.querySelectorAll(".issue-card"));
+      cards.sort((a, b) => {
+        if (sortBy === "priority") {
+          const pa = parseInt(a.getAttribute("data-priority") || "0");
+          const pb = parseInt(b.getAttribute("data-priority") || "0");
+          return pa - pb;
+        } else if (sortBy === "created") {
+          const ca = parseInt(a.getAttribute("data-created") || "0");
+          const cb = parseInt(b.getAttribute("data-created") || "0");
+          return cb - ca;
+        } else {
+          const ta = a.querySelector(".issue-title")?.textContent?.trim() || "";
+          const tb = b.querySelector(".issue-title")?.textContent?.trim() || "";
+          return ta.localeCompare(tb);
+        }
+      });
+      cards.forEach((card) => column.appendChild(card));
+    });
+  };
   document.addEventListener("change", (e) => {
     const target = e.target;
     if (target.classList.contains("type-filter")) {
-      updateCardVisibility();
+      updateTypeVisibility();
+    } else if (target.classList.contains("priority-filter")) {
+      updatePriorityVisibility();
+    } else if (target.classList.contains("assignee-filter")) {
+      updateAssigneeVisibility();
     }
   });
-  updateCardVisibility();
+  const sortSelect = document.getElementById("board-sort");
+  if (sortSelect) {
+    sortSelect.addEventListener("change", () => {
+      sortColumns(sortSelect.value);
+    });
+  }
+  updateTypeVisibility();
+  updatePriorityVisibility();
+  updateAssigneeVisibility();
+  sortColumns("priority");
 }
 
 // frontend/src/modules/dragdrop.ts
