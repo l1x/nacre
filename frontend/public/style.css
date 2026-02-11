@@ -1166,8 +1166,8 @@ main:has(.board) {
 }
 
 .prd-sidebar {
-    width: 220px;
-    min-width: 220px;
+    width: 290px;
+    min-width: 290px;
     overflow-y: auto;
     background-color: var(--bg-card);
     border: 1px solid var(--border-color);
