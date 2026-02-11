@@ -4912,7 +4912,7 @@ function initOrgTreeConnectors() {
     });
   }
   function animateNodeEntrance(tree) {
-    const nodesByDepth = [];
+    const nodesByDepth = new Map;
     tree.querySelectorAll("li").forEach((li) => {
       const node = li.querySelector(":scope > a.org-node, :scope > .org-node");
       if (!node)
@@ -4924,14 +4924,19 @@ function initOrgTreeConnectors() {
           depth++;
         el = el.parentElement;
       }
-      if (!nodesByDepth[depth])
-        nodesByDepth[depth] = [];
-      nodesByDepth[depth].push(node);
+      const group = nodesByDepth.get(depth);
+      if (group) {
+        group.push(node);
+      } else {
+        nodesByDepth.set(depth, [node]);
+      }
     });
+    const depths = Array.from(nodesByDepth.keys()).sort((a, b) => a - b);
     let cumulativeDelay = 0;
-    nodesByDepth.forEach((nodes) => {
-      if (!nodes || nodes.length === 0)
-        return;
+    for (const depth of depths) {
+      const nodes = nodesByDepth.get(depth);
+      if (nodes.length === 0)
+        continue;
       gsapWithCSS.fromTo(nodes, { opacity: 0, y: 15, scale: 0.95 }, {
         opacity: 1,
         y: 0,
@@ -4943,7 +4948,7 @@ function initOrgTreeConnectors() {
         clearProps: "transform"
       });
       cumulativeDelay += 0.1 + nodes.length * 0.02;
-    });
+    }
   }
   function setupHoverEffects() {
     const style = getComputedStyle(document.documentElement);

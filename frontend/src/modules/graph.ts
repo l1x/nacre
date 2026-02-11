@@ -165,7 +165,7 @@ function initOrgTreeConnectors() {
 
     function animateNodeEntrance(tree: HTMLElement) {
         // Collect all org-nodes grouped by depth for staggered entrance
-        const nodesByDepth: HTMLElement[][] = [];
+        const nodesByDepth = new Map<number, HTMLElement[]>();
 
         tree.querySelectorAll('li').forEach(li => {
             const node = li.querySelector(':scope > a.org-node, :scope > .org-node') as HTMLElement;
@@ -179,14 +179,20 @@ function initOrgTreeConnectors() {
                 el = el.parentElement;
             }
 
-            if (!nodesByDepth[depth]) nodesByDepth[depth] = [];
-            nodesByDepth[depth]!.push(node);
+            const group = nodesByDepth.get(depth);
+            if (group) {
+                group.push(node);
+            } else {
+                nodesByDepth.set(depth, [node]);
+            }
         });
 
         // Animate each depth level with stagger, cascading from root
+        const depths = Array.from(nodesByDepth.keys()).sort((a, b) => a - b);
         let cumulativeDelay = 0;
-        nodesByDepth.forEach(nodes => {
-            if (!nodes || nodes.length === 0) return;
+        for (const depth of depths) {
+            const nodes = nodesByDepth.get(depth)!;
+            if (nodes.length === 0) continue;
 
             gsap.fromTo(nodes,
                 { opacity: 0, y: 15, scale: 0.95 },
@@ -202,7 +208,7 @@ function initOrgTreeConnectors() {
 
             // Next level starts after this level begins (overlap for fluidity)
             cumulativeDelay += 0.1 + nodes.length * 0.02;
-        });
+        }
     }
 
     function setupHoverEffects() {
