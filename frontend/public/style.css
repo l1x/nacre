@@ -1161,28 +1161,23 @@ main:has(.board) {
 .prds-page {
     display: flex;
     flex-direction: row;
-    align-items: flex-start;
+    align-items: stretch;
     gap: 4px;
 }
 
 .prd-sidebar {
     width: 220px;
     min-width: 220px;
-    max-height: calc(100vh - 80px);
     overflow-y: auto;
     background-color: var(--bg-card);
     border: 1px solid var(--border-color);
     border-radius: var(--radius);
-    display: flex;
-    flex-direction: column;
     padding: 4px 0;
-    position: sticky;
-    top: 16px;
 }
 
 .prd-sidebar-item {
     display: block;
-    padding: 4px 10px;
+    padding: 1px 10px;
     color: var(--text-secondary);
     text-decoration: none;
     font-size: 0.85rem;
@@ -1211,8 +1206,12 @@ main:has(.board) {
 
 .prd-content-container {
     flex: 1;
-    min-height: 400px;
     min-width: 0;
+}
+
+.prd-content-container .prd-content {
+    height: 100%;
+    box-sizing: border-box;
 }
 
 /* Scrollbar styling */
