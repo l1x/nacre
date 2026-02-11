@@ -23,17 +23,26 @@ function initOrgTreeConnectors() {
         orgTree.insertBefore(svg, orgTree.firstChild);
     }
 
-    // Map to track paths by parent node for hover effects
-    const pathsByParent = new Map<HTMLElement, { path: SVGPathElement; childNode: HTMLElement }[]>();
+    // Maps to track paths for hover effects (parent→children and child→parent)
+    const pathsByParent = new Map<HTMLElement, { path: SVGPathElement; childNode: HTMLElement; hitArea: SVGPathElement }[]>();
+    const pathsByChild = new Map<HTMLElement, { path: SVGPathElement; parentNode: HTMLElement }>();
     let isInitialDraw = true;
+
+    // Track node event listeners for cleanup on redraw
+    let hoverCleanups: (() => void)[] = [];
 
     function drawConnectors() {
         // Kill any in-flight GSAP animations on existing paths
         svg.querySelectorAll('path').forEach(p => gsap.killTweensOf(p));
 
-        // Clear existing paths and map
+        // Remove previous node event listeners
+        hoverCleanups.forEach(fn => fn());
+        hoverCleanups = [];
+
+        // Clear existing paths and maps
         svg.innerHTML = '';
         pathsByParent.clear();
+        pathsByChild.clear();
 
         // Get computed style for colors
         const style = getComputedStyle(document.documentElement);
@@ -72,7 +81,7 @@ function initOrgTreeConnectors() {
             const parentY = parentRect.bottom - treeRect.top;
 
             // Initialize array for this parent's paths
-            const parentPaths: { path: SVGPathElement; childNode: HTMLElement }[] = [];
+            const parentPaths: { path: SVGPathElement; childNode: HTMLElement; hitArea: SVGPathElement }[] = [];
 
             children.forEach(childLi => {
                 const childNode = childLi.querySelector(':scope > a.org-node, :scope > .org-node') as HTMLElement;
@@ -90,14 +99,27 @@ function initOrgTreeConnectors() {
                 const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
                 const d = `M ${parentX} ${parentY} C ${parentX} ${midY}, ${childX} ${midY}, ${childX} ${childY}`;
 
+                // Invisible wider hit-area path for easier mouse targeting
+                const hitArea = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                hitArea.setAttribute('d', d);
+                hitArea.setAttribute('fill', 'none');
+                hitArea.setAttribute('stroke', 'transparent');
+                hitArea.setAttribute('stroke-width', '14');
+                hitArea.setAttribute('stroke-linecap', 'round');
+                hitArea.classList.add('connector-hit-area');
+                svg.appendChild(hitArea);
+
+                // Visible connector path
                 path.setAttribute('d', d);
                 path.setAttribute('fill', 'none');
                 path.setAttribute('stroke', strokeColor);
                 path.setAttribute('stroke-width', '2');
                 path.setAttribute('stroke-linecap', 'round');
+                path.style.pointerEvents = 'none';
 
                 svg.appendChild(path);
-                parentPaths.push({ path, childNode });
+                parentPaths.push({ path, childNode, hitArea });
+                pathsByChild.set(childNode, { path, parentNode });
                 allPaths.push({ path, depth });
             });
 
@@ -145,18 +167,63 @@ function initOrgTreeConnectors() {
             || style.getPropertyValue('--border-color').trim()
             || '#585b70';
 
+        // Helper to register a removable event listener
+        function on(el: EventTarget, event: string, handler: EventListener) {
+            el.addEventListener(event, handler);
+            hoverCleanups.push(() => el.removeEventListener(event, handler));
+        }
+
+        // Parent node hover: highlight all child connectors + child nodes
         pathsByParent.forEach((paths, parentNode) => {
-            parentNode.addEventListener('mouseenter', () => {
+            on(parentNode, 'mouseenter', () => {
                 paths.forEach(({ path, childNode }) => {
-                    gsap.to(path, { stroke: accentColor, duration: 0.2, overwrite: true });
+                    gsap.to(path, { stroke: accentColor, strokeWidth: 3, duration: 0.2, overwrite: true });
                     childNode.classList.add('org-node-highlight');
                 });
             });
 
-            parentNode.addEventListener('mouseleave', () => {
+            on(parentNode, 'mouseleave', () => {
                 paths.forEach(({ path, childNode }) => {
-                    gsap.to(path, { stroke: strokeColor, duration: 0.2, overwrite: true });
+                    gsap.to(path, { stroke: strokeColor, strokeWidth: 2, duration: 0.2, overwrite: true });
                     childNode.classList.remove('org-node-highlight');
+                });
+            });
+        });
+
+        // Child node hover: highlight the connector going up to parent
+        pathsByChild.forEach(({ path, parentNode }, childNode) => {
+            on(childNode, 'mouseenter', () => {
+                gsap.to(path, { stroke: accentColor, strokeWidth: 3, duration: 0.2, overwrite: true });
+                parentNode.classList.add('org-node-highlight');
+            });
+
+            on(childNode, 'mouseleave', () => {
+                gsap.to(path, { stroke: strokeColor, strokeWidth: 2, duration: 0.2, overwrite: true });
+                parentNode.classList.remove('org-node-highlight');
+            });
+        });
+
+        // Direct connector hover + click via hit-area paths
+        pathsByParent.forEach((paths, parentNode) => {
+            paths.forEach(({ path, childNode, hitArea }) => {
+                // Hover: thicken + color shift, highlight both connected nodes
+                on(hitArea, 'mouseenter', () => {
+                    gsap.to(path, { stroke: accentColor, strokeWidth: 3, duration: 0.2, overwrite: true });
+                    parentNode.classList.add('org-node-highlight');
+                    childNode.classList.add('org-node-highlight');
+                });
+
+                on(hitArea, 'mouseleave', () => {
+                    gsap.to(path, { stroke: strokeColor, strokeWidth: 2, duration: 0.2, overwrite: true });
+                    parentNode.classList.remove('org-node-highlight');
+                    childNode.classList.remove('org-node-highlight');
+                });
+
+                // Click: pulse feedback (pop stroke-width then ease back)
+                on(hitArea, 'click', () => {
+                    gsap.timeline()
+                        .to(path, { strokeWidth: 5, stroke: accentColor, duration: 0.1, ease: 'power2.out' })
+                        .to(path, { strokeWidth: 2, stroke: strokeColor, duration: 0.4, ease: 'power2.inOut' });
                 });
             });
         });

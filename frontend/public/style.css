@@ -3036,13 +3036,20 @@ main:has(.board) {
     border-color: var(--accent);
 }
 
-/* Highlight effect for child nodes when parent is hovered */
+/* Highlight effect for connected nodes on hover */
 .org-node-highlight {
     border-color: var(--accent) !important;
     border-width: 2px !important;
+    box-shadow: 0 0 6px rgba(var(--accent-rgb, 250, 179, 135), 0.3);
 }
 
 /* SVG connector hover effects handled via JavaScript */
+
+/* Hit-area paths for connector hover/click interactions */
+.connector-hit-area {
+    pointer-events: stroke !important;
+    cursor: pointer;
+}
 
 /* Node content layout */
 .org-node-content {

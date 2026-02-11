@@ -4819,11 +4819,16 @@ function initOrgTreeConnectors() {
     orgTree.insertBefore(svg, orgTree.firstChild);
   }
   const pathsByParent = new Map;
+  const pathsByChild = new Map;
   let isInitialDraw = true;
+  let hoverCleanups = [];
   function drawConnectors() {
     svg.querySelectorAll("path").forEach((p) => gsapWithCSS.killTweensOf(p));
+    hoverCleanups.forEach((fn) => fn());
+    hoverCleanups = [];
     svg.innerHTML = "";
     pathsByParent.clear();
+    pathsByChild.clear();
     const style = getComputedStyle(document.documentElement);
     const strokeColor = style.getPropertyValue("--connector-color").trim() || style.getPropertyValue("--border-color").trim() || "#585b70";
     const allPaths = [];
@@ -4858,13 +4863,23 @@ function initOrgTreeConnectors() {
         const midY = (parentY + childY) / 2;
         const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
         const d = `M ${parentX} ${parentY} C ${parentX} ${midY}, ${childX} ${midY}, ${childX} ${childY}`;
+        const hitArea = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        hitArea.setAttribute("d", d);
+        hitArea.setAttribute("fill", "none");
+        hitArea.setAttribute("stroke", "transparent");
+        hitArea.setAttribute("stroke-width", "14");
+        hitArea.setAttribute("stroke-linecap", "round");
+        hitArea.classList.add("connector-hit-area");
+        svg.appendChild(hitArea);
         path.setAttribute("d", d);
         path.setAttribute("fill", "none");
         path.setAttribute("stroke", strokeColor);
         path.setAttribute("stroke-width", "2");
         path.setAttribute("stroke-linecap", "round");
+        path.style.pointerEvents = "none";
         svg.appendChild(path);
-        parentPaths.push({ path, childNode });
+        parentPaths.push({ path, childNode, hitArea });
+        pathsByChild.set(childNode, { path, parentNode });
         allPaths.push({ path, depth });
       });
       pathsByParent.set(parentNode, parentPaths);
@@ -4897,17 +4912,48 @@ function initOrgTreeConnectors() {
     const style = getComputedStyle(document.documentElement);
     const accentColor = style.getPropertyValue("--accent").trim() || "#fab387";
     const strokeColor = style.getPropertyValue("--connector-color").trim() || style.getPropertyValue("--border-color").trim() || "#585b70";
+    function on(el, event, handler) {
+      el.addEventListener(event, handler);
+      hoverCleanups.push(() => el.removeEventListener(event, handler));
+    }
     pathsByParent.forEach((paths, parentNode) => {
-      parentNode.addEventListener("mouseenter", () => {
+      on(parentNode, "mouseenter", () => {
         paths.forEach(({ path, childNode }) => {
-          gsapWithCSS.to(path, { stroke: accentColor, duration: 0.2, overwrite: true });
+          gsapWithCSS.to(path, { stroke: accentColor, strokeWidth: 3, duration: 0.2, overwrite: true });
           childNode.classList.add("org-node-highlight");
         });
       });
-      parentNode.addEventListener("mouseleave", () => {
+      on(parentNode, "mouseleave", () => {
         paths.forEach(({ path, childNode }) => {
-          gsapWithCSS.to(path, { stroke: strokeColor, duration: 0.2, overwrite: true });
+          gsapWithCSS.to(path, { stroke: strokeColor, strokeWidth: 2, duration: 0.2, overwrite: true });
           childNode.classList.remove("org-node-highlight");
+        });
+      });
+    });
+    pathsByChild.forEach(({ path, parentNode }, childNode) => {
+      on(childNode, "mouseenter", () => {
+        gsapWithCSS.to(path, { stroke: accentColor, strokeWidth: 3, duration: 0.2, overwrite: true });
+        parentNode.classList.add("org-node-highlight");
+      });
+      on(childNode, "mouseleave", () => {
+        gsapWithCSS.to(path, { stroke: strokeColor, strokeWidth: 2, duration: 0.2, overwrite: true });
+        parentNode.classList.remove("org-node-highlight");
+      });
+    });
+    pathsByParent.forEach((paths, parentNode) => {
+      paths.forEach(({ path, childNode, hitArea }) => {
+        on(hitArea, "mouseenter", () => {
+          gsapWithCSS.to(path, { stroke: accentColor, strokeWidth: 3, duration: 0.2, overwrite: true });
+          parentNode.classList.add("org-node-highlight");
+          childNode.classList.add("org-node-highlight");
+        });
+        on(hitArea, "mouseleave", () => {
+          gsapWithCSS.to(path, { stroke: strokeColor, strokeWidth: 2, duration: 0.2, overwrite: true });
+          parentNode.classList.remove("org-node-highlight");
+          childNode.classList.remove("org-node-highlight");
+        });
+        on(hitArea, "click", () => {
+          gsapWithCSS.timeline().to(path, { strokeWidth: 5, stroke: accentColor, duration: 0.1, ease: "power2.out" }).to(path, { strokeWidth: 2, stroke: strokeColor, duration: 0.4, ease: "power2.inOut" });
         });
       });
     });
