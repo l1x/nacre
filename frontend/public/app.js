@@ -4884,9 +4884,12 @@ function initOrgTreeConnectors() {
       });
       pathsByParent.set(parentNode, parentPaths);
     });
-    if (isInitialDraw && allPaths.length > 0) {
+    if (isInitialDraw) {
       isInitialDraw = false;
-      animateDrawIn(allPaths);
+      if (allPaths.length > 0) {
+        animateDrawIn(allPaths);
+      }
+      animateNodeEntrance(orgTree);
     }
     setupHoverEffects();
   }
@@ -4906,6 +4909,40 @@ function initOrgTreeConnectors() {
           path.removeAttribute("stroke-dashoffset");
         }
       });
+    });
+  }
+  function animateNodeEntrance(tree) {
+    const nodesByDepth = [];
+    tree.querySelectorAll("li").forEach((li) => {
+      const node = li.querySelector(":scope > a.org-node, :scope > .org-node");
+      if (!node)
+        return;
+      let depth = 0;
+      let el = li;
+      while (el && el !== tree) {
+        if (el.tagName === "UL")
+          depth++;
+        el = el.parentElement;
+      }
+      if (!nodesByDepth[depth])
+        nodesByDepth[depth] = [];
+      nodesByDepth[depth].push(node);
+    });
+    let cumulativeDelay = 0;
+    nodesByDepth.forEach((nodes) => {
+      if (!nodes || nodes.length === 0)
+        return;
+      gsapWithCSS.fromTo(nodes, { opacity: 0, y: 15, scale: 0.95 }, {
+        opacity: 1,
+        y: 0,
+        scale: 1,
+        duration: 0.35,
+        stagger: 0.04,
+        delay: cumulativeDelay,
+        ease: "power2.out",
+        clearProps: "transform"
+      });
+      cumulativeDelay += 0.1 + nodes.length * 0.02;
     });
   }
   function setupHoverEffects() {
@@ -4938,6 +4975,30 @@ function initOrgTreeConnectors() {
       on(childNode, "mouseleave", () => {
         gsapWithCSS.to(path, { stroke: strokeColor, strokeWidth: 2, duration: 0.2, overwrite: true });
         parentNode.classList.remove("org-node-highlight");
+      });
+    });
+    const allNodes = orgTree.querySelectorAll(".org-node");
+    allNodes.forEach((node) => {
+      on(node, "mouseenter", () => {
+        gsapWithCSS.to(node, {
+          scale: 1.05,
+          boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+          duration: 0.2,
+          ease: "power2.out",
+          overwrite: true
+        });
+      });
+      on(node, "mouseleave", () => {
+        gsapWithCSS.to(node, {
+          scale: 1,
+          boxShadow: "var(--shadow-sm)",
+          duration: 0.2,
+          ease: "power2.inOut",
+          overwrite: true
+        });
+      });
+      on(node, "click", () => {
+        gsapWithCSS.timeline().to(node, { scale: 0.97, duration: 0.08, ease: "power2.in" }).to(node, { scale: 1.05, duration: 0.15, ease: "power2.out" });
       });
     });
     pathsByParent.forEach((paths, parentNode) => {
@@ -5028,6 +5089,7 @@ function initGraph() {
   function updateVisibility() {
     const typeFilters = getTypeFilters();
     const activeTypes = typeFilters.length > 0 ? new Set(Array.from(typeFilters).filter((f) => f.checked).map((f) => f.value)) : null;
+    const appearing = [];
     getNodes().forEach((node) => {
       const parentId = node.getAttribute("data-parent") || "";
       const type = node.getAttribute("data-type") || "";
@@ -5040,8 +5102,15 @@ function initGraph() {
       if (visible && activeTypes && !activeTypes.has(type)) {
         visible = false;
       }
+      const wasHidden = node.classList.contains("hidden");
       node.classList.toggle("hidden", !visible);
+      if (visible && wasHidden) {
+        appearing.push(node);
+      }
     });
+    if (appearing.length > 0) {
+      gsapWithCSS.fromTo(appearing, { opacity: 0, x: -8 }, { opacity: 1, x: 0, duration: 0.25, stagger: 0.03, ease: "power2.out", clearProps: "transform,opacity" });
+    }
   }
   if (treeList) {
     treeList.addEventListener("click", (e) => {

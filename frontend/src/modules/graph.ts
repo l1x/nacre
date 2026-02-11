@@ -127,9 +127,12 @@ function initOrgTreeConnectors() {
         });
 
         // Animate draw-in on initial load, instant on resize/scroll redraws
-        if (isInitialDraw && allPaths.length > 0) {
+        if (isInitialDraw) {
             isInitialDraw = false;
-            animateDrawIn(allPaths);
+            if (allPaths.length > 0) {
+                animateDrawIn(allPaths);
+            }
+            animateNodeEntrance(orgTree as HTMLElement);
         }
 
         // Setup hover effects
@@ -157,6 +160,48 @@ function initOrgTreeConnectors() {
                     path.removeAttribute('stroke-dashoffset');
                 },
             });
+        });
+    }
+
+    function animateNodeEntrance(tree: HTMLElement) {
+        // Collect all org-nodes grouped by depth for staggered entrance
+        const nodesByDepth: HTMLElement[][] = [];
+
+        tree.querySelectorAll('li').forEach(li => {
+            const node = li.querySelector(':scope > a.org-node, :scope > .org-node') as HTMLElement;
+            if (!node) return;
+
+            // Calculate depth by counting ancestor <ul> elements
+            let depth = 0;
+            let el: Element | null = li;
+            while (el && el !== tree) {
+                if (el.tagName === 'UL') depth++;
+                el = el.parentElement;
+            }
+
+            if (!nodesByDepth[depth]) nodesByDepth[depth] = [];
+            nodesByDepth[depth]!.push(node);
+        });
+
+        // Animate each depth level with stagger, cascading from root
+        let cumulativeDelay = 0;
+        nodesByDepth.forEach(nodes => {
+            if (!nodes || nodes.length === 0) return;
+
+            gsap.fromTo(nodes,
+                { opacity: 0, y: 15, scale: 0.95 },
+                {
+                    opacity: 1, y: 0, scale: 1,
+                    duration: 0.35,
+                    stagger: 0.04,
+                    delay: cumulativeDelay,
+                    ease: 'power2.out',
+                    clearProps: 'transform',
+                },
+            );
+
+            // Next level starts after this level begins (overlap for fluidity)
+            cumulativeDelay += 0.1 + nodes.length * 0.02;
         });
     }
 
@@ -200,6 +245,36 @@ function initOrgTreeConnectors() {
             on(childNode, 'mouseleave', () => {
                 gsap.to(path, { stroke: strokeColor, strokeWidth: 2, duration: 0.2, overwrite: true });
                 parentNode.classList.remove('org-node-highlight');
+            });
+        });
+
+        // Node micro-interactions: subtle scale + elevation on hover, click press
+        const allNodes = (orgTree as HTMLElement).querySelectorAll('.org-node') as NodeListOf<HTMLElement>;
+        allNodes.forEach(node => {
+            on(node, 'mouseenter', () => {
+                gsap.to(node, {
+                    scale: 1.05,
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                    duration: 0.2,
+                    ease: 'power2.out',
+                    overwrite: true,
+                });
+            });
+
+            on(node, 'mouseleave', () => {
+                gsap.to(node, {
+                    scale: 1,
+                    boxShadow: 'var(--shadow-sm)',
+                    duration: 0.2,
+                    ease: 'power2.inOut',
+                    overwrite: true,
+                });
+            });
+
+            on(node, 'click', () => {
+                gsap.timeline()
+                    .to(node, { scale: 0.97, duration: 0.08, ease: 'power2.in' })
+                    .to(node, { scale: 1.05, duration: 0.15, ease: 'power2.out' });
             });
         });
 
@@ -326,6 +401,8 @@ export function initGraph() {
             ? new Set(Array.from(typeFilters).filter(f => f.checked).map(f => f.value))
             : null;
 
+        const appearing: HTMLElement[] = [];
+
         getNodes().forEach(node => {
             const parentId = node.getAttribute('data-parent') || '';
             const type = node.getAttribute('data-type') || '';
@@ -345,8 +422,22 @@ export function initGraph() {
                 visible = false;
             }
 
+            const wasHidden = node.classList.contains('hidden');
             node.classList.toggle('hidden', !visible);
+
+            // Track nodes that just became visible for entrance animation
+            if (visible && wasHidden) {
+                appearing.push(node);
+            }
         });
+
+        // Animate newly revealed nodes
+        if (appearing.length > 0) {
+            gsap.fromTo(appearing,
+                { opacity: 0, x: -8 },
+                { opacity: 1, x: 0, duration: 0.25, stagger: 0.03, ease: 'power2.out', clearProps: 'transform,opacity' },
+            );
+        }
     }
 
     // Event delegation: single click handler on tree list for toggle buttons
