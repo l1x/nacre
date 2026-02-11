@@ -1828,8 +1828,9 @@ main:has(.board) {
 /* Graph Controls */
 .graph-controls {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
-    gap: 24px;
+    gap: 12px 24px;
     background-color: var(--bg-card);
     padding: 16px 24px;
     border-radius: var(--radius);

@@ -14,21 +14,29 @@ pub async fn board(
     State(state): State<crate::SharedAppState>,
     Query(query): Query<BoardQuery>,
 ) -> crate::AppResult<BoardTemplate> {
-    let all_issues = if query.include_closed {
-        state.client.list_all_issues()?
+    // Always load all issues for assignee list and dependency resolution
+    let every_issue = state.client.list_all_issues()?;
+
+    // The visible issues for board columns
+    let all_issues: Vec<beads::Issue> = if query.include_closed {
+        every_issue.clone()
     } else {
-        state.client.list_issues()?
+        every_issue
+            .iter()
+            .filter(|i| i.status != beads::Status::Closed)
+            .cloned()
+            .collect()
     };
 
     // Build a set of closed issue IDs for blocked-status calculation
-    let closed_ids: HashSet<&str> = all_issues
+    let closed_ids: HashSet<&str> = every_issue
         .iter()
         .filter(|i| i.status == beads::Status::Closed)
         .map(|i| i.id.as_str())
         .collect();
 
     // Build a map of issue ID → status for dependency resolution
-    let status_map: HashMap<&str, &beads::Status> = all_issues
+    let status_map: HashMap<&str, &beads::Status> = every_issue
         .iter()
         .map(|i| (i.id.as_str(), &i.status))
         .collect();
@@ -40,7 +48,6 @@ pub async fn board(
     let mut blocked_ids: HashSet<String> = HashSet::new();
     for dep in &all_deps {
         if dep.dep_type.affects_workflow() {
-            // dep.issue_id depends on dep.depends_on_id
             let blocker_closed = closed_ids.contains(dep.depends_on_id.as_str())
                 || !status_map.contains_key(dep.depends_on_id.as_str());
             if !blocker_closed {
@@ -49,8 +56,8 @@ pub async fn board(
         }
     }
 
-    // Collect unique assignees for the filter
-    let mut assignees: Vec<String> = all_issues
+    // Collect unique assignees from ALL issues so filter is always available
+    let mut assignees: Vec<String> = every_issue
         .iter()
         .filter_map(|i| i.assignee.clone())
         .collect::<HashSet<_>>()
