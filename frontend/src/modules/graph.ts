@@ -1,3 +1,4 @@
+import { gsap } from 'gsap';
 import { ISSUE_TYPE } from '../constants';
 
 function initOrgTreeConnectors() {
@@ -24,8 +25,12 @@ function initOrgTreeConnectors() {
 
     // Map to track paths by parent node for hover effects
     const pathsByParent = new Map<HTMLElement, { path: SVGPathElement; childNode: HTMLElement }[]>();
+    let isInitialDraw = true;
 
     function drawConnectors() {
+        // Kill any in-flight GSAP animations on existing paths
+        svg.querySelectorAll('path').forEach(p => gsap.killTweensOf(p));
+
         // Clear existing paths and map
         svg.innerHTML = '';
         pathsByParent.clear();
@@ -35,6 +40,9 @@ function initOrgTreeConnectors() {
         const strokeColor = style.getPropertyValue('--connector-color').trim()
             || style.getPropertyValue('--border-color').trim()
             || '#585b70';
+
+        // Collect all paths with their tree depth for staggered animation
+        const allPaths: { path: SVGPathElement; depth: number }[] = [];
 
         // Find all nodes with children
         const nodes = orgTree.querySelectorAll('li');
@@ -47,6 +55,14 @@ function initOrgTreeConnectors() {
 
             const children = childrenUl.querySelectorAll(':scope > li');
             if (children.length === 0) return;
+
+            // Calculate tree depth by counting ancestor <ul> elements
+            let depth = 0;
+            let el: Element | null = li;
+            while (el && el !== orgTree) {
+                if (el.tagName === 'UL') depth++;
+                el = el.parentElement;
+            }
 
             // Get parent node position (bottom center)
             const parentRect = parentNode.getBoundingClientRect();
@@ -79,17 +95,47 @@ function initOrgTreeConnectors() {
                 path.setAttribute('stroke', strokeColor);
                 path.setAttribute('stroke-width', '2');
                 path.setAttribute('stroke-linecap', 'round');
-                path.style.transition = 'stroke 0.2s ease';
 
                 svg.appendChild(path);
                 parentPaths.push({ path, childNode });
+                allPaths.push({ path, depth });
             });
 
             pathsByParent.set(parentNode, parentPaths);
         });
 
+        // Animate draw-in on initial load, instant on resize/scroll redraws
+        if (isInitialDraw && allPaths.length > 0) {
+            isInitialDraw = false;
+            animateDrawIn(allPaths);
+        }
+
         // Setup hover effects
         setupHoverEffects();
+    }
+
+    function animateDrawIn(allPaths: { path: SVGPathElement; depth: number }[]) {
+        // Sort by depth so parent connectors draw before child connectors
+        allPaths.sort((a, b) => a.depth - b.depth);
+
+        allPaths.forEach(({ path }, index) => {
+            const length = path.getTotalLength();
+            // Set initial state: fully hidden via dash offset
+            path.setAttribute('stroke-dasharray', String(length));
+            path.setAttribute('stroke-dashoffset', String(length));
+
+            gsap.to(path, {
+                strokeDashoffset: 0,
+                duration: 0.4,
+                delay: index * 0.06,
+                ease: 'power2.out',
+                onComplete: () => {
+                    // Clean up dash attributes after animation
+                    path.removeAttribute('stroke-dasharray');
+                    path.removeAttribute('stroke-dashoffset');
+                },
+            });
+        });
     }
 
     function setupHoverEffects() {
@@ -101,17 +147,15 @@ function initOrgTreeConnectors() {
 
         pathsByParent.forEach((paths, parentNode) => {
             parentNode.addEventListener('mouseenter', () => {
-                // Highlight all direct child paths (color only)
                 paths.forEach(({ path, childNode }) => {
-                    path.setAttribute('stroke', accentColor);
+                    gsap.to(path, { stroke: accentColor, duration: 0.2, overwrite: true });
                     childNode.classList.add('org-node-highlight');
                 });
             });
 
             parentNode.addEventListener('mouseleave', () => {
-                // Reset all direct child paths
                 paths.forEach(({ path, childNode }) => {
-                    path.setAttribute('stroke', strokeColor);
+                    gsap.to(path, { stroke: strokeColor, duration: 0.2, overwrite: true });
                     childNode.classList.remove('org-node-highlight');
                 });
             });
@@ -121,7 +165,7 @@ function initOrgTreeConnectors() {
     // Initial draw
     drawConnectors();
 
-    // Redraw on resize
+    // Redraw on resize (no animation, instant repositioning)
     let resizeTimeout: number;
     window.addEventListener('resize', () => {
         clearTimeout(resizeTimeout);
