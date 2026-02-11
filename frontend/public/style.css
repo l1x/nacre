@@ -1040,8 +1040,6 @@ main:has(.board) {
     border: 1px solid var(--border-color);
     padding: 28px 56px 48px;
     border-radius: var(--radius);
-    max-width: 800px;
-    margin: 0 auto;
     line-height: 1.8;
 }
 
@@ -1163,12 +1161,13 @@ main:has(.board) {
 .prds-page {
     display: flex;
     flex-direction: row;
-    gap: 12px;
+    align-items: flex-start;
+    gap: 4px;
 }
 
 .prd-sidebar {
-    width: 240px;
-    min-width: 240px;
+    width: 220px;
+    min-width: 220px;
     max-height: calc(100vh - 80px);
     overflow-y: auto;
     background-color: var(--bg-card);
@@ -1176,13 +1175,14 @@ main:has(.board) {
     border-radius: var(--radius);
     display: flex;
     flex-direction: column;
+    padding: 4px 0;
     position: sticky;
     top: 16px;
 }
 
 .prd-sidebar-item {
     display: block;
-    padding: 6px 12px;
+    padding: 4px 10px;
     color: var(--text-secondary);
     text-decoration: none;
     font-size: 0.85rem;
