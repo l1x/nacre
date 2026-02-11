@@ -1169,7 +1169,7 @@ main:has(.board) {
 .prd-sidebar {
     width: 240px;
     min-width: 240px;
-    height: calc(100vh - 80px);
+    max-height: calc(100vh - 80px);
     overflow-y: auto;
     background-color: var(--bg-card);
     border: 1px solid var(--border-color);
