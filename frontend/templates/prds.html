@@ -7,17 +7,13 @@
     {% include "_header.html" %}
     <main id="content">
         <div class="prds-page">
-            <div class="epic-selector-wrapper">
-                <button class="epic-nav epic-nav--left" id="epic-nav-left" aria-label="Previous PRDs">&larr;</button>
-                <div class="epic-selector" id="epic-selector">
-                    {% for prd in prds %}
-                    <a href="/prds/{{ prd.filename }}" class="epic-pill{% if prd.selected %} epic-pill--active{% endif %}" title="{{ prd.filename }}">
-                        {{ prd.filename }}
-                    </a>
-                    {% endfor %}
-                </div>
-                <button class="epic-nav epic-nav--right" id="epic-nav-right" aria-label="Next PRDs">&rarr;</button>
-            </div>
+            <nav class="prd-sidebar">
+                {% for prd in prds %}
+                <a href="/prds/{{ prd.filename }}" class="prd-sidebar-item{% if prd.selected %} prd-sidebar-item--active{% endif %}" title="{{ prd.filename }}">
+                    {{ prd.filename }}
+                </a>
+                {% endfor %}
+            </nav>
 
             <div class="prd-content-container">
                 {% if content.is_empty() %}

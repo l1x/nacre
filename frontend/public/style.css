@@ -1162,25 +1162,57 @@ main:has(.board) {
 /* PRDs Page */
 .prds-page {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     gap: 24px;
-    max-width: 900px;
-    margin: 0 auto;
 }
 
-.prds-page .epic-selector-wrapper {
-    max-width: 900px;
+.prd-sidebar {
+    width: 240px;
+    min-width: 240px;
+    height: calc(100vh - 80px);
+    overflow-y: auto;
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    display: flex;
+    flex-direction: column;
+    position: sticky;
+    top: 16px;
 }
 
-.prds-page .epic-pill {
-    min-width: 180px;
-    text-align: center;
+.prd-sidebar-item {
+    display: block;
+    padding: 10px 16px;
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: 0.85rem;
+    border-left: 2px solid transparent;
     overflow: hidden;
     text-overflow: ellipsis;
+    white-space: nowrap;
+    transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.prd-sidebar-item:hover {
+    background-color: var(--bg-card-hover);
+    color: var(--text-primary);
+}
+
+.prd-sidebar-item--active {
+    color: var(--accent);
+    border-left-color: var(--accent);
+    background-color: var(--bg-secondary);
+    font-weight: 500;
+}
+
+.prd-sidebar-item--active:hover {
+    color: var(--accent);
 }
 
 .prd-content-container {
+    flex: 1;
     min-height: 400px;
+    min-width: 0;
 }
 
 /* Scrollbar styling */
@@ -3215,7 +3247,7 @@ main:has(.board) {
     header,
     nav,
     footer,
-    .epic-selector-wrapper,
+    .prd-sidebar,
     .prd-toolbar,
     .prd-pdf-btn,
     .theme-select,
